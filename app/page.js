@@ -4,6 +4,7 @@ import Navbarbaby from "./componets/PaginaInicial/navbar";
 import Circulos from "./componets/PaginaInicial/circulos";
 import Not from "./componets/PaginaInicial/bannernews";
 import Contagem from "./componets/PaginaInicial/contagem";
+import Chat from './componets/Forum/Chat';
 
 const BabyCarePage = () => {
   return (
@@ -12,6 +13,7 @@ const BabyCarePage = () => {
       <Not />   
       <Circulos/>         
       <Contagem/>
+      <Chat />
       <Footerbaby />
     </div> 
   );

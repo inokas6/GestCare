@@ -1,4 +1,4 @@
-"use client"; // Necessário para usar useEffect no App Router
+"use client"; 
 
 import { useEffect, useState } from "react";
 import Link from "next/link";

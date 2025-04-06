@@ -11,9 +11,11 @@ const SignUp = () => {
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
-    password: ''
+    password: '',
+    foto_perfil: null
   });
 
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +26,25 @@ const SignUp = () => {
       [name]: value
     }));
   }
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Criar URL de preview
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      
+      // Converter para base64
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          foto_perfil: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -79,11 +100,16 @@ const SignUp = () => {
       console.log('Inserindo na tabela users...');
       const { error: insertError } = await supabase
         .from('users')
-        .insert({
-          id: authData.user.id,
-          nome: formData.nome,
-          email: formData.email
-        });
+        .insert([
+          {
+            id: authData.user.id,
+            nome: formData.nome,
+            email: formData.email,
+            foto_perfil: formData.foto_perfil,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ]);
 
       if (insertError) {
         console.error('Erro ao inserir usuário:', insertError);
@@ -125,15 +151,42 @@ const SignUp = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+              </div>
+              <label className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-gray-100">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </label>
+            </div>
+          </div>
+
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Nome</span>
+              <span className="label-text text-black">Nome</span>
             </label>
             <input
               type="text"
               name="nome"
               placeholder="Seu nome"
-              className="input input-bordered w-full"
+              className="input input-bordered w-full text-black"
               value={formData.nome}
               onChange={handleChange}
               required
@@ -142,13 +195,13 @@ const SignUp = () => {
 
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Email</span>
+              <span className="label-text text-black">Email</span>
             </label>
             <input
               type="email"
               name="email"
               placeholder="Digite seu email"
-              className="input input-bordered w-full"
+              className="input input-bordered w-full text-black"
               value={formData.email}
               onChange={handleChange}
               required
@@ -157,13 +210,13 @@ const SignUp = () => {
 
           <div className="form-control">
             <label className="label">
-              <span className="label-text">Senha</span>
+              <span className="label-text text-black">Senha</span>
             </label>
             <input
               type="password"
               name="password"
               placeholder="Digite sua senha"
-              className="input input-bordered w-full"
+              className="input input-bordered w-full text-black"
               value={formData.password}
               onChange={handleChange}
               required
@@ -187,6 +240,7 @@ const SignUp = () => {
           </Link>
         </div>
       </div>
+      
     </div>
   );
 };

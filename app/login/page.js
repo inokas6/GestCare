@@ -53,12 +53,12 @@ export default function Login() {
           <form className="card-body" onSubmit={handleLogin}>
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Email</span>
+                <span className="label-text text-black">Email</span>
               </label>
               <input 
                 type="email" 
                 placeholder="Digite seu email" 
-                className="input input-bordered" 
+                className="input input-bordered text-black" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 required 
@@ -67,12 +67,12 @@ export default function Login() {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text">Senha</span>
+                <span className="label-text text-black">Senha</span>
               </label>
               <input 
                 type="password" 
                 placeholder="Digite sua senha" 
-                className="input input-bordered" 
+                className="input input-bordered text-black" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
