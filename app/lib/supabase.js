@@ -13,10 +13,16 @@ export const forum = {
       .from('topicos')
       .select(`
         *,
-        users:nome,
-        categorias:nome,
-        respostas:respostas(count),
-        reacoes:reacoes(count)
+        users!inner (
+          id,
+          nome,
+          foto_perfil
+        ),
+        categorias!inner (
+          id,
+          nome
+        ),
+        respostas:respostas(count)
       `)
       .order('created_at', { ascending: false })
 
@@ -30,7 +36,6 @@ export const forum = {
       // Transformar os objetos count em números
       data.forEach(topico => {
         topico.respostas = topico.respostas?.[0]?.count || 0
-        topico.reacoes = topico.reacoes?.[0]?.count || 0
       })
     }
 

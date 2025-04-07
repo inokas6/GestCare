@@ -51,16 +51,34 @@ export default function TopicList() {
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                         <div className="flex items-center space-x-2">
+                            <img 
+                                src={topico.users?.foto_perfil || '/default-avatar.png'} 
+                                alt={topico.users?.nome}
+                                className="w-8 h-8 rounded-full"
+                            />
+                            <div>
+                                <span className="text-sm text-gray-500">
+                                    Por {topico.users?.nome}
+                                </span>
+                                <span className="text-sm text-gray-500 block">
+                                    {new Date(topico.created_at).toLocaleDateString('pt-PT', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex items-center space-x-4">
                             <span className="text-sm text-gray-500">
-                                Por {topico.users?.nome}
+                                {topico.respostas} {topico.respostas === 1 ? 'resposta' : 'respostas'}
                             </span>
-                            <span className="text-sm text-gray-500">
-                                em {new Date(topico.created_at).toLocaleDateString()}
+                            <span className="text-sm text-purple-600">
+                                {topico.categorias?.nome}
                             </span>
                         </div>
-                        <span className="text-sm text-purple-600">
-                            {topico.categorias?.nome}
-                        </span>
                     </div>
                 </div>
             ))}

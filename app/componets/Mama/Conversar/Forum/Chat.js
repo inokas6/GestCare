@@ -14,7 +14,7 @@ export default function Chat() {
     ]);
 
     return (
-        <div className="flex h-screen pt-16 bg-gray-50 font-sans">
+        <div className="flex h-screen bg-gray-50 font-sans">
             {/* Área principal do chat */}
             <div className="flex-1 flex flex-col">
                 {/* Cabeçalho */}

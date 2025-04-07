@@ -7,10 +7,14 @@ export default function ChatPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             <Navbar />
+            <div className="mt-3">
             <Sidebar />
+            
+            </div>
             <div className="pl-64 pt-16">
                 <Chat />
             </div>
+            
         </div>
     );
 }

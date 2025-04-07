@@ -23,7 +23,9 @@ export default function Page() {
                 <div className="pl-64">
                     <header className="bg-white flex justify-between items-center px-6 py-4 border-b sticky top-0 z-10">
                         <div className="flex items-center space-x-4">
-                            <Sidebar />
+                            <div className="mt-20">
+                                <Sidebar />
+                            </div>
                             <div className="relative">
                                 <input
                                     type="text"

@@ -2,9 +2,11 @@
 import { useState, useEffect } from 'react';
 import { forum, supabase } from '../../../../lib/supabase';
 import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function NewTopic({ onClose }) {
     const router = useRouter();
+    const supabase = createClientComponentClient();
     const [titulo, setTitulo] = useState('');
     const [conteudo, setConteudo] = useState('');
     const [categoriaId, setCategoriaId] = useState('');
@@ -33,8 +35,9 @@ export default function NewTopic({ onClose }) {
         setError(null);
 
         try {
-            const { data: user } = await supabase.auth.getUser();
-            if (!user) {
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            
+            if (authError || !user) {
                 throw new Error('Utilizador não autenticado');
             }
 
@@ -47,6 +50,12 @@ export default function NewTopic({ onClose }) {
 
             if (error) throw error;
 
+            // Limpar o formulário
+            setTitulo('');
+            setConteudo('');
+            setCategoriaId(categorias[0]?.id || '');
+
+            // Atualizar a lista de tópicos
             router.refresh();
             onClose();
         } catch (err) {
