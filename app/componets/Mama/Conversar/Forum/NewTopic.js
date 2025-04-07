@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { forum, supabase } from '../../../../lib/supabase';
+import { forum } from '../../../../../server/api/forum';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
@@ -66,12 +66,12 @@ export default function NewTopic({ onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-                <h2 className="text-2xl font-semibold mb-4">Novo Tópico</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-2xl mx-4">
+                <h2 className="text-xl sm:text-2xl font-semibold mb-4">Novo Tópico</h2>
                 
                 {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded mb-4 text-sm sm:text-base">
                         {error}
                     </div>
                 )}
@@ -85,7 +85,7 @@ export default function NewTopic({ onClose }) {
                             type="text"
                             value={titulo}
                             onChange={(e) => setTitulo(e.target.value)}
-                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 text-sm sm:text-base"
                             required
                         />
                     </div>
@@ -97,7 +97,7 @@ export default function NewTopic({ onClose }) {
                         <select
                             value={categoriaId}
                             onChange={(e) => setCategoriaId(e.target.value)}
-                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 text-sm sm:text-base"
                             required
                         >
                             {categorias.map((categoria) => (
@@ -115,24 +115,24 @@ export default function NewTopic({ onClose }) {
                         <textarea
                             value={conteudo}
                             onChange={(e) => setConteudo(e.target.value)}
-                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
-                            rows="6"
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 text-sm sm:text-base"
+                            rows="4"
                             required
                         />
                     </div>
 
-                    <div className="flex justify-end space-x-4">
+                    <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:text-gray-800 text-sm sm:text-base"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                            className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm sm:text-base"
                         >
                             {loading ? 'Criando...' : 'Criar Tópico'}
                         </button>

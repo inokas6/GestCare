@@ -8,13 +8,11 @@ export default function ChatPage() {
         <div className="min-h-screen bg-gray-50">
             <Navbar />
             <div className="mt-3">
-            <Sidebar />
-            
+                <Sidebar />
             </div>
-            <div className="pl-64 pt-16">
+            <div className="pl-0 sm:pl-48 lg:pl-64 pt-16">
                 <Chat />
             </div>
-            
         </div>
     );
 }

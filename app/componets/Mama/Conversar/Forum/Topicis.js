@@ -43,15 +43,15 @@ export default function Page() {
             case 'home':
                 return (
                     <>
-                        <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-                            <h2 className="text-2xl font-semibold mb-6">Bem-vindo ao Fórum</h2>
-                            <p className="text-gray-600">Explore tópicos, participe de discussões e conecte-se com outros usuários.</p>
+                        <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-4 sm:mb-8">
+                            <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Bem-vindo ao Fórum</h2>
+                            <p className="text-gray-600 text-sm sm:text-base">Explore tópicos, participe de discussões e conecte-se com outros usuários.</p>
                         </div>
-                        <div className="grid grid-cols-12 gap-6">
-                            <div className="col-span-9">
+                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 sm:gap-6">
+                            <div className="col-span-1 sm:col-span-9">
                                 <TopicList />
                             </div>
-                            <div className="col-span-3">
+                            <div className="col-span-1 sm:col-span-3">
                                 <TopUsers />
                             </div>
                         </div>
@@ -59,13 +59,13 @@ export default function Page() {
                 );
             case 'explore':
                 return (
-                    <div className="bg-white rounded-lg shadow-sm border p-6">
-                        <h2 className="text-2xl font-semibold mb-6">Explore Tópicos</h2>
-                        <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+                        <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Explore Tópicos</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                             {topics.map((topic, index) => (
                                 <button
                                     key={index}
-                                    className="flex items-center space-x-2 px-4 py-2 rounded-full text-sm hover:bg-gray-50 transition-colors border"
+                                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm hover:bg-gray-50 transition-colors border"
                                     style={{ color: topic.color }}
                                 >
                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: topic.color }}></span>
@@ -77,16 +77,16 @@ export default function Page() {
                 );
             case 'chat':
                 return (
-                    <div className="bg-white rounded-lg shadow-sm border p-6">
-                        <h2 className="text-2xl font-semibold mb-6">Chat</h2>
-                        <p className="text-gray-600">Área de chat em desenvolvimento...</p>
+                    <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+                        <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Chat</h2>
+                        <p className="text-gray-600 text-sm sm:text-base">Área de chat em desenvolvimento...</p>
                     </div>
                 );
             case 'qna':
                 return (
-                    <div className="bg-white rounded-lg shadow-sm border p-6">
-                        <h2 className="text-2xl font-semibold mb-6">Minhas Perguntas e Respostas</h2>
-                        <p className="text-gray-600">Suas perguntas e respostas aparecerão aqui.</p>
+                    <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+                        <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Minhas Perguntas e Respostas</h2>
+                        <p className="text-gray-600 text-sm sm:text-base">Suas perguntas e respostas aparecerão aqui.</p>
                     </div>
                 );
             default:
@@ -99,24 +99,24 @@ export default function Page() {
             <Navbar />
             <Sidebar />
             
-            <div className="pl-64">
-                <header className="bg-white flex justify-between items-center px-6 py-4 border-b sticky top-0 z-10">
-                    <h1 className="text-xl font-semibold text-purple-600">H-Forum</h1>
-                    <div className="flex items-center space-x-4">
-                        <div className="relative">
+            <div className="pl-0 sm:pl-48 lg:pl-64">
+                <header className="bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-6 py-3 sm:py-4 border-b sticky top-0 z-10 gap-3 sm:gap-0">
+                    <h1 className="text-lg sm:text-xl font-semibold text-purple-600">H-Forum</h1>
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-96">
                             <input
                                 type="text"
                                 placeholder="Search for Topics"
-                                className="w-96 px-4 py-2 bg-gray-100 rounded-lg focus:outline-none"
+                                className="w-full px-3 sm:px-4 py-2 bg-gray-100 rounded-lg focus:outline-none text-sm sm:text-base"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
-                            <svg className="w-5 h-5 absolute right-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 absolute right-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                         <button 
-                            className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                            className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm sm:text-base"
                             onClick={() => setIsNewTopicOpen(true)}
                         >
                             Start a New Topic
@@ -124,7 +124,7 @@ export default function Page() {
                     </div>
                 </header>
 
-                <main className="max-w-7xl mx-auto px-6 py-8">
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
                     {renderContent()}
                 </main>
             </div>

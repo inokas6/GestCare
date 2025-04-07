@@ -29,19 +29,19 @@ export default function ExplorePage() {
         <div className="min-h-screen bg-gray-50">
             <Navbar />
             <Sidebar />
-            <div className="pl-64">
-                <header className="bg-white flex justify-between items-center px-6 py-4 border-b sticky top-0 z-10">
-                    <h1 className="text-xl font-semibold text-purple-600">Explore Topics</h1>
+            <div className="pl-0 sm:pl-48 lg:pl-64">
+                <header className="bg-white flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b sticky top-0 z-10">
+                    <h1 className="text-lg sm:text-xl font-semibold text-purple-600">Explore Topics</h1>
                 </header>
 
-                <main className="max-w-7xl mx-auto px-6 py-8">
-                    <div className="bg-white rounded-lg shadow-sm border p-6">
-                        <h2 className="text-2xl font-semibold mb-6">Explore Tópicos</h2>
-                        <div className="grid grid-cols-4 gap-4">
+                <main className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+                    <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+                        <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Explore Tópicos</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                             {topics.map((topic, index) => (
                                 <button
                                     key={index}
-                                    className="flex items-center space-x-2 px-4 py-2 rounded-full text-sm hover:bg-gray-50 transition-colors border"
+                                    className="flex items-center space-x-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm hover:bg-gray-50 transition-colors border"
                                     style={{ color: topic.color }}
                                 >
                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: topic.color }}></span>
@@ -50,7 +50,6 @@ export default function ExplorePage() {
                             ))}
                         </div>
                     </div>
-                   
                 </main>
             </div>
         </div>

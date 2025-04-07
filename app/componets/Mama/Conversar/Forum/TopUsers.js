@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { forum } from '../../../../lib/supabase';
+import { forum } from '../../../../../server/api/forum';
 import Image from 'next/image';
 
 export default function TopUsers() {
@@ -24,16 +24,16 @@ export default function TopUsers() {
         fetchTopUsers();
     }, []);
 
-    if (loading) return <div className="text-center py-4">Carregando...</div>;
-    if (error) return <div className="text-red-500 text-center py-4">Erro: {error}</div>;
+    if (loading) return <div className="text-center py-3 sm:py-4 text-sm sm:text-base">Carregando...</div>;
+    if (error) return <div className="text-red-500 text-center py-3 sm:py-4 text-sm sm:text-base">Erro: {error}</div>;
 
     return (
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold mb-4">Utilizadores Mais Ativos</h3>
-            <div className="space-y-4">
+        <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Utilizadores Mais Ativos</h3>
+            <div className="space-y-3 sm:space-y-4">
                 {users.map((user) => (
-                    <div key={user.id} className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                    <div key={user.id} className="flex items-center space-x-2 sm:space-x-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-200">
                             {user.foto_perfil ? (
                                 <Image
                                     src={user.foto_perfil}
@@ -43,14 +43,14 @@ export default function TopUsers() {
                                     className="object-cover"
                                 />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm sm:text-base">
                                     {user.nome.charAt(0).toUpperCase()}
                                 </div>
                             )}
                         </div>
                         <div className="flex-1">
-                            <p className="font-medium text-gray-900">{user.nome}</p>
-                            <p className="text-sm text-gray-500">
+                            <p className="font-medium text-gray-900 text-sm sm:text-base">{user.nome}</p>
+                            <p className="text-xs sm:text-sm text-gray-500">
                                 {user.topicos} tópicos • {user.respostas} respostas
                             </p>
                         </div>
