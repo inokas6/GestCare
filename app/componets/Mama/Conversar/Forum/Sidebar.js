@@ -8,9 +8,9 @@ export default function Sidebar() {
     
     const menuItems = [
         { id: 1, nome: 'Início', path: '/Menu/Mama/Conversar' },
-        { id: 2, nome: 'Minhas Publicações', path: '/Menu/Mama/Conversar/minhas-publicacoes' },
-        { id: 3, nome: 'Favoritos', path: '/Menu/Mama/Conversar/favoritos' },
-        { id: 4, nome: 'Notificações', path: '/Menu/Mama/Conversar/notificacoes' }
+        { id: 2, nome: 'Chat', path: '/Menu/Mama/Conversar/chat' },
+        { id: 5, nome: 'Explorar', path: '/Menu/Mama/Conversar/explore' },
+        { id: 6, nome: 'QnA', path: '/Menu/Mama/Conversar/qna' },
     ];
 
     return (
