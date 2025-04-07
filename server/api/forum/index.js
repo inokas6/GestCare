@@ -2,7 +2,7 @@ import { getTopicos, createTopico } from './topicos';
 import { getRespostas, addResposta } from './respostas';
 import { getCategorias } from './categorias';
 import { addReacao } from './reacoes';
-import { getTopUsers } from './usuarios';
+import { getTopUsers } from './utilizadores';
 
 export const forum = {
   getTopicos,
