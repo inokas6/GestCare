@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { forum } from '../../lib/supabase';
+import { forum } from '../../../../lib/supabase';
 import Link from 'next/link';
 
 export default function TopicList() {

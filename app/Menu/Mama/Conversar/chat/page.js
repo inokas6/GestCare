@@ -1,7 +1,7 @@
 "use client";
-import Sidebar from '../../../../componets/Forum/Sidebar';
+import Sidebar from '../../../../componets/Mama/Conversar/Forum/Sidebar';
 import Navbar from '../../../../componets/Home/navbar_home';
-import Chat from '../../../../componets/Forum/Chat';
+import Chat from '../../../../componets/Mama/Conversar/Forum/Chat';
 
 export default function ChatPage() {
     return (

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { forum } from '../../lib/supabase';
+import { forum } from '../../../../lib/supabase';
 import Image from 'next/image';
 
 export default function TopUsers() {

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { forum } from '../../lib/supabase';
+import { forum } from '../../../../lib/supabase';
 
 export default function Comments({ topicId }) {
     const [respostas, setRespostas] = useState([]);

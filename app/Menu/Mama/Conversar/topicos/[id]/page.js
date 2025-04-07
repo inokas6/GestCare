@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { forum, supabase } from '../../../../../lib/supabase';
-import Comments from '../../../../../componets/Forum/Comments';
+import Comments from '../../../../../componets/Mama/Conversar/Forum/Comments';
 import { useParams } from 'next/navigation';
-import Sidebar from '../../../../../componets/Forum/Sidebar';
+import Sidebar from '../../../../../componets/Mama/Conversar/Forum/Sidebar';
 
 export default function TopicoPage() {
     const params = useParams();

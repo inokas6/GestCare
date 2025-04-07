@@ -1,5 +1,5 @@
 "use client";
-import Sidebar from '../../../../componets/Forum/Sidebar';
+import Sidebar from '../../../../componets/Mama/Conversar/Forum/Sidebar';
 import Navbar from '../../../../componets/Home/navbar_home';
 import { useState } from 'react';
 

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { forum, supabase } from '../../lib/supabase';
+import { forum, supabase } from '../../../../lib/supabase';
 import { useRouter } from 'next/navigation';
 
 export default function NewTopic({ onClose }) {
