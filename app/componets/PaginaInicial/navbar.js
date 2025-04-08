@@ -23,29 +23,29 @@ const navbar = () => {
           <ul
             tabIndex={0}
             className="menu menu-sm dropdown-content rounded-box z-[1] mt-3 w-52 p-2 shadow">
-            <li><a>Item 1</a></li>
+            <li><a>Início</a></li>
             <li>
-              <a>Parent</a>
+              <a>Serviços</a>
               <ul className="p-2 bg-neutral">
-                <li><a>Submenu 1</a></li>
-                <li><a>Submenu 2</a></li>
+                <li><a>Calculadoras</a></li>
+                <li><a>Fórum</a></li>
               </ul>
             </li>
-            <li><a>Item 3</a></li>
+            <li><a>Contactos</a></li>
           </ul>
         </div>
         <a className="btn btn-ghost text-xl">GestCare</a>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
-          <li><a>Item 1</a></li>
-          <li><a>Item 2</a></li>
-          <li><a>Item 3</a></li>
+          <li><a>Início</a></li>
+          <li><a>Serviços</a></li>
+          <li><a>Contactos</a></li>
         </ul>
       </div>
       <div className="navbar-end space-x-1 flex">
-      <Link href="/login" className="btn">Login</Link>
-      <Link href="/home" className="btn">Home</Link>
+      <Link href="/login" className="btn">Iniciar Sessão</Link>
+      <Link href="/home" className="btn">Página Inicial</Link>
       </div>
     </div>);
 };

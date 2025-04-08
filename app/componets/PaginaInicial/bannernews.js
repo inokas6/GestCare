@@ -7,10 +7,10 @@ const not = () => {
                 {/* Left section with pink background and text */}
                 <div className="bg-pink-200 p-6 md:w-1/3 flex flex-col justify-center items-center text-center">
                     <p className="text-gray-800 mb-6">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam eu magna finibus, consectetur neque in, mollis odio. Aliquam sapien mauris, vulputate ac ultrices sit amet, tempus vel nibh.
+                        Bem-vindo ao nosso espaço dedicado a futuros pais! Aqui encontrará informações valiosas, dicas úteis e uma comunidade acolhedora para partilhar a sua jornada da gravidez.
                     </p>
                     <button className="btn btn-warning btn-sm bg-yellow-100 hover:bg-yellow-200 text-gray-800 font-semibold normal-case">
-                        Increve-te Gratuitamente
+                        Inscreve-te Gratuitamente
                     </button>
                 </div>
 

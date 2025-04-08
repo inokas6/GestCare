@@ -9,15 +9,15 @@ const TamanhoEstimado = () => {
   // Dados de referência para tamanho e peso por semana
   const dadosReferencia = {
     1: { tamanho: '0.1', peso: '0', comparacao: 'Menor que um grão de arroz' },
-    2: { tamanho: '0.2', peso: '0', comparacao: 'Grão de papoula' },
-    3: { tamanho: '0.3', peso: '0', comparacao: 'Grão de gergelim' },
-    4: { tamanho: '0.4', peso: '0', comparacao: 'Semente de mamão' },
+    2: { tamanho: '0.2', peso: '0', comparacao: 'Grão de papoila' },
+    3: { tamanho: '0.3', peso: '0', comparacao: 'Grão de sésamo' },
+    4: { tamanho: '0.4', peso: '0', comparacao: 'Semente de papaia' },
     5: { tamanho: '0.5', peso: '0', comparacao: 'Semente de maçã' },
     6: { tamanho: '0.6', peso: '0', comparacao: 'Lentilha' },
     7: { tamanho: '1.3', peso: '0', comparacao: 'Mirtilo' },
     8: { tamanho: '1.6', peso: '1', comparacao: 'Feijão' },
     9: { tamanho: '2.3', peso: '2', comparacao: 'Uva' },
-    10: { tamanho: '3.1', peso: '4', comparacao: 'Morango' },
+    10: { tamanho: '3.1', peso: '4', comparacao: 'Morangueiro' },
     11: { tamanho: '4.1', peso: '7', comparacao: 'Figo' },
     12: { tamanho: '5.4', peso: '14', comparacao: 'Lima' },
     13: { tamanho: '7.4', peso: '23', comparacao: 'Limão' },
@@ -25,24 +25,24 @@ const TamanhoEstimado = () => {
     15: { tamanho: '10.1', peso: '70', comparacao: 'Maçã' },
     16: { tamanho: '11.6', peso: '100', comparacao: 'Abacate' },
     17: { tamanho: '13.0', peso: '140', comparacao: 'Pera' },
-    18: { tamanho: '14.2', peso: '190', comparacao: 'Pimentão' },
+    18: { tamanho: '14.2', peso: '190', comparacao: 'Pimento' },
     19: { tamanho: '15.3', peso: '240', comparacao: 'Manga' },
     20: { tamanho: '16.4', peso: '300', comparacao: 'Banana' },
     21: { tamanho: '26.7', peso: '360', comparacao: 'Cenoura' },
-    22: { tamanho: '27.8', peso: '430', comparacao: 'Berinjela' },
-    23: { tamanho: '28.9', peso: '501', comparacao: 'Mamão papaia' },
+    22: { tamanho: '27.8', peso: '430', comparacao: 'Beringela' },
+    23: { tamanho: '28.9', peso: '501', comparacao: 'Papaia' },
     24: { tamanho: '30.0', peso: '600', comparacao: 'Milho' },
     25: { tamanho: '34.6', peso: '660', comparacao: 'Couve-flor' },
     26: { tamanho: '35.6', peso: '760', comparacao: 'Alface' },
     27: { tamanho: '36.6', peso: '875', comparacao: 'Couve' },
-    28: { tamanho: '37.6', peso: '1000', comparacao: 'Repolho pequeno' },
-    29: { tamanho: '38.6', peso: '1150', comparacao: 'Abacaxi' },
+    28: { tamanho: '37.6', peso: '1000', comparacao: 'Couve pequena' },
+    29: { tamanho: '38.6', peso: '1150', comparacao: 'Ananás' },
     30: { tamanho: '39.9', peso: '1300', comparacao: 'Melão' },
     31: { tamanho: '41.1', peso: '1500', comparacao: 'Coco' },
     32: { tamanho: '42.4', peso: '1700', comparacao: 'Jaca pequena' },
     33: { tamanho: '43.7', peso: '1900', comparacao: 'Abóbora' },
     34: { tamanho: '45.0', peso: '2100', comparacao: 'Melancia pequena' },
-    35: { tamanho: '46.2', peso: '2400', comparacao: 'Repolho grande' },
+    35: { tamanho: '46.2', peso: '2400', comparacao: 'Couve grande' },
     36: { tamanho: '47.4', peso: '2600', comparacao: 'Melancia média' },
     37: { tamanho: '48.6', peso: '2800', comparacao: 'Jaca média' },
     38: { tamanho: '49.8', peso: '3100', comparacao: 'Melancia grande' },
@@ -66,7 +66,7 @@ const TamanhoEstimado = () => {
 
     let crescimentoAjustado = dadosSemana;
 
-    // Ajuste baseado na ultrassonografia, se disponível
+    // Ajuste baseado na ecografia, se disponível
     if (dataUltrassom && medidaFeto) {
       const medidaReal = parseFloat(medidaFeto);
       const medidaPadrao = parseFloat(dadosSemana.tamanho);
@@ -105,7 +105,7 @@ const TamanhoEstimado = () => {
       
       <div className="form-control">
         <label className="label">
-          <span className="label-text text-black">Data da última ultrassonografia (opcional)</span>
+          <span className="label-text text-black">Data da última ecografia (opcional)</span>
         </label>
         <input 
           type="date" 
@@ -117,7 +117,7 @@ const TamanhoEstimado = () => {
       
       <div className="form-control">
         <label className="label">
-          <span className="label-text text-black">Medida do feto na última ultrassonografia (cm)</span>
+          <span className="label-text text-black">Medida do feto na última ecografia (cm)</span>
         </label>
         <input 
           type="number" 
@@ -139,7 +139,7 @@ const TamanhoEstimado = () => {
       {resultado && (
         <div className="mt-6 p-4 bg-pink-50 rounded-lg">
           <h3 className="text-lg font-semibold text-black mb-3">
-            Seu bebê na {resultado.semana}ª semana:
+            O seu bebé na {resultado.semana}ª semana:
           </h3>
           <div className="space-y-3">
             <p className="text-black">
@@ -153,7 +153,7 @@ const TamanhoEstimado = () => {
             </p>
           </div>
           <div className="mt-4 text-sm text-black">
-            <p>💡 Estas medidas são aproximadas e podem variar de bebê para bebê.</p>
+            <p>💡 Estas medidas são aproximadas e podem variar de bebé para bebé.</p>
           </div>
         </div>
       )}

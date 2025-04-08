@@ -48,8 +48,8 @@ export default function Page() {
                 <div className="flex flex-row">
                     {/* Conteúdo principal com margem à esquerda para dar espaço à sidebar em desktop */}
                     <div className={`flex-1 ${isMobile ? 'ml-0 pl-4' : 'ml-48 lg:ml-64'}`}>
-                        <header className="bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-6 py-3 sm:py-4 border-b sticky top-16 z-10 gap-3 sm:gap-0">
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                        <header className="bg-white flex flex-col items-center px-4 sm:px-6 py-6 border-b sticky top-16 z-10">
+                            <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-3xl">
                                 <div className="relative w-full sm:w-96">
                                     <input
                                         type="text"

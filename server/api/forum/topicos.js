@@ -4,17 +4,22 @@ export async function getTopicos(categoriaId = null) {
   let query = supabase
     .from('topicos')
     .select(`
-      *,
-      users!inner (
+      id,
+      titulo,
+      conteudo,
+      created_at,
+      updated_at,
+      user_id,
+      categoria_id,
+      users:user_id (
         id,
         nome,
         foto_perfil
       ),
-      categorias!inner (
+      categorias:categoria_id (
         id,
         nome
-      ),
-      respostas:respostas(count)
+      )
     `)
     .order('created_at', { ascending: false });
 
@@ -23,13 +28,6 @@ export async function getTopicos(categoriaId = null) {
   }
 
   const { data, error } = await query;
-
-  if (data) {
-    data.forEach(topico => {
-      topico.respostas = topico.respostas?.[0]?.count || 0;
-    });
-  }
-
   return { data, error };
 }
 
@@ -44,6 +42,23 @@ export async function createTopico(titulo, conteudo, categoriaId, userId) {
         user_id: userId
       }
     ])
-    .select();
+    .select(`
+      id,
+      titulo,
+      conteudo,
+      created_at,
+      updated_at,
+      user_id,
+      categoria_id,
+      users:user_id (
+        id,
+        nome,
+        foto_perfil
+      ),
+      categorias:categoria_id (
+        id,
+        nome
+      )
+    `);
   return { data, error };
 } 

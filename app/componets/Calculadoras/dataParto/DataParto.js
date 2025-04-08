@@ -36,9 +36,9 @@ const DataParto = () => {
     const diasRestantes = diffDays % 7;
 
     setResultado({
-      dataParto: dataParto.toLocaleDateString('pt-BR'),
-      dataPartoMin: cicloIrregular ? dataPartoMin.toLocaleDateString('pt-BR') : null,
-      dataPartoMax: cicloIrregular ? dataPartoMax.toLocaleDateString('pt-BR') : null,
+      dataParto: dataParto.toLocaleDateString('pt-PT'),
+      dataPartoMin: cicloIrregular ? dataPartoMin.toLocaleDateString('pt-PT') : null,
+      dataPartoMax: cicloIrregular ? dataPartoMax.toLocaleDateString('pt-PT') : null,
       semanasGestacao,
       diasRestantes
     });
@@ -63,19 +63,19 @@ const DataParto = () => {
           className={`tab ${metodoCalculo === 'dum' ? 'tab-active bg-rose-400 text-white' : 'text-black'}`}
           onClick={() => setMetodoCalculo('dum')}
         >
-          Usar DUM
+          Utilizar DUM
         </a>
         <a 
           className={`tab ${metodoCalculo === 'concepcao' ? 'tab-active bg-rose-400 text-white' : 'text-black'}`}
           onClick={() => setMetodoCalculo('concepcao')}
         >
-          Usar data de concepção
+          Utilizar data de conceção
         </a>
         <a 
           className={`tab ${metodoCalculo === 'ultrassom' ? 'tab-active bg-rose-400 text-white' : 'text-black'}`}
           onClick={() => setMetodoCalculo('ultrassom')}
         >
-          Usar data do ultrassom
+          Utilizar data da ecografia
         </a>
       </div>
       
@@ -116,7 +116,7 @@ const DataParto = () => {
             </p>
           </div>
           <div className="mt-4 text-sm text-black">
-            <p>💡 A data provável do parto é uma estimativa. O bebê pode nascer naturalmente entre 37 e 42 semanas de gestação.</p>
+            <p>💡 A data provável do parto é uma estimativa. O bebé pode nascer naturalmente entre 37 e 42 semanas de gestação.</p>
           </div>
         </div>
       )}

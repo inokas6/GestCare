@@ -41,15 +41,12 @@ export default function TopicList() {
                             <p className="text-gray-600 mt-2 text-sm sm:text-base line-clamp-2">{topico.conteudo}</p>
                         </div>
                         <div className="flex items-center space-x-4 text-sm">
-                            <span className="text-gray-500">
-                                {topico.respostas} respostas
-                            </span>
-                            <span className="text-gray-500">
-                                {topico.reacoes} reações
+                            <span className="text-purple-600">
+                                {topico.categorias?.nome}
                             </span>
                         </div>
                     </div>
-                    <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                    <div className="mt-4 flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             <img 
                                 src={topico.users?.foto_perfil || '/default-avatar.png'} 
@@ -70,14 +67,6 @@ export default function TopicList() {
                                     })}
                                 </span>
                             </div>
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm">
-                            <span className="text-gray-500">
-                                {topico.respostas} {topico.respostas === 1 ? 'resposta' : 'respostas'}
-                            </span>
-                            <span className="text-purple-600">
-                                {topico.categorias?.nome}
-                            </span>
                         </div>
                     </div>
                 </div>

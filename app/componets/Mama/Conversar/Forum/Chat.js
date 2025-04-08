@@ -18,7 +18,7 @@ export default function Chat() {
     // Referência para o canal de mensagens
     const messagesChannelRef = useRef(null);
 
-    // Verificar a sessão do usuário
+    // Verificar a sessão do utilizador
     useEffect(() => {
         const getSession = async () => {
             try {
@@ -143,7 +143,7 @@ export default function Chat() {
         }
     };
 
-    // Função para buscar usuários online
+    // Função para buscar utilizadores online
     const fetchOnlineUsers = async () => {
         try {
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -159,7 +159,7 @@ export default function Chat() {
                 setOnlineUsers(data);
             }
         } catch (error) {
-            console.error('Erro ao buscar usuários online:', error);
+            console.error('Erro ao procurar utilizadores online:', error);
         }
     };
 
@@ -262,38 +262,40 @@ export default function Chat() {
     }, [messages]);
 
     return (
-        <div className="flex flex-col sm:flex-row h-screen bg-gray-50 font-sans">
+        <div className="flex flex-col sm:flex-row h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
             {isLoading ? (
                 <div className="flex-1 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                 </div>
             ) : (
                 <>
                     {/* Área principal do chat */}
                     <div className="flex-1 flex flex-col">
                         {/* Cabeçalho */}
-                        <div className="bg-white px-4 sm:px-6 py-3 sm:py-4 border-b shadow-sm">
+                        <div className="bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 shadow-sm">
                             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 flex justify-between items-center">
                                 Chat
-                                <button 
-                                    onClick={fetchMessages}
-                                    className="text-purple-600 hover:text-purple-800 text-sm font-medium"
-                                >
-                                    Atualizar
-                                </button>
-                                <span className="text-purple-600 font-bold text-sm sm:text-base">
-                                    {onlineUsers.length} online
-                                </span>
+                                <div className="flex items-center gap-4">
+                                    <button 
+                                        onClick={fetchMessages}
+                                        className="text-primary hover:text-primary-dark text-sm font-medium transition-colors"
+                                    >
+                                        Atualizar
+                                    </button>
+                                    <span className="text-primary font-bold text-sm sm:text-base bg-primary/10 px-3 py-1 rounded-full">
+                                        {onlineUsers.length} online
+                                    </span>
+                                </div>
                             </h2>
                         </div>
 
                         {/* Área de mensagens */}
                         <div className="flex-1 px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto">
                             {error && (
-                                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4 flex items-center justify-between">
                                     {error}
                                     <button 
-                                        className="ml-4 text-red-700 font-bold"
+                                        className="text-red-700 font-bold hover:text-red-800 transition-colors"
                                         onClick={() => setError(null)}
                                     >
                                         X
@@ -301,15 +303,15 @@ export default function Chat() {
                                 </div>
                             )}
                             {messages.length === 0 ? (
-                                <p className="text-gray-400 italic text-sm sm:text-base">Nenhuma mensagem ainda...</p>
+                                <p className="text-gray-400 italic text-sm sm:text-base text-center py-8">Nenhuma mensagem ainda...</p>
                             ) : (
                                 <div className="space-y-4">
                                     {messages.map((message) => (
-                                        <div key={message.id} className="flex items-start space-x-3">
-                                            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                                        <div key={message.id} className="flex items-start space-x-3 group">
+                                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 ring-2 ring-white">
                                                 <img 
                                                     src={message.user?.foto_perfil || '/default-avatar.png'} 
-                                                    alt={message.user?.nome || 'Usuário'}
+                                                    alt={message.user?.nome || 'Utilizador'}
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => {
                                                         e.target.onerror = null;
@@ -319,12 +321,12 @@ export default function Chat() {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center space-x-2">
-                                                    <span className="font-medium text-purple-600">{message.user?.nome || 'Usuário'}</span>
+                                                    <span className="font-medium text-primary">{message.user?.nome || 'Usuário'}</span>
                                                     <span className="text-xs text-gray-400">
                                                         {new Date(message.created_at).toLocaleString()}
                                                     </span>
                                                 </div>
-                                                <p className="text-gray-700 mt-1">{message.conteudo}</p>
+                                                <p className="text-gray-700 mt-1 bg-white/50 backdrop-blur-sm p-3 rounded-lg shadow-sm">{message.conteudo}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -334,8 +336,8 @@ export default function Chat() {
                         </div>
 
                         {/* Campo de entrada */}
-                        <form onSubmit={handleSendMessage} className="bg-white px-4 sm:px-6 py-3 sm:py-4 border-t">
-                            <div className="flex items-center rounded-xl border bg-white focus-within:ring-2 focus-within:ring-purple-500 transition overflow-hidden">
+                        <form onSubmit={handleSendMessage} className="bg-white/80 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200">
+                            <div className="flex items-center rounded-xl border border-gray-200 bg-white focus-within:ring-2 focus-within:ring-primary transition overflow-hidden shadow-sm">
                                 <input
                                     type="text"
                                     value={messageInput}
@@ -346,7 +348,7 @@ export default function Chat() {
                                 />
                                 <button 
                                     type="submit"
-                                    className="bg-purple-600 hover:bg-purple-700 text-white px-3 sm:px-4 py-2 sm:py-3 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="bg-primary hover:bg-primary-dark text-white px-3 sm:px-4 py-2 sm:py-3 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled={!session?.user || !messageInput.trim()}
                                 >
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -359,18 +361,18 @@ export default function Chat() {
                     </div>
 
                     {/* Barra lateral direita */}
-                    <div className="w-full sm:w-72 bg-white border-l px-4 sm:px-6 py-4 sm:py-6 shadow-inner">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Usuários Online</h3>
+                    <div className="w-full sm:w-72 bg-white/80 backdrop-blur-sm border-l border-gray-200 px-4 sm:px-6 py-4 sm:py-6 shadow-inner">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Utilizadores Online</h3>
                         <div className="space-y-2 sm:space-y-3">
                             {onlineUsers.length === 0 ? (
-                                <p className="text-gray-400 italic text-sm">Nenhum usuário online</p>
+                                <p className="text-gray-400 italic text-sm text-center py-4">Nenhum utilizador online</p>
                             ) : (
                                 onlineUsers.map(user => (
-                                    <div key={user.id} className="flex items-center gap-2 sm:gap-3">
-                                        <div className="w-7 h-7 sm:w-9 sm:h-9 overflow-hidden rounded-full bg-gray-200">
+                                    <div key={user.id} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 overflow-hidden rounded-full bg-gray-200 ring-2 ring-white">
                                             <img 
                                                 src={user.foto_perfil || '/default-avatar.png'} 
-                                                alt={user.nome || 'Usuário'}
+                                                alt={user.nome || 'Utilizador'}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
@@ -378,7 +380,7 @@ export default function Chat() {
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-sm sm:text-base text-gray-700">{user.nome || 'Usuário'}</span>
+                                        <span className="text-sm sm:text-base text-gray-700 font-medium">{user.nome || 'Utilizador'}</span>
                                     </div>
                                 ))
                             )}

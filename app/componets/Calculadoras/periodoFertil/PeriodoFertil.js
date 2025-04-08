@@ -25,9 +25,9 @@ const PeriodoFertil = () => {
     ovulacao.setDate(dataUltimaMenstruacao.getDate() + (ciclo - 14));
 
     setResultado({
-      inicioFertil: inicioFertil.toLocaleDateString('pt-BR'),
-      fimFertil: fimFertil.toLocaleDateString('pt-BR'),
-      ovulacao: ovulacao.toLocaleDateString('pt-BR')
+      inicioFertil: inicioFertil.toLocaleDateString('pt-PT'),
+      fimFertil: fimFertil.toLocaleDateString('pt-PT'),
+      ovulacao: ovulacao.toLocaleDateString('pt-PT')
     });
   };
 
@@ -83,7 +83,7 @@ const PeriodoFertil = () => {
             </p>
           </div>
           <div className="mt-4 text-sm text-black">
-            <p>💡 Estas são as datas mais prováveis para engravidar. Para aumentar as chances, considere ter relações durante todo o período fértil.</p>
+            <p>💡 Estas são as datas mais prováveis para engravidar. Para aumentar as probabilidades, considere ter relações durante todo o período fértil.</p>
           </div>
         </div>
       )}

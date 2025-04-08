@@ -240,7 +240,7 @@ const Perfil = () => {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-pink-600">Meu Perfil</h1>
-            <button onClick={handleLogout} className="btn btn-outline btn-error">
+            <button onClick={handleLogout} className="btn btn-outline btn-error hover:text-white">
               Sair
             </button>
           </div>
@@ -351,14 +351,14 @@ const Perfil = () => {
                   <button
                     type="button"
                     onClick={() => setEditMode(true)}
-                    className="btn btn-primary bg-pink-500 hover:bg-pink-600"
+                    className="btn btn-outline border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-white"
                   >
                     Editar Perfil
                   </button>
                   <button
                     type="button"
                     onClick={handleDelete}
-                    className="btn btn-error"
+                    className="btn btn-outline border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-white"
                   >
                     Excluir Conta
                   </button>

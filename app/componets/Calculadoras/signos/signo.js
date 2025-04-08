@@ -8,12 +8,12 @@ const SignCalculator = () => {
 
   const signs = [
     { 
-      name: 'Áries', 
+      name: 'Carneiro', 
       start: [3, 21], 
       end: [4, 19],
       element: 'Fogo',
       characteristics: ['Corajoso', 'Determinado', 'Impulsivo', 'Energético'],
-      compatibility: ['Leão', 'Sagitário', 'Gêmeos', 'Aquário']
+      compatibility: ['Leão', 'Sagitário', 'Gémeos', 'Aquário']
     },
     { 
       name: 'Touro', 
@@ -21,18 +21,18 @@ const SignCalculator = () => {
       end: [5, 20],
       element: 'Terra',
       characteristics: ['Persistente', 'Prático', 'Dedicado', 'Confiável'],
-      compatibility: ['Virgem', 'Capricórnio', 'Câncer', 'Peixes']
+      compatibility: ['Virgem', 'Capricórnio', 'Caranguejo', 'Peixes']
     },
     { 
-      name: 'Gêmeos', 
+      name: 'Gémeos', 
       start: [5, 21], 
       end: [6, 20],
       element: 'Ar',
       characteristics: ['Versátil', 'Comunicativo', 'Curioso', 'Adaptável'],
-      compatibility: ['Libra', 'Aquário', 'Áries', 'Leão']
+      compatibility: ['Balança', 'Aquário', 'Carneiro', 'Leão']
     },
     { 
-      name: 'Câncer', 
+      name: 'Caranguejo', 
       start: [6, 21], 
       end: [7, 22],
       element: 'Água',
@@ -45,23 +45,23 @@ const SignCalculator = () => {
       end: [8, 22],
       element: 'Fogo',
       characteristics: ['Criativo', 'Generoso', 'Carismático', 'Líder'],
-      compatibility: ['Áries', 'Sagitário', 'Libra', 'Gêmeos']
+      compatibility: ['Carneiro', 'Sagitário', 'Balança', 'Gémeos']
     },
     { 
       name: 'Virgem', 
       start: [8, 23], 
       end: [9, 22],
       element: 'Terra',
-      characteristics: ['Analítico', 'Prestativo', 'Perfeccionista', 'Organizado'],
-      compatibility: ['Touro', 'Capricórnio', 'Câncer', 'Escorpião']
+      characteristics: ['Analítico', 'Prestável', 'Perfeccionista', 'Organizado'],
+      compatibility: ['Touro', 'Capricórnio', 'Caranguejo', 'Escorpião']
     },
     { 
-      name: 'Libra', 
+      name: 'Balança', 
       start: [9, 23], 
       end: [10, 22],
       element: 'Ar',
       characteristics: ['Diplomático', 'Justo', 'Sociável', 'Harmonioso'],
-      compatibility: ['Gêmeos', 'Aquário', 'Leão', 'Sagitário']
+      compatibility: ['Gémeos', 'Aquário', 'Leão', 'Sagitário']
     },
     { 
       name: 'Escorpião', 
@@ -69,7 +69,7 @@ const SignCalculator = () => {
       end: [11, 21],
       element: 'Água',
       characteristics: ['Intenso', 'Determinado', 'Misterioso', 'Perspicaz'],
-      compatibility: ['Câncer', 'Peixes', 'Virgem', 'Capricórnio']
+      compatibility: ['Caranguejo', 'Peixes', 'Virgem', 'Capricórnio']
     },
     { 
       name: 'Sagitário', 
@@ -77,7 +77,7 @@ const SignCalculator = () => {
       end: [12, 21],
       element: 'Fogo',
       characteristics: ['Otimista', 'Aventureiro', 'Honesto', 'Filosófico'],
-      compatibility: ['Áries', 'Leão', 'Libra', 'Aquário']
+      compatibility: ['Carneiro', 'Leão', 'Balança', 'Aquário']
     },
     { 
       name: 'Capricórnio', 
@@ -93,7 +93,7 @@ const SignCalculator = () => {
       end: [2, 18],
       element: 'Ar',
       characteristics: ['Inovador', 'Humanitário', 'Independente', 'Original'],
-      compatibility: ['Gêmeos', 'Libra', 'Sagitário', 'Áries']
+      compatibility: ['Gémeos', 'Balança', 'Sagitário', 'Carneiro']
     },
     { 
       name: 'Peixes', 
@@ -101,13 +101,13 @@ const SignCalculator = () => {
       end: [3, 20],
       element: 'Água',
       characteristics: ['Intuitivo', 'Compassivo', 'Artístico', 'Sonhador'],
-      compatibility: ['Câncer', 'Escorpião', 'Touro', 'Capricórnio']
+      compatibility: ['Caranguejo', 'Escorpião', 'Touro', 'Capricórnio']
     }
   ];
 
   const calculateSign = () => {
     if (!birthDate) {
-      alert('Por favor, insira uma data de nascimento.');
+      alert('Por favor, introduza uma data de nascimento.');
       return;
     }
 
@@ -130,7 +130,7 @@ const SignCalculator = () => {
     if (sign) {
       setResult(sign);
     } else {
-      alert('Não foi possível determinar o signo. Verifique a data inserida.');
+      alert('Não foi possível determinar o signo. Verifique a data introduzida.');
     }
   };
 
@@ -160,7 +160,7 @@ const SignCalculator = () => {
 
       <div className="form-control">
         <label className="label">
-          <span className="label-text text-black">Horário de Nascimento (opcional)</span>
+          <span className="label-text text-black">Hora de Nascimento (opcional)</span>
         </label>
         <input
           type="time"
@@ -235,8 +235,8 @@ const SignCalculator = () => {
               <div className="mt-4 p-4 bg-white rounded border border-pink-200">
                 <h4 className="text-lg font-medium text-black mb-2">Mapa Astral:</h4>
                 <p className="text-black">
-                  Para um mapa astral completo, é necessário o horário exato de nascimento.
-                  {!birthTime && ' Por favor, adicione o horário de nascimento.'}
+                  Para um mapa astral completo, é necessária a hora exata de nascimento.
+                  {!birthTime && ' Por favor, adicione a hora de nascimento.'}
                 </p>
               </div>
             )}
