@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -8,14 +8,15 @@ export default function Chat() {
     const supabase = createClientComponentClient();
     const [session, setSession] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [onlineUtilizadores, setOnlineUtilizadores] = useState([]);
+    const [onlineUsers, setOnlineUsers] = useState([]);
     const [messageInput, setMessageInput] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [chatTopicId, setChatTopicId] = useState(null);
     
-    // UUID constante para a categoria geral
-    const CATEGORIA_GERAL_UUID = '00000000-0000-0000-0000-000000000001';
+    // Referência para rastrear se já carregamos mensagens
+    const messagesLoaded = useRef(false);
+    // Referência para o canal de mensagens
+    const messagesChannelRef = useRef(null);
 
     // Verificar a sessão do usuário
     useEffect(() => {
@@ -31,10 +32,6 @@ export default function Chat() {
             } catch (error) {
                 console.error('Erro ao obter sessão:', error);
                 setError('Erro ao verificar autenticação');
-            } finally {
-                if (session === null) {
-                    setIsLoading(false);
-                }
             }
         };
 
@@ -57,10 +54,10 @@ export default function Chat() {
         };
     }, [supabase, router]);
 
-    const fetchMessages = async (topicId) => {
-        if (!topicId) return;
-
+    // Função para buscar mensagens
+    const fetchMessages = async () => {
         try {
+            console.log('Buscando mensagens do chat...');
             const { data, error } = await supabase
                 .from('respostas')
                 .select(`
@@ -73,13 +70,17 @@ export default function Chat() {
                         foto_perfil
                     )
                 `)
-                .eq('topico_id', topicId)
                 .order('created_at', { ascending: true });
 
-            if (error) throw error;
+            if (error) {
+                console.error('Erro ao buscar mensagens:', error);
+                throw error;
+            }
             
-            if (data) {
+            if (data && Array.isArray(data)) {
+                console.log(`Carregadas ${data.length} mensagens`);
                 setMessages(data);
+                messagesLoaded.current = true;
             }
         } catch (error) {
             console.error('Erro ao buscar mensagens:', error);
@@ -87,153 +88,27 @@ export default function Chat() {
         }
     };
 
-    // Inicializar o chat quando a sessão estiver disponível
-    useEffect(() => {
-        let messageInterval;
-        let onlineInterval;
-
-        const initializeChat = async () => {
-            if (!session?.user) return;
-
-            try {
-                console.log('Iniciando inicialização do chat...');
-                
-                // Verificar se a categoria existe ou criar
-                const { data: categoryExists, error: checkCategoryError } = await supabase
-                    .from('categorias')
-                    .select('id')
-                    .eq('id', CATEGORIA_GERAL_UUID)
-                    .maybeSingle();
-                
-                if (checkCategoryError) {
-                    console.error('Erro ao verificar categoria:', checkCategoryError);
-                }
-                
-                // Se não existir, criar
-                if (!categoryExists) {
-                    console.log('Criando categoria geral...');
-                    const { error: createCategoryError } = await supabase
-                        .from('categorias')
-                        .insert([
-                            {
-                                id: CATEGORIA_GERAL_UUID,
-                                nome: 'Geral'
-                            }
-                        ]);
-                    
-                    if (createCategoryError) {
-                        console.error('Erro ao criar categoria:', createCategoryError);
-                    }
-                }
-                
-                // Buscar ou criar categoria de chat global
-                const { data: existingCategory, error: categoryError } = await supabase
-                    .from('categorias')
-                    .select('id')
-                    .eq('nome', 'Chat Global')
-                    .maybeSingle();
-
-                console.log('Busca por categoria existente:', { existingCategory, categoryError });
-
-                let categoryId = null;
-                
-                if (!existingCategory) {
-                    console.log('Criando nova categoria de chat...');
-                    
-                    const { data: newCategory, error: createError } = await supabase
-                        .from('categorias')
-                        .insert([
-                            {
-                                nome: 'Chat Global'
-                            }
-                        ])
-                        .select();
-
-                    console.log('Resultado da criação da categoria:', { newCategory, createError });
-
-                    if (createError) {
-                        console.error('Erro ao criar categoria:', createError);
-                        throw createError;
-                    }
-                    
-                    categoryId = newCategory[0]?.id;
-                } else {
-                    categoryId = existingCategory.id;
-                }
-
-                if (!categoryId) {
-                    throw new Error('Não foi possível obter o ID da categoria');
-                }
-
-                console.log('ID da categoria definido:', categoryId);
-                setChatTopicId(categoryId);
-                
-                // Atualizar perfil do usuário se necessário
-                const { data: userProfile, error: userError } = await supabase
-                    .from('users')
-                    .select('id, nome, foto_perfil')
-                    .eq('id', session.user.id)
-                    .maybeSingle();
-                
-                if (!userProfile) {
-                    console.log('Criando/atualizando perfil do usuário...');
-                    await supabase
-                        .from('users')
-                        .upsert({
-                            id: session.user.id,
-                            nome: session.user.email.split('@')[0],
-                            email: session.user.email,
-                            updated_at: new Date().toISOString()
-                        });
-                }
-                
-                // Configurar real-time listeners
-                const messagesChannel = supabase
-                    .channel('messages')
-                    .on('postgres_changes', 
-                        { event: 'INSERT', schema: 'public', table: 'respostas', filter: `topico_id=eq.${categoryId}` },
-                        (payload) => {
-                            fetchMessages(categoryId);
-                        }
-                    )
-                    .subscribe();
-                
-                await fetchMessages(categoryId);
-                await fetchOnlineUtilizadores();
-                
-                // Atualizar online status e usuários
-                messageInterval = setInterval(() => fetchMessages(categoryId), 5000);
-                onlineInterval = setInterval(() => {
-                    updateOnlineStatus();
-                    fetchOnlineUtilizadores();
-                }, 10000);
-
-                // Atualiza status online inicial
-                await updateOnlineStatus();
-                setIsLoading(false);
-
-                return () => {
-                    clearInterval(messageInterval);
-                    clearInterval(onlineInterval);
-                    supabase.removeChannel(messagesChannel);
-                };
-            } catch (error) {
-                console.error('Erro detalhado na inicialização do chat:', error);
-                setError(`Erro ao inicializar chat: ${error.message || 'Erro desconhecido'}`);
-                setIsLoading(false);
-            }
-        };
-
-        if (session?.user) {
-            initializeChat();
+    // Configurar canal do Supabase para ouvir novas mensagens
+    const setupMessagesChannel = () => {
+        if (messagesChannelRef.current) {
+            supabase.removeChannel(messagesChannelRef.current);
         }
-        
-        return () => {
-            clearInterval(messageInterval);
-            clearInterval(onlineInterval);
-        };
-    }, [session, supabase]);
 
+        messagesChannelRef.current = supabase
+            .channel('messages')
+            .on('postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'respostas' },
+                (payload) => {
+                    console.log('Nova mensagem recebida via canal:', payload);
+                    fetchMessages();
+                }
+            )
+            .subscribe((status) => {
+                console.log('Status do canal de mensagens:', status);
+            });
+    };
+
+    // Função para atualizar status online
     const updateOnlineStatus = async () => {
         if (!session?.user) return;
 
@@ -244,7 +119,7 @@ export default function Chat() {
                 .eq('id', session.user.id);
 
             if (error) {
-                console.error('Erro ao atualizar status online (detalhes):', error);
+                console.error('Erro ao atualizar status online:', error);
                 // Tentar UPSERT se o UPDATE falhar
                 if (error.code === 'PGRST116') {
                     const { error: upsertError } = await supabase
@@ -268,7 +143,8 @@ export default function Chat() {
         }
     };
 
-    const fetchOnlineUtilizadores = async () => {
+    // Função para buscar usuários online
+    const fetchOnlineUsers = async () => {
         try {
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
             
@@ -280,23 +156,73 @@ export default function Chat() {
             if (error) throw error;
             
             if (data && Array.isArray(data)) {
-                setOnlineUtilizadores(data);
+                setOnlineUsers(data);
             }
         } catch (error) {
-            console.error('Erro ao buscar utilizadores online:', error);
+            console.error('Erro ao buscar usuários online:', error);
         }
     };
 
+    // Inicializar o chat quando a sessão estiver disponível
+    useEffect(() => {
+        if (!session?.user) return;
+
+        let messageInterval;
+        let onlineInterval;
+
+        const initializeChat = async () => {
+            try {
+                console.log('Iniciando inicialização do chat...');
+                setIsLoading(true);
+                
+                // Configurar canal para real-time updates
+                setupMessagesChannel();
+                
+                // Buscar mensagens iniciais
+                await fetchMessages();
+                await fetchOnlineUsers();
+                
+                // Configurar intervalos para atualizações
+                messageInterval = setInterval(fetchMessages, 30000); // A cada 30 segundos
+                onlineInterval = setInterval(() => {
+                    updateOnlineStatus();
+                    fetchOnlineUsers();
+                }, 10000);
+
+                // Atualiza status online inicial
+                await updateOnlineStatus();
+                setIsLoading(false);
+            } catch (error) {
+                console.error('Erro detalhado na inicialização do chat:', error);
+                setError(`Erro ao inicializar chat: ${error.message || 'Erro desconhecido'}`);
+                setIsLoading(false);
+            }
+        };
+
+        initializeChat();
+        
+        return () => {
+            // Limpar intervalos quando o componente for desmontado
+            clearInterval(messageInterval);
+            clearInterval(onlineInterval);
+            
+            // Remover o canal de mensagens
+            if (messagesChannelRef.current) {
+                supabase.removeChannel(messagesChannelRef.current);
+                messagesChannelRef.current = null;
+            }
+        };
+    }, [session, supabase]);
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!messageInput.trim() || !session?.user || !chatTopicId) return;
+        if (!messageInput.trim() || !session?.user) return;
 
         try {
             setError(null);
             console.log('Enviando mensagem:', {
                 conteudo: messageInput,
-                user_id: session.user.id,
-                topico_id: chatTopicId
+                user_id: session.user.id
             });
 
             const { data, error } = await supabase
@@ -304,9 +230,7 @@ export default function Chat() {
                 .insert([
                     {
                         conteudo: messageInput,
-                        user_id: session.user.id,
-                        topico_id: chatTopicId,
-                        created_at: new Date().toISOString()
+                        user_id: session.user.id
                     }
                 ])
                 .select();
@@ -318,12 +242,24 @@ export default function Chat() {
 
             console.log('Mensagem enviada com sucesso:', data);
             setMessageInput('');
-            await fetchMessages(chatTopicId);
+            
+            // Não precisamos chamar fetchMessages aqui pois o canal real-time deve atualizar
+            // mas vamos fazer isso por garantia
+            await fetchMessages();
         } catch (error) {
             console.error('Erro ao enviar mensagem:', error);
             setError(`Erro ao enviar mensagem: ${error.message || 'Erro desconhecido'}`);
         }
     };
+
+    // Efeito para rolar para o final quando novas mensagens chegarem
+    const messagesEndRef = useRef(null);
+    
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages]);
 
     return (
         <div className="flex flex-col sm:flex-row h-screen bg-gray-50 font-sans">
@@ -339,8 +275,14 @@ export default function Chat() {
                         <div className="bg-white px-4 sm:px-6 py-3 sm:py-4 border-b shadow-sm">
                             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 flex justify-between items-center">
                                 Chat
+                                <button 
+                                    onClick={fetchMessages}
+                                    className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                                >
+                                    Atualizar
+                                </button>
                                 <span className="text-purple-600 font-bold text-sm sm:text-base">
-                                    {onlineUtilizadores.length} online
+                                    {onlineUsers.length} online
                                 </span>
                             </h2>
                         </div>
@@ -350,6 +292,12 @@ export default function Chat() {
                             {error && (
                                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
                                     {error}
+                                    <button 
+                                        className="ml-4 text-red-700 font-bold"
+                                        onClick={() => setError(null)}
+                                    >
+                                        X
+                                    </button>
                                 </div>
                             )}
                             {messages.length === 0 ? (
@@ -380,6 +328,7 @@ export default function Chat() {
                                             </div>
                                         </div>
                                     ))}
+                                    <div ref={messagesEndRef} />
                                 </div>
                             )}
                         </div>
@@ -411,17 +360,17 @@ export default function Chat() {
 
                     {/* Barra lateral direita */}
                     <div className="w-full sm:w-72 bg-white border-l px-4 sm:px-6 py-4 sm:py-6 shadow-inner">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Utilizadores Online</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Usuários Online</h3>
                         <div className="space-y-2 sm:space-y-3">
-                            {onlineUtilizadores.length === 0 ? (
-                                <p className="text-gray-400 italic text-sm">Nenhum utilizador online</p>
+                            {onlineUsers.length === 0 ? (
+                                <p className="text-gray-400 italic text-sm">Nenhum usuário online</p>
                             ) : (
-                                onlineUtilizadores.map(utilizador => (
-                                    <div key={utilizador.id} className="flex items-center gap-2 sm:gap-3">
+                                onlineUsers.map(user => (
+                                    <div key={user.id} className="flex items-center gap-2 sm:gap-3">
                                         <div className="w-7 h-7 sm:w-9 sm:h-9 overflow-hidden rounded-full bg-gray-200">
                                             <img 
-                                                src={utilizador.foto_perfil || '/default-avatar.png'} 
-                                                alt={utilizador.nome || 'Usuário'}
+                                                src={user.foto_perfil || '/default-avatar.png'} 
+                                                alt={user.nome || 'Usuário'}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
@@ -429,7 +378,7 @@ export default function Chat() {
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-sm sm:text-base text-gray-700">{utilizador.nome || 'Usuário'}</span>
+                                        <span className="text-sm sm:text-base text-gray-700">{user.nome || 'Usuário'}</span>
                                     </div>
                                 ))
                             )}
