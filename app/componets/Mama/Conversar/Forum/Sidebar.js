@@ -10,9 +10,9 @@ export default function Sidebar() {
     
     const menuItems = [
         { id: 1, nome: 'HOME', path: '/Menu/Mama/Conversar' },
-        { id: 2, nome: 'EXPLORE TOPICS', path: '/Menu/Mama/Conversar/explore' },
+        { id: 2, nome: 'CATEGORIAS', path: '/Menu/Mama/Conversar/explore' },
         { id: 3, nome: 'CHAT', path: '/Menu/Mama/Conversar/chat' },
-        { id: 4, nome: 'MY QNA', path: '/Menu/Mama/Conversar/qna' },
+        { id: 4, nome: 'MEUS POSTS', path: '/Menu/Mama/Conversar/qna' },
     ];
 
     // Detectar tamanho da tela para determinar se é dispositivo móvel

@@ -8,7 +8,7 @@ export default function Chat() {
     const supabase = createClientComponentClient();
     const [session, setSession] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [onlineUsers, setOnlineUsers] = useState([]);
+    const [onlineUtilizadores, setOnlineUtilizadores] = useState([]);
     const [messageInput, setMessageInput] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -57,6 +57,36 @@ export default function Chat() {
         };
     }, [supabase, router]);
 
+    const fetchMessages = async (topicId) => {
+        if (!topicId) return;
+
+        try {
+            const { data, error } = await supabase
+                .from('respostas')
+                .select(`
+                    id,
+                    conteudo,
+                    created_at,
+                    user:user_id (
+                        id,
+                        nome,
+                        foto_perfil
+                    )
+                `)
+                .eq('topico_id', topicId)
+                .order('created_at', { ascending: true });
+
+            if (error) throw error;
+            
+            if (data) {
+                setMessages(data);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar mensagens:', error);
+            setError('Erro ao carregar mensagens');
+        }
+    };
+
     // Inicializar o chat quando a sessão estiver disponível
     useEffect(() => {
         let messageInterval;
@@ -69,14 +99,14 @@ export default function Chat() {
                 console.log('Iniciando inicialização do chat...');
                 
                 // Verificar se a categoria existe ou criar
-                const { data: categoryExists, error: categoryError } = await supabase
+                const { data: categoryExists, error: checkCategoryError } = await supabase
                     .from('categorias')
                     .select('id')
                     .eq('id', CATEGORIA_GERAL_UUID)
                     .maybeSingle();
                 
-                if (categoryError) {
-                    console.error('Erro ao verificar categoria:', categoryError);
+                if (checkCategoryError) {
+                    console.error('Erro ao verificar categoria:', checkCategoryError);
                 }
                 
                 // Se não existir, criar
@@ -87,8 +117,7 @@ export default function Chat() {
                         .insert([
                             {
                                 id: CATEGORIA_GERAL_UUID,
-                                nome: 'Geral',
-                                descricao: 'Categoria geral para discussões'
+                                nome: 'Geral'
                             }
                         ]);
                     
@@ -97,50 +126,47 @@ export default function Chat() {
                     }
                 }
                 
-                // Buscar ou criar tópico de chat global
-                const { data: existingTopic, error: topicError } = await supabase
-                    .from('topicos')
+                // Buscar ou criar categoria de chat global
+                const { data: existingCategory, error: categoryError } = await supabase
+                    .from('categorias')
                     .select('id')
-                    .eq('titulo', 'Chat Global')
+                    .eq('nome', 'Chat Global')
                     .maybeSingle();
 
-                console.log('Busca por tópico existente:', { existingTopic, topicError });
+                console.log('Busca por categoria existente:', { existingCategory, categoryError });
 
-                let topicId = null;
+                let categoryId = null;
                 
-                if (!existingTopic) {
-                    console.log('Criando novo tópico de chat...');
+                if (!existingCategory) {
+                    console.log('Criando nova categoria de chat...');
                     
-                    const { data: newTopic, error: createError } = await supabase
-                        .from('topicos')
+                    const { data: newCategory, error: createError } = await supabase
+                        .from('categorias')
                         .insert([
                             {
-                                titulo: 'Chat Global',
-                                conteudo: 'Chat global para conversas em tempo real',
-                                user_id: session.user.id,
-                                categoria_id: CATEGORIA_GERAL_UUID
+                                nome: 'Chat Global'
                             }
                         ])
                         .select();
 
-                    console.log('Resultado da criação do tópico:', { newTopic, createError });
+                    console.log('Resultado da criação da categoria:', { newCategory, createError });
 
                     if (createError) {
-                        console.error('Erro ao criar tópico:', createError);
+                        console.error('Erro ao criar categoria:', createError);
                         throw createError;
                     }
                     
-                    topicId = newTopic[0]?.id;
+                    categoryId = newCategory[0]?.id;
                 } else {
-                    topicId = existingTopic.id;
+                    categoryId = existingCategory.id;
                 }
 
-                if (!topicId) {
-                    throw new Error('Não foi possível obter o ID do tópico');
+                if (!categoryId) {
+                    throw new Error('Não foi possível obter o ID da categoria');
                 }
 
-                console.log('ID do tópico definido:', topicId);
-                setChatTopicId(topicId);
+                console.log('ID da categoria definido:', categoryId);
+                setChatTopicId(categoryId);
                 
                 // Atualizar perfil do usuário se necessário
                 const { data: userProfile, error: userError } = await supabase
@@ -165,21 +191,21 @@ export default function Chat() {
                 const messagesChannel = supabase
                     .channel('messages')
                     .on('postgres_changes', 
-                        { event: 'INSERT', schema: 'public', table: 'respostas', filter: `topico_id=eq.${topicId}` },
+                        { event: 'INSERT', schema: 'public', table: 'respostas', filter: `topico_id=eq.${categoryId}` },
                         (payload) => {
-                            fetchMessages(topicId);
+                            fetchMessages(categoryId);
                         }
                     )
                     .subscribe();
                 
-                await fetchMessages(topicId);
-                await fetchOnlineUsers();
+                await fetchMessages(categoryId);
+                await fetchOnlineUtilizadores();
                 
                 // Atualizar online status e usuários
-                messageInterval = setInterval(() => fetchMessages(topicId), 5000);
+                messageInterval = setInterval(() => fetchMessages(categoryId), 5000);
                 onlineInterval = setInterval(() => {
                     updateOnlineStatus();
-                    fetchOnlineUsers();
+                    fetchOnlineUtilizadores();
                 }, 10000);
 
                 // Atualiza status online inicial
@@ -242,36 +268,7 @@ export default function Chat() {
         }
     };
 
-    const fetchMessages = async (topicId) => {
-        if (!topicId) return;
-
-        try {
-            const { data, error } = await supabase
-                .from('respostas')
-                .select(`
-                    *,
-                    user:user_id (
-                        id,
-                        nome,
-                        foto_perfil
-                    )
-                `)
-                .eq('topico_id', topicId)
-                .order('created_at', { ascending: true })
-                .limit(50);
-
-            if (error) throw error;
-            
-            if (data && Array.isArray(data)) {
-                setMessages(data);
-            }
-        } catch (error) {
-            console.error('Erro ao buscar mensagens:', error);
-            setError('Erro ao carregar mensagens');
-        }
-    };
-
-    const fetchOnlineUsers = async () => {
+    const fetchOnlineUtilizadores = async () => {
         try {
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
             
@@ -283,10 +280,10 @@ export default function Chat() {
             if (error) throw error;
             
             if (data && Array.isArray(data)) {
-                setOnlineUsers(data);
+                setOnlineUtilizadores(data);
             }
         } catch (error) {
-            console.error('Erro ao buscar usuários online:', error);
+            console.error('Erro ao buscar utilizadores online:', error);
         }
     };
 
@@ -343,7 +340,7 @@ export default function Chat() {
                             <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 flex justify-between items-center">
                                 Chat
                                 <span className="text-purple-600 font-bold text-sm sm:text-base">
-                                    {onlineUsers.length} online
+                                    {onlineUtilizadores.length} online
                                 </span>
                             </h2>
                         </div>
@@ -414,17 +411,17 @@ export default function Chat() {
 
                     {/* Barra lateral direita */}
                     <div className="w-full sm:w-72 bg-white border-l px-4 sm:px-6 py-4 sm:py-6 shadow-inner">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Usuários Online</h3>
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Utilizadores Online</h3>
                         <div className="space-y-2 sm:space-y-3">
-                            {onlineUsers.length === 0 ? (
-                                <p className="text-gray-400 italic text-sm">Nenhum usuário online</p>
+                            {onlineUtilizadores.length === 0 ? (
+                                <p className="text-gray-400 italic text-sm">Nenhum utilizador online</p>
                             ) : (
-                                onlineUsers.map(user => (
-                                    <div key={user.id} className="flex items-center gap-2 sm:gap-3">
+                                onlineUtilizadores.map(utilizador => (
+                                    <div key={utilizador.id} className="flex items-center gap-2 sm:gap-3">
                                         <div className="w-7 h-7 sm:w-9 sm:h-9 overflow-hidden rounded-full bg-gray-200">
                                             <img 
-                                                src={user.foto_perfil || '/default-avatar.png'} 
-                                                alt={user.nome || 'Usuário'}
+                                                src={utilizador.foto_perfil || '/default-avatar.png'} 
+                                                alt={utilizador.nome || 'Usuário'}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.onerror = null;
@@ -432,7 +429,7 @@ export default function Chat() {
                                                 }}
                                             />
                                         </div>
-                                        <span className="text-sm sm:text-base text-gray-700">{user.nome || 'Usuário'}</span>
+                                        <span className="text-sm sm:text-base text-gray-700">{utilizador.nome || 'Usuário'}</span>
                                     </div>
                                 ))
                             )}
