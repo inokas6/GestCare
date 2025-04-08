@@ -12,6 +12,7 @@ const Perfil = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editMode, setEditMode] = useState(false);
+  const [theme, setTheme] = useState('valentine');
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -101,6 +102,12 @@ const Perfil = () => {
 
     fetchUser();
   }, [router]);
+
+  useEffect(() => {
+    // Aplicar o tema ao carregar a página
+    const html = document.documentElement;
+    html.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -225,41 +232,53 @@ const Perfil = () => {
     });
   };
 
+  const toggleTheme = () => {
+    setTheme(prevTheme => prevTheme === 'valentine' ? 'mytheme' : 'valentine');
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-pink-50">
-        <div className="text-pink-500">Carregando...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-primary">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-pink-50 py-8">
+    <div className="min-h-screen py-8" data-theme={theme}>
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 mt-20">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-base-100 rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-pink-600">Meu Perfil</h1>
-            <button onClick={handleLogout} className="btn btn-outline btn-error hover:text-white">
-              Sair
-            </button>
+            <h1 className="text-2xl font-bold text-primary">Meu Perfil</h1>
+            <div className="flex gap-2">
+              <button 
+                onClick={toggleTheme}
+                className="btn btn-primary btn-sm"
+              >
+                Mudar Tema
+              </button>
+              <button onClick={handleLogout} className="btn btn-outline btn-error hover:text-white">
+                Sair
+              </button>
+            </div>
           </div>
 
           {error && <div className="alert alert-error mb-4">{error}</div>}
 
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-pink-100 flex items-center justify-center overflow-hidden">
+              <div className={`w-32 h-32 rounded-full bg-base-200 flex items-center justify-center overflow-hidden`}>
                 {previewUrl ? (
                   <img src={previewUrl} alt="Perfil" className="w-full h-full object-cover" />
                 ) : (
-                  <svg className="w-16 h-16 text-pink-300" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className={`w-16 h-16 text-base-300`} fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                   </svg>
                 )}
               </div>
               {editMode && (
-                <label className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-pink-50">
+                <label className="absolute bottom-0 right-0 bg-base-100 p-2 rounded-full shadow-lg cursor-pointer hover:bg-pink-50">
                   <input
                     type="file"
                     accept="image/*"
@@ -278,7 +297,7 @@ const Perfil = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="form-control">
               <label className="label">
-                <span className="label-text text-pink-600">Nome</span>
+                <span className="label-text text-primary">Nome</span>
               </label>
               <input
                 type="text"
@@ -292,7 +311,7 @@ const Perfil = () => {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text text-pink-600">Email</span>
+                <span className="label-text text-primary">Email</span>
               </label>
               <input
                 type="email"
@@ -305,7 +324,7 @@ const Perfil = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text text-pink-600">Conta criada em</span>
+                  <span className="label-text text-primary">Conta criada em</span>
                 </label>
                 <input
                   type="text"
@@ -317,7 +336,7 @@ const Perfil = () => {
 
               <div className="form-control">
                 <label className="label">
-                  <span className="label-text text-pink-600">Última atualização</span>
+                  <span className="label-text text-primary">Última atualização</span>
                 </label>
                 <input
                   type="text"
@@ -334,7 +353,7 @@ const Perfil = () => {
                   <button
                     type="button"
                     onClick={handleEdit}
-                    className="btn btn-primary bg-pink-500 hover:bg-pink-600"
+                    className="btn btn-primary"
                   >
                     Salvar Alterações
                   </button>
@@ -351,14 +370,14 @@ const Perfil = () => {
                   <button
                     type="button"
                     onClick={() => setEditMode(true)}
-                    className="btn btn-outline border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-white"
+                    className="btn btn-outline btn-primary"
                   >
                     Editar Perfil
                   </button>
                   <button
                     type="button"
                     onClick={handleDelete}
-                    className="btn btn-outline border-pink-500 text-pink-500 hover:bg-pink-500 hover:text-white"
+                    className="btn btn-outline btn-primary"
                   >
                     Excluir Conta
                   </button>
