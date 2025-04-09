@@ -10,8 +10,30 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      setError('Por favor, insira seu email para recuperar a senha');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      });
+
+      if (error) throw error;
+      setResetEmailSent(true);
+      setError('');
+    } catch (error) {
+      console.error('Erro ao enviar email de recuperação:', error);
+      setError(error.message || 'Erro ao enviar email de recuperação');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -78,9 +100,17 @@ export default function Login() {
                 required 
               />
               <label className="label">
-                <a href="#" className="label-text-alt link link-hover">Esqueceu a senha?</a>
+                <a href="#" className="label-text-alt link link-hover" onClick={handleResetPassword}>
+                  Esqueceu a senha?
+                </a>
               </label>
             </div>
+
+            {resetEmailSent && (
+              <div className="alert alert-success mt-4">
+                <span>Email de recuperação enviado! Verifique sua caixa de entrada.</span>
+              </div>
+            )}
 
             <div className="form-control mt-6">
               <button className="btn btn-primary" type="submit" disabled={loading}>
