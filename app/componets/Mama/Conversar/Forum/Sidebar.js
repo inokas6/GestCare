@@ -99,7 +99,7 @@ export default function Sidebar() {
 
     // Versão desktop - sidebar fixa
     return (
-        <div className="fixed left-0 top-16 h-full w-48 sm:w-64 bg-white border-r z-20 shadow-md rounded-tr-2xl">
+        <div className="fixed left-0 top-16 w-48 sm:w-64 bg-white mt-10 border-r rounded-xl z-20 shadow-md">
             <div className="p-4 sm:p-6">
                
                 <nav className="space-y-2 sm:space-y-3">
