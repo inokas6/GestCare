@@ -11,6 +11,7 @@ const Perfil = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   const [editMode, setEditMode] = useState(false);
   const [theme, setTheme] = useState('valentine');
   const [formData, setFormData] = useState({
@@ -20,7 +21,11 @@ const Perfil = () => {
     created_at: '',
     updated_at: ''
   });
+  const [originalEmail, setOriginalEmail] = useState('');
+  const [pendingEmail, setPendingEmail] = useState('');
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [emailChangePending, setEmailChangePending] = useState(false);
+  const [confirmEmailChange, setConfirmEmailChange] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -90,6 +95,7 @@ const Perfil = () => {
           created_at: userData.created_at,
           updated_at: userData.updated_at
         });
+        setOriginalEmail(userData.email);
         setPreviewUrl(userData.foto_perfil || null);
 
       } catch (error) {
@@ -128,19 +134,31 @@ const Perfil = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Para email, apenas atualize o campo temporário se estiver em modo de edição
+    if (name === 'email' && editMode) {
+      setPendingEmail(value);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setWarning('');
 
     try {
       if (!user?.id) throw new Error('Usuário não identificado');
+
+      // Alerta o usuário sobre a mudança de email pendente, mas permite salvar outras alterações
+      if (emailChangePending) {
+        setWarning('Atenção: Suas outras alterações foram salvas, mas a mudança de email ainda está pendente de confirmação.');
+      }
 
       const { error: updateError } = await supabase
         .from('users')
@@ -177,6 +195,13 @@ const Perfil = () => {
   };
 
   const handleEdit = async () => {
+    setWarning('');
+    
+    // Alerta o usuário sobre a mudança de email pendente, mas permite salvar outras alterações
+    if (emailChangePending) {
+      setWarning('Atenção: Suas outras alterações foram salvas, mas a mudança de email ainda está pendente de confirmação.');
+    }
+
     try {
       const { error } = await supabase
         .from('users')
@@ -195,6 +220,11 @@ const Perfil = () => {
         foto_perfil: formData.foto_perfil
       }));
       setEditMode(false);
+      
+      // Limpar o email pendente se existir e não estiver em processo de confirmação
+      if (pendingEmail && !emailChangePending) {
+        setPendingEmail('');
+      }
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       setError('Erro ao atualizar perfil');
@@ -236,6 +266,61 @@ const Perfil = () => {
     setTheme(prevTheme => prevTheme === 'valentine' ? 'mytheme' : 'valentine');
   };
 
+  const promptEmailChange = () => {
+    // Verifica se existe um email pendente para confirmar
+    if (pendingEmail && pendingEmail !== originalEmail) {
+      setConfirmEmailChange(true);
+    } else {
+      setError('Digite um novo email para atualizar');
+    }
+  };
+
+  const cancelEmailChangePrompt = () => {
+    setConfirmEmailChange(false);
+  };
+
+  const handleEmailChange = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      setWarning('');
+      setConfirmEmailChange(false);
+
+      console.log('Iniciando mudança de email para:', pendingEmail);
+
+      const { data, error } = await supabase.auth.updateUser(
+        { email: pendingEmail }
+      );
+
+      console.log('Resposta do Supabase:', { data, error });
+
+      if (error) {
+        console.error('Erro detalhado:', error);
+        throw error;
+      }
+
+      if (data) {
+        console.log('Dados retornados:', data);
+        setEmailChangePending(true);
+        alert('Um link de confirmação foi enviado para seu novo e-mail. Por favor, verifique sua caixa de entrada.');
+      } else {
+        throw new Error('Nenhuma resposta do servidor');
+      }
+    } catch (error) {
+      console.error('Erro completo ao atualizar e-mail:', error);
+      setError('Erro ao atualizar e-mail: ' + (error.message || 'Erro desconhecido'));
+      setPendingEmail('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelEmailChange = () => {
+    setPendingEmail('');
+    setEmailChangePending(false);
+    setWarning('');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -265,6 +350,7 @@ const Perfil = () => {
           </div>
 
           {error && <div className="alert alert-error mb-4">{error}</div>}
+          {warning && <div className="alert alert-warning mb-4">{warning}</div>}
 
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
@@ -294,6 +380,31 @@ const Perfil = () => {
             </div>
           </div>
 
+          {/* Modal de confirmação para mudança de email */}
+          {confirmEmailChange && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+              <div className="bg-base-100 p-6 rounded-lg shadow-lg max-w-md w-full">
+                <h3 className="text-lg font-bold mb-4">Confirmar mudança de email</h3>
+                <p className="mb-4">Tem certeza que deseja alterar seu email de <span className="font-bold">{originalEmail}</span> para <span className="font-bold">{pendingEmail}</span>?</p>
+                <p className="mb-4 text-sm text-warning">Um link de confirmação será enviado para o novo endereço de email.</p>
+                <div className="flex justify-end gap-2">
+                  <button 
+                    className="btn btn-outline" 
+                    onClick={cancelEmailChangePrompt}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={handleEmailChange}
+                  >
+                    Confirmar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="form-control">
               <label className="label">
@@ -313,12 +424,41 @@ const Perfil = () => {
               <label className="label">
                 <span className="label-text text-primary">Email</span>
               </label>
-              <input
-                type="email"
-                value={formData.email}
-                className="input input-bordered w-full"
-                disabled
-              />
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  name="email"
+                  value={editMode ? (pendingEmail || formData.email) : formData.email}
+                  onChange={handleChange}
+                  className="input input-bordered w-full"
+                  disabled={!editMode || emailChangePending}
+                />
+                {editMode && !emailChangePending && (
+                  <button
+                    type="button"
+                    onClick={promptEmailChange}
+                    className="btn btn-primary"
+                  >
+                    Atualizar Email
+                  </button>
+                )}
+              </div>
+              {emailChangePending && (
+                <div className="mt-2 flex items-center">
+                  <div className="flex-grow text-sm text-warning">
+                    <p>Email atual: <strong>{formData.email}</strong></p>
+                    <p>Novo email pendente: <strong>{pendingEmail}</strong></p>
+                    <p>Aguardando confirmação. Verifique sua caixa de entrada.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={cancelEmailChange}
+                    className="btn btn-sm btn-outline btn-warning"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -359,7 +499,15 @@ const Perfil = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setEditMode(false)}
+                    onClick={() => {
+                      setEditMode(false);
+                      setPendingEmail(''); // Limpar qualquer email pendente
+                      setWarning('');
+                      // Se houver mudança de email pendente, cancelar
+                      if (emailChangePending) {
+                        cancelEmailChange();
+                      }
+                    }}
                     className="btn btn-outline"
                   >
                     Cancelar
