@@ -18,7 +18,9 @@ export async function getTopicos(categoriaId = null) {
       ),
       categorias:categoria_id (
         id,
-        nome
+        nome,
+        cor,
+        icone
       )
     `)
     .order('created_at', { ascending: false });
@@ -57,7 +59,9 @@ export async function createTopico(titulo, conteudo, categoriaId, userId) {
       ),
       categorias:categoria_id (
         id,
-        nome
+        nome,
+        cor,
+        icone
       )
     `);
   return { data, error };

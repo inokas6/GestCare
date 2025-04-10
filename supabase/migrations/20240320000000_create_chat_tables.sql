@@ -1,8 +1,14 @@
 -- Criação da tabela de categorias se não existir
 CREATE TABLE IF NOT EXISTS categorias (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+    nome TEXT NOT NULL,
+    descricao TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    cor TEXT DEFAULT '#4ADE80',
+    icone TEXT DEFAULT '📝',
+    ordem INTEGER DEFAULT 0,
+    ativa BOOLEAN DEFAULT TRUE
 );
 
 -- Inserir categoria de chat se não existir
@@ -41,10 +47,15 @@ CREATE TABLE IF NOT EXISTS utilizadores (
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = TIMEZONE('utc'::text, NOW());
+    NEW.updated_at = NOW();
     RETURN NEW;
 END;
 $$ language 'plpgsql';
+
+CREATE TRIGGER update_categorias_updated_at
+    BEFORE UPDATE ON categorias
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_utilizadores_updated_at
     BEFORE UPDATE ON utilizadores

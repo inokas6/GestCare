@@ -102,6 +102,7 @@ export default function NewTopic({ onClose }) {
                         >
                             {categorias.map((categoria) => (
                                 <option key={categoria.id} value={categoria.id}>
+                                    <span className="mr-2">{categoria.icone}</span>
                                     {categoria.nome}
                                 </option>
                             ))}
