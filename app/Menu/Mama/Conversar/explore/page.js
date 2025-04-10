@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from '../../../../componets/Mama/Conversar/Forum/Sidebar';
 import Navbar from '../../../../componets/Home/navbar_home';
 
 
 export default function ExplorePage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [categorias, setCategorias] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -107,7 +109,8 @@ export default function ExplorePage() {
                   {filteredCategorias.map((categoria) => (
                     <button
                       key={categoria.id}
-                      className="flex items-center justify-center md:justify-start space-x-2 px-4 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200 border text-sm md:text-base"
+                      onClick={() => router.push(`/Menu/Mama/Conversar/explore/${categoria.id}`)}
+                      className="flex items-center justify-center md:justify-start space-x-2 px-4 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200 border text-sm md:text-base cursor-pointer"
                       style={{ borderLeft: `4px solid ${categoria.cor}` }}
                     >
                       <span className="hidden md:block text-xl">{categoria.icone}</span>
