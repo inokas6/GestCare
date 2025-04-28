@@ -61,13 +61,28 @@ export default function ConversarPage() {
             <div className="space-y-6">
               {topicos.map((topico) => (
                 <div key={topico.id} className="bg-white rounded-xl shadow-sm border p-6">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      {topico.users?.foto_perfil ? (
+                        <img 
+                          src={topico.users.foto_perfil} 
+                          alt={topico.users.nome} 
+                          className="h-12 w-12 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                          <span className="text-purple-800 font-medium text-lg">
+                            {topico.users?.nome?.charAt(0).toUpperCase() || '?'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <h2 className="text-xl font-semibold text-gray-800 mb-2">
                         {topico.titulo}
                       </h2>
                       <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <span>Por {topico.users?.nome}</span>
+                        <span className="font-medium text-gray-900">{topico.users?.nome}</span>
                         <span className="mx-2">•</span>
                         <span>{formatarData(topico.created_at)}</span>
                         <span className="mx-2">•</span>
