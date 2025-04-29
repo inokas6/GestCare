@@ -52,16 +52,38 @@ export default function QnAPage() {
         if (!confirm('Tem certeza que deseja excluir este post?')) return;
 
         try {
-            const { error } = await supabase
+            // Verificar se existem respostas para este tópico
+            const { data: respostas } = await supabase
+                .from('respostas')
+                .select('id')
+                .eq('topico_id', postId);
+
+            // Se existirem respostas, excluí-las primeiro
+            if (respostas && respostas.length > 0) {
+                const { error: respostasError } = await supabase
+                    .from('respostas')
+                    .delete()
+                    .eq('topico_id', postId);
+
+                if (respostasError) {
+                    console.error('Erro ao excluir respostas:', respostasError);
+                    throw respostasError;
+                }
+            }
+
+            // Excluir o tópico
+            const { error: topicoError } = await supabase
                 .from('topicos')
                 .delete()
                 .eq('id', postId);
 
-            if (error) throw error;
+            if (topicoError) throw topicoError;
             
             setUserQuestions(userQuestions.filter(post => post.id !== postId));
+            
         } catch (error) {
             console.error('Erro ao excluir post:', error);
+            alert('Erro ao excluir o post. Por favor, tente novamente.');
         }
     };
 
