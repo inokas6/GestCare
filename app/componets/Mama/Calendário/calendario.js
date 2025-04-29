@@ -2,41 +2,134 @@
 import { useState, useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addWeeks, differenceInWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export default function Calendario() {
+export default function CalendarioGravidez() {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showEventDetails, setShowEventDetails] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [infoSemanal, setInfoSemanal] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
+  const [pregnancyData, setPregnancyData] = useState({
+    dataInicio: null,
+    semanaAtual: 0,
+    diasNaSemana: 0,
+    progresso: 0,
+  });
+  
   const [newEvent, setNewEvent] = useState({
     titulo: "",
     descricao: "",
     inicio_data: "",
     fim_data: "",
-    tipo_evento: "importante",
+    tipo_evento: "consulta",
+    lembrete: false,
+    lembrete_antecedencia: 1,
     user_id: ""
   });
+  
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
+    const fetchCurrentUserAndData = async () => {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setNewEvent(prev => ({ ...prev, user_id: user.id }));
         await fetchEvents(user.id);
+        await fetchPregnancyData(user.id);
       }
       setIsLoading(false);
     };
     
-    fetchCurrentUser();
+    fetchCurrentUserAndData();
   }, []);
+
+  const fetchPregnancyData = async (userId) => {
+    try {
+      if (!userId) {
+        throw new Error("ID do usuário não fornecido");
+      }
+
+      // Buscar dados da gravidez do usuário
+      const { data, error } = await supabase
+        .from("gravidez_info")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+        
+      if (error) {
+        if (error.code === 'PGRST116') {
+          console.log("Nenhum dado de gravidez encontrado para o usuário");
+          return;
+        }
+        throw error;
+      }
+      
+      if (!data) {
+        console.log("Nenhum dado de gravidez encontrado");
+        return;
+      }
+      
+      const dataInicio = new Date(data.data_ultima_menstruacao || data.data_inicio);
+      const hoje = new Date();
+      
+      // Calcular semana atual (considerando que a gravidez começa 2 semanas após a última menstruação)
+      const semanasDesdeInicio = differenceInWeeks(hoje, dataInicio) + 2;
+      const diasNaSemana = Math.floor((hoje - addWeeks(dataInicio, semanasDesdeInicio - 2)) / (1000 * 60 * 60 * 24));
+      const progresso = Math.min(Math.round((semanasDesdeInicio / 40) * 100), 100);
+      
+      setPregnancyData({
+        dataInicio,
+        semanaAtual: semanasDesdeInicio,
+        diasNaSemana,
+        progresso,
+        dataProvavel: data.data_provavel_parto,
+      });
+      
+      // Buscar informações da semana atual
+      await fetchInfoSemanal(semanasDesdeInicio);
+      
+    } catch (error) {
+      console.error("Erro ao buscar dados da gravidez:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
+    }
+  };
+  
+  const fetchInfoSemanal = async (semana) => {
+    try {
+      const { data, error } = await supabase
+        .from("info_gestacional")
+        .select("*")
+        .eq("semana", semana)
+        .single();
+        
+      if (error) throw error;
+      
+      setInfoSemanal(data);
+    } catch (error) {
+      console.error("Erro ao buscar informações semanais:", error);
+      // Se não encontrar info para semana específica, buscar conteúdo genérico
+      setInfoSemanal({
+        semana: semana,
+        desenvolvimento_bebe: "O bebê continua se desenvolvendo nesta semana.",
+        sintomas_comuns: "Cada gravidez é única. Consulte seu médico para mais informações.",
+        dicas_mae: "Mantenha uma alimentação saudável e descanse o suficiente.",
+        cuidados_especiais: "Faça os exames recomendados pelo seu médico."
+      });
+    }
+  };
 
   const fetchEvents = async (userId) => {
     try {
@@ -57,22 +150,65 @@ export default function Calendario() {
         
       if (error) throw error;
       
-      setEvents(
-        data.map((event) => ({
-          id: event.id,
-          title: event.titulo,
-          start: event.inicio_data,
-          end: event.fim_data || event.inicio_data,
-          description: event.descricao,
-          backgroundColor: getEventColor(event.tipo_evento),
-          borderColor: getEventColor(event.tipo_evento),
-          textColor: "#ffffff",
-          extendedProps: {
-            tipo_evento: event.tipo_evento,
-            rawData: event
-          }
-        }))
-      );
+      // Transformar os eventos do banco em eventos para o calendário
+      const calendarEvents = data.map((event) => ({
+        id: event.id,
+        title: event.titulo,
+        start: event.inicio_data,
+        end: event.fim_data || event.inicio_data,
+        description: event.descricao,
+        backgroundColor: getEventColor(event.tipo_evento),
+        borderColor: getEventColor(event.tipo_evento),
+        textColor: "#ffffff",
+        extendedProps: {
+          tipo_evento: event.tipo_evento,
+          lembrete: event.lembrete,
+          lembrete_antecedencia: event.lembrete_antecedencia,
+          rawData: event
+        }
+      }));
+      
+      // Adicionar eventos semanais da gravidez se temos os dados
+      if (pregnancyData.dataInicio) {
+        const semanasGravidez = [];
+        for (let i = 1; i <= 40; i++) {
+          const dataInicio = addWeeks(pregnancyData.dataInicio, i - 2); // -2 pois a gravidez começa 2 semanas antes
+          semanasGravidez.push({
+            id: `semana-${i}`,
+            title: `Semana ${i}`,
+            start: dataInicio,
+            end: addWeeks(dataInicio, 1),
+            backgroundColor: "rgba(147, 51, 234, 0.2)",
+            borderColor: "rgba(147, 51, 234, 0.5)",
+            textColor: "#6B21A8",
+            classNames: ["evento-semana-gravidez"],
+            display: "background",
+            extendedProps: {
+              tipo_evento: "semana_gravidez",
+              semana: i
+            }
+          });
+        }
+        
+        // Adicionar data provável do parto
+        if (pregnancyData.dataProvavel) {
+          semanasGravidez.push({
+            id: "data-parto",
+            title: "Data Provável do Parto",
+            start: pregnancyData.dataProvavel,
+            backgroundColor: "#EF4444",
+            borderColor: "#EF4444",
+            textColor: "#ffffff",
+            extendedProps: {
+              tipo_evento: "parto"
+            }
+          });
+        }
+        
+        setEvents([...calendarEvents, ...semanasGravidez]);
+      } else {
+        setEvents(calendarEvents);
+      }
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
     }
@@ -81,9 +217,12 @@ export default function Calendario() {
   const getEventColor = (type) => {
     const colors = {
       consulta: "#9D4EDD", // Roxo mais vibrante
+      exame: "#0EA5E9", // Azul claro
       ovulacao: "#FF5D8F", // Rosa mais vibrante
-      parto: "#FF4D6D", // Vermelho mais vibrante
-      importante: "#4361EE", // Azul mais vibrante
+      parto: "#EF4444", // Vermelho mais vibrante
+      importante: "#4F46E5", // Índigo
+      marco: "#16A34A", // Verde
+      lembrete: "#F59E0B", // Âmbar
     };
     return colors[type] || "#6B7280"; // Cinza mais escuro para melhor contraste
   };
@@ -91,9 +230,12 @@ export default function Calendario() {
   const getEventIcon = (type) => {
     const icons = {
       consulta: "👩‍⚕️",
+      exame: "🔬",
       ovulacao: "🌱",
       parto: "👶",
       importante: "⭐",
+      marco: "🏆",
+      lembrete: "🔔",
     };
     return icons[type] || "📝";
   };
@@ -110,15 +252,20 @@ export default function Calendario() {
       descricao: "",
       inicio_data: info.dateStr,
       fim_data: info.dateStr,
-      tipo_evento: "importante"
+      tipo_evento: "consulta",
+      lembrete: false,
+      lembrete_antecedencia: 1
     }));
     
     setShowModal(true);
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewEvent({ ...newEvent, [name]: value });
+    const { name, value, type, checked } = e.target;
+    setNewEvent({ 
+      ...newEvent, 
+      [name]: type === 'checkbox' ? checked : value 
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -140,7 +287,9 @@ export default function Calendario() {
         descricao: newEvent.descricao,
         inicio_data: newEvent.inicio_data,
         fim_data: newEvent.fim_data || newEvent.inicio_data,
-        tipo_evento: newEvent.tipo_evento
+        tipo_evento: newEvent.tipo_evento,
+        lembrete: newEvent.lembrete,
+        lembrete_antecedencia: newEvent.lembrete ? newEvent.lembrete_antecedencia : null
       };
       
       const { data, error } = await supabase
@@ -160,7 +309,9 @@ export default function Calendario() {
         descricao: "",
         inicio_data: "",
         fim_data: "",
-        tipo_evento: "importante",
+        tipo_evento: "consulta",
+        lembrete: false,
+        lembrete_antecedencia: 1,
         user_id: user.id
       });
     } catch (error) {
@@ -172,6 +323,15 @@ export default function Calendario() {
   };
 
   const handleEventClick = (info) => {
+    const eventType = info.event.extendedProps.tipo_evento;
+    
+    if (eventType === "semana_gravidez") {
+      // Se clicou numa semana da gravidez, mostrar informações da semana
+      fetchInfoSemanal(info.event.extendedProps.semana);
+      setShowInfo(true);
+      return;
+    }
+    
     setSelectedEvent({
       id: info.event.id,
       title: info.event.title,
@@ -179,6 +339,8 @@ export default function Calendario() {
       end: info.event.end,
       description: info.event.extendedProps.rawData.descricao,
       tipo_evento: info.event.extendedProps.tipo_evento,
+      lembrete: info.event.extendedProps.lembrete,
+      lembrete_antecedencia: info.event.extendedProps.lembrete_antecedencia,
       rawData: info.event.extendedProps.rawData
     });
     setShowEventDetails(true);
@@ -229,104 +391,252 @@ export default function Calendario() {
   };
 
   return (
-    <div className="p-4 md:p-6 relative bg-gradient-to-b from-purple-50 to-pink-50 min-h-screen">
-      <div className="max-w-5xl mx-auto">
-        {/* Header com título e botão de adicionar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-purple-800 flex items-center">
-            <span className="mr-2 text-pink-500 text-3xl">📅</span>
-            <span className="bg-gradient-to-r from-purple-700 to-pink-600 bg-clip-text text-transparent">
-              Calendário da Gravidez
-            </span>
-          </h2>
-          <button
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2"
-            onClick={() => {
-              setSelectedDate(format(new Date(), "yyyy-MM-dd"));
-              setNewEvent(prev => ({
-                ...prev,
-                inicio_data: format(new Date(), "yyyy-MM-dd"),
-                fim_data: format(new Date(), "yyyy-MM-dd"),
-              }));
-              setShowModal(true);
-            }}
-            aria-label="Adicionar novo evento"
-          >
-            <span className="mr-2 text-lg">➕</span> 
-            <span className="font-medium">Novo Evento</span>
-          </button>
-        </div>
-
-        {/* Calendário principal */}
-        <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 border border-purple-100 transition-all duration-300 hover:shadow-2xl">
-          {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-500 rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            <>
-              <FullCalendar
-                plugins={[dayGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
-                headerToolbar={{
-                  left: "prev,next today",
-                  center: "title",
-                  right: "dayGridMonth,dayGridWeek",
-                }}
-                dateClick={handleDateClick}
-                eventClick={handleEventClick}
-                selectable={true}
-                events={events}
-                locale={ptBR}
-                height="auto"
-                eventTimeFormat={{
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  meridiem: false,
-                }}
-                buttonText={{
-                  today: "Hoje",
-                  month: "Mês",
-                  week: "Semana",
-                }}
-                dayMaxEvents={3}
-                eventClassNames="rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                eventContent={(eventInfo) => {
-                  return (
-                    <div className="px-2 py-1 flex items-center w-full overflow-hidden">
-                      <span className="mr-1">{getEventIcon(eventInfo.event.extendedProps.tipo_evento)}</span>
-                      <span className="font-medium truncate">{eventInfo.event.title}</span>
-                    </div>
-                  )
-                }}
-              />
-
-              {/* Legenda de cores */}
-              <div className="mt-6 flex flex-wrap gap-4 justify-center">
-                <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
-                  <div className="w-4 h-4 rounded-full bg-purple-500 mr-2"></div>
-                  <span className="text-sm text-gray-700">Consulta</span>
-                </div>
-                <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
-                  <div className="w-4 h-4 rounded-full bg-pink-500 mr-2"></div>
-                  <span className="text-sm text-gray-700">Ovulação</span>
-                </div>
-                <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
-                  <div className="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
-                  <span className="text-sm text-gray-700">Parto</span>
-                </div>
-                <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
-                  <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
-                  <span className="text-sm text-gray-700">Importante</span>
-                </div>
-              </div>
+    <div className="bg-gradient-to-b from-violet-50 to-pink-50 min-h-screen">
+      {/* Barra de progresso da gravidez */}
+      {pregnancyData.semanaAtual > 0 && (
+        <div className="bg-white shadow-md p-4 mb-6 rounded-lg mx-4 md:mx-6 mt-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-violet-800 mb-2 md:mb-0">
+                {pregnancyData.semanaAtual <= 40 ? (
+                  <>
+                    Você está na <span className="font-bold text-pink-600">{pregnancyData.semanaAtual}ª semana</span> de 40 
+                    {pregnancyData.diasNaSemana > 0 && (
+                      <span className="text-sm text-violet-600"> (+ {pregnancyData.diasNaSemana} {pregnancyData.diasNaSemana === 1 ? 'dia' : 'dias'})</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="font-bold text-pink-600">Seu bebê já deve ter nascido! 👶</span>
+                )}
+              </h3>
               
-              {/* Dica para o usuário */}
-              <div className="mt-6 bg-purple-50 border border-purple-100 rounded-lg p-4 text-center text-sm text-purple-700">
-                <p>✨ <span className="font-medium">Dica:</span> Clique em uma data para adicionar um novo evento ou em um evento existente para ver detalhes.</p>
+              <button
+                onClick={() => {
+                  fetchInfoSemanal(pregnancyData.semanaAtual);
+                  setShowInfo(true);
+                }}
+                className="text-sm bg-violet-100 hover:bg-violet-200 text-violet-800 px-4 py-2 rounded-full transition-colors"
+              >
+                Ver informações desta semana
+              </button>
+            </div>
+            
+            {/* Barra de progresso */}
+            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-700 ease-in-out" 
+                style={{ width: `${pregnancyData.progresso}%` }}
+              ></div>
+            </div>
+            
+            {/* Marcos importantes */}
+            <div className="flex justify-between mt-2 text-xs text-gray-500">
+              <div>Início</div>
+              <div>1º Trimestre</div>
+              <div>2º Trimestre</div>
+              <div>3º Trimestre</div>
+              <div>40ª Semana</div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="p-4 md:p-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Header com título e botão de adicionar */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-violet-800 flex items-center">
+              <span className="mr-2 text-pink-500 text-3xl">📅</span>
+              <span className="bg-gradient-to-r from-violet-700 to-pink-600 bg-clip-text text-transparent">
+                Calendário da Gravidez
+              </span>
+            </h2>
+            <button
+              className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+              onClick={() => {
+                setSelectedDate(format(new Date(), "yyyy-MM-dd"));
+                setNewEvent(prev => ({
+                  ...prev,
+                  inicio_data: format(new Date(), "yyyy-MM-dd"),
+                  fim_data: format(new Date(), "yyyy-MM-dd"),
+                }));
+                setShowModal(true);
+              }}
+              aria-label="Adicionar novo evento"
+            >
+              <span className="mr-2 text-lg">+</span> 
+              <span className="font-medium">Novo Evento</span>
+            </button>
+          </div>
+
+          {/* Calendário principal */}
+          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 border border-violet-100 transition-all duration-300 hover:shadow-2xl">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-500 rounded-full animate-spin"></div>
               </div>
-            </>
-          )}
+            ) : (
+              <>
+                <FullCalendar
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                  initialView="dayGridMonth"
+                  headerToolbar={{
+                    left: "prev,next today",
+                    center: "title",
+                    right: "dayGridMonth",
+                  }}
+                  dateClick={handleDateClick}
+                  eventClick={handleEventClick}
+                  selectable={true}
+                  events={events}
+                  locale={ptBR}
+                  height="auto"
+                  eventTimeFormat={{
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    meridiem: false,
+                  }}
+                  buttonText={{
+                    today: "Hoje",
+                    month: "Mês",
+                    week: "Semana",
+                  }}
+                  dayMaxEvents={3}
+                  views={{
+                    dayGridMonth: {
+                      dayMaxEventRows: 3,
+                    },
+                    timeGridWeek: {
+                      slotDuration: '01:00:00',
+                      slotLabelFormat: {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                      }
+                    }
+                  }}
+                  eventContent={(eventInfo) => {
+                    if (eventInfo.event.display === 'background') {
+                      // Para eventos de semana da gravidez
+                      return (
+                        <div className="text-xs md:text-sm font-bold pl-1 pt-0.5 text-violet-700">
+                          {eventInfo.event.title}
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <div className="px-2 py-1 flex items-center w-full overflow-hidden">
+                        <span className="mr-1">{getEventIcon(eventInfo.event.extendedProps.tipo_evento)}</span>
+                        <span className="font-medium truncate">{eventInfo.event.title}</span>
+                        {eventInfo.event.extendedProps.lembrete && (
+                          <span className="ml-1">🔔</span>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+
+                {/* Legenda de cores */}
+                <div className="mt-6 flex flex-wrap gap-3 justify-center">
+                  <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                    <div className="w-3 h-3 rounded-full bg-violet-500 mr-2"></div>
+                    <span className="text-xs text-gray-700">Consulta</span>
+                  </div>
+                  <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                    <span className="text-xs text-gray-700">Exame</span>
+                  </div>
+                  <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                    <div className="w-3 h-3 rounded-full bg-pink-500 mr-2"></div>
+                    <span className="text-xs text-gray-700">Ovulação</span>
+                  </div>
+                  <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                    <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+                    <span className="text-xs text-gray-700">Parto</span>
+                  </div>
+                  <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                    <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                    <span className="text-xs text-gray-700">Marco</span>
+                  </div>
+                  <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                    <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                    <span className="text-xs text-gray-700">Lembrete</span>
+                  </div>
+                  <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
+                    <div className="w-3 h-3 rounded-full bg-indigo-500 mr-2"></div>
+                    <span className="text-xs text-gray-700">Importante</span>
+                  </div>
+                </div>
+                
+                {/* Dica para o usuário */}
+                <div className="mt-6 bg-violet-50 border border-violet-100 rounded-lg p-4 text-center text-sm text-violet-700">
+                  <p>✨ <span className="font-medium">Dica:</span> Clique em uma data para adicionar um novo evento, em um evento existente para ver detalhes, ou em uma semana destacada para ver informações sobre o desenvolvimento do bebê.</p>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Próximos eventos */}
+          <div className="mt-8 bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-violet-100">
+            <h3 className="text-lg font-bold text-violet-800 mb-4">Próximos Eventos</h3>
+            
+            {events.filter(e => 
+              new Date(e.start) >= new Date() && 
+              e.extendedProps && 
+              e.extendedProps.tipo_evento !== "semana_gravidez"
+            ).sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 5).length > 0 ? (
+              <div className="space-y-3">
+                {events
+                  .filter(e => 
+                    new Date(e.start) >= new Date() && 
+                    e.extendedProps && 
+                    e.extendedProps.tipo_evento !== "semana_gravidez"
+                  )
+                  .sort((a, b) => new Date(a.start) - new Date(b.start))
+                  .slice(0, 5)
+                  .map(event => (
+                    <div 
+                      key={event.id} 
+                      className="flex items-center p-3 rounded-lg bg-gradient-to-r from-violet-50 to-pink-50 hover:from-violet-100 hover:to-pink-100 transition-colors cursor-pointer"
+                      onClick={() => {
+                        setSelectedEvent({
+                          id: event.id,
+                          title: event.title,
+                          start: event.start,
+                          end: event.end,
+                          description: event.extendedProps.rawData?.descricao || "",
+                          tipo_evento: event.extendedProps.tipo_evento,
+                          lembrete: event.extendedProps.lembrete,
+                          lembrete_antecedencia: event.extendedProps.lembrete_antecedencia,
+                          rawData: event.extendedProps.rawData
+                        });
+                        setShowEventDetails(true);
+                      }}
+                    >
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm mr-3"
+                        style={{ backgroundColor: event.backgroundColor }}
+                      >
+                        {getEventIcon(event.extendedProps.tipo_evento)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium">{event.title}</div>
+                        <div className="text-xs text-gray-500">{formatEventDate(event.start)}</div>
+                      </div>
+                      {event.extendedProps.lembrete && (
+                        <div className="text-amber-500 text-lg">🔔</div>
+                      )}
+                    </div>
+                  ))
+                }
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500">
+                Nenhum evento próximo. Clique em uma data no calendário para adicionar.
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -338,7 +648,7 @@ export default function Calendario() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-purple-800">
+              <h3 className="text-xl font-bold text-violet-800">
                 {selectedDate ? `Novo Evento: ${formatEventDate(selectedDate)}` : 'Novo Evento'}
               </h3>
               <button 
@@ -361,7 +671,7 @@ export default function Calendario() {
                   name="titulo"
                   value={newEvent.titulo}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                   placeholder="Ex: Consulta pré-natal"
                   required
                 />
@@ -376,7 +686,7 @@ export default function Calendario() {
                   name="descricao"
                   value={newEvent.descricao}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                   placeholder="Adicione detalhes sobre o evento..."
                   rows={3}
                 />
@@ -393,7 +703,7 @@ export default function Calendario() {
                     name="inicio_data"
                     value={newEvent.inicio_data}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                     required
                   />
                 </div>
@@ -408,12 +718,12 @@ export default function Calendario() {
                     value={newEvent.fim_data}
                     onChange={handleInputChange}
                     min={newEvent.inicio_data}
-                    className="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
               
-              <div className="mb-6">
+              <div className="mb-5">
                 <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="tipo_evento">
                   Tipo de Evento
                 </label>
@@ -423,11 +733,14 @@ export default function Calendario() {
                     name="tipo_evento"
                     value={newEvent.tipo_evento}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all appearance-none"
+                    className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all appearance-none"
                   >
                     <option value="consulta">👩‍⚕️ Consulta Médica</option>
+                    <option value="exame">🔬 Exame</option>
+                    <option value="marco">🏆 Marco do Bebê</option>
                     <option value="ovulacao">🌱 Ovulação</option>
                     <option value="parto">👶 Parto</option>
+                    <option value="lembrete">🔔 Lembrete</option>
                     <option value="importante">⭐ Evento Importante</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -436,6 +749,43 @@ export default function Calendario() {
                     </svg>
                   </div>
                 </div>
+              </div>
+              
+              <div className="mb-6">
+                <div className="flex items-center">
+                  <input
+                    id="lembrete"
+                    type="checkbox"
+                    name="lembrete"
+                    checked={newEvent.lembrete}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-violet-600 border-violet-300 rounded focus:ring-violet-500"
+                  />
+                  <label htmlFor="lembrete" className="ml-2 block text-sm text-gray-700">
+                    Definir lembrete para este evento
+                  </label>
+                </div>
+                
+                {newEvent.lembrete && (
+                  <div className="mt-3 pl-6">
+                    <label className="block text-gray-700 text-sm mb-2" htmlFor="lembrete_antecedencia">
+                      Antecipar lembrete em:
+                    </label>
+                    <select
+                      id="lembrete_antecedencia"
+                      name="lembrete_antecedencia"
+                      value={newEvent.lembrete_antecedencia}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all appearance-none"
+                    >
+                      <option value="0">No dia</option>
+                      <option value="1">1 dia antes</option>
+                      <option value="2">2 dias antes</option>
+                      <option value="3">3 dias antes</option>
+                      <option value="7">1 semana antes</option>
+                    </select>
+                  </div>
+                )}
               </div>
               
               <div className="flex justify-end gap-3">
@@ -449,7 +799,7 @@ export default function Calendario() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2"
+                  className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
                 >
                   {isLoading ? (
                     <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
@@ -474,7 +824,7 @@ export default function Calendario() {
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center">
                 <span className="text-2xl mr-2">{getEventIcon(selectedEvent.tipo_evento)}</span>
-                <h3 className="text-xl font-bold text-purple-800 truncate">{selectedEvent.title}</h3>
+                <h3 className="text-xl font-bold text-violet-800 truncate">{selectedEvent.title}</h3>
               </div>
               <button 
                 onClick={() => setShowEventDetails(false)}
@@ -486,9 +836,9 @@ export default function Calendario() {
             </div>
             
             <div className="mb-6">
-              <div className="bg-purple-50 rounded-lg p-4 mb-4">
+              <div className="bg-violet-50 rounded-lg p-4 mb-4">
                 <p className="font-medium text-sm text-gray-500 mb-1">Data</p>
-                <div className="text-purple-800">
+                <div className="text-violet-800">
                   {formatEventDate(selectedEvent.start)}
                   {selectedEvent.end && selectedEvent.start !== selectedEvent.end && (
                     <> até {formatEventDate(selectedEvent.end)}</>
@@ -503,7 +853,7 @@ export default function Calendario() {
                 </div>
               )}
               
-              <div>
+              <div className="mb-4">
                 <p className="font-medium text-sm text-gray-500 mb-1">Tipo</p>
                 <div className="flex items-center">
                   <div 
@@ -512,12 +862,31 @@ export default function Calendario() {
                   ></div>
                   <p className="text-gray-700">
                     {selectedEvent.tipo_evento === 'consulta' && 'Consulta Médica'}
+                    {selectedEvent.tipo_evento === 'exame' && 'Exame'}
                     {selectedEvent.tipo_evento === 'ovulacao' && 'Ovulação'}
                     {selectedEvent.tipo_evento === 'parto' && 'Parto'}
+                    {selectedEvent.tipo_evento === 'marco' && 'Marco do Bebê'}
+                    {selectedEvent.tipo_evento === 'lembrete' && 'Lembrete'}
                     {selectedEvent.tipo_evento === 'importante' && 'Evento Importante'}
                   </p>
                 </div>
               </div>
+              
+              {selectedEvent.lembrete && (
+                <div className="bg-amber-50 rounded-lg p-3 flex items-center">
+                  <span className="text-amber-500 text-xl mr-2">🔔</span>
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Lembrete definido</p>
+                    <p className="text-xs text-amber-700">
+                      {selectedEvent.lembrete_antecedencia === 0 && 'No dia do evento'}
+                      {selectedEvent.lembrete_antecedencia === 1 && '1 dia antes'}
+                      {selectedEvent.lembrete_antecedencia === 2 && '2 dias antes'}
+                      {selectedEvent.lembrete_antecedencia === 3 && '3 dias antes'}
+                      {selectedEvent.lembrete_antecedencia === 7 && '1 semana antes'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="flex justify-end gap-3">
@@ -534,11 +903,185 @@ export default function Calendario() {
               </button>
               <button
                 onClick={() => setShowEventDetails(false)}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2"
+                className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
               >
                 Fechar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal de Informações Semanais */}
+      {showInfo && infoSemanal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
+          <div 
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg animate-fade-in overflow-y-auto max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-violet-700 to-pink-600 bg-clip-text text-transparent">
+                Semana {infoSemanal.semana} da Gravidez
+              </h3>
+              <button 
+                onClick={() => setShowInfo(false)}
+                className="text-gray-400 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-100"
+                aria-label="Fechar"
+              >
+                ✖️
+              </button>
+            </div>
+            
+            <div className="space-y-5">
+              {/* Desenvolvimento do bebê */}
+              <div className="bg-pink-50 rounded-xl p-4">
+                <div className="flex items-center mb-3">
+                  <span className="text-2xl mr-2">👶</span>
+                  <h4 className="text-lg font-semibold text-pink-800">Desenvolvimento do Bebê</h4>
+                </div>
+                <p className="text-pink-700">{infoSemanal.desenvolvimento_bebe}</p>
+              </div>
+              
+              {/* Sintomas comuns */}
+              <div className="bg-violet-50 rounded-xl p-4">
+                <div className="flex items-center mb-3">
+                  <span className="text-2xl mr-2">🤰</span>
+                  <h4 className="text-lg font-semibold text-violet-800">Sintomas Comuns</h4>
+                </div>
+                <p className="text-violet-700">{infoSemanal.sintomas_comuns}</p>
+              </div>
+              
+              {/* Dicas para a mãe */}
+              <div className="bg-blue-50 rounded-xl p-4">
+                <div className="flex items-center mb-3">
+                  <span className="text-2xl mr-2">💡</span>
+                  <h4 className="text-lg font-semibold text-blue-800">Dicas para a Mãe</h4>
+                </div>
+                <p className="text-blue-700">{infoSemanal.dicas_mae}</p>
+              </div>
+              
+              {/* Cuidados especiais */}
+              <div className="bg-amber-50 rounded-xl p-4">
+                <div className="flex items-center mb-3">
+                  <span className="text-2xl mr-2">⚠️</span>
+                  <h4 className="text-lg font-semibold text-amber-800">Cuidados Especiais</h4>
+                </div>
+                <p className="text-amber-700">{infoSemanal.cuidados_especiais}</p>
+              </div>
+              
+              {/* Adicionar ao calendário */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setSelectedDate(format(new Date(), "yyyy-MM-dd"));
+                    setNewEvent(prev => ({
+                      ...prev,
+                      titulo: `Semana ${infoSemanal.semana} - Consulta de acompanhamento`,
+                      descricao: `Desenvolvimento do bebê: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}...`,
+                      inicio_data: format(new Date(), "yyyy-MM-dd"),
+                      tipo_evento: "consulta",
+                    }));
+                    setShowInfo(false);
+                    setShowModal(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+                >
+                  <span className="mr-2">📅</span>
+                  Adicionar consulta de acompanhamento ao calendário
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal para configuração da data inicial da gravidez (mostrado se não houver dados) */}
+      {!isLoading && !pregnancyData.dataInicio && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl font-bold text-violet-800">
+                Vamos configurar sua gravidez
+              </h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">Para personalizar seu calendário da gravidez, precisamos de algumas informações:</p>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setIsLoading(true);
+              
+              const formData = new FormData(e.target);
+              const data_ultima_menstruacao = formData.get('data_ultima_menstruacao');
+              const data_provavel_parto = formData.get('data_provavel_parto');
+              
+              try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error("Usuário não autenticado");
+                
+                const { error } = await supabase
+                  .from("gravidez_info")
+                  .insert([{
+                    user_id: user.id,
+                    data_ultima_menstruacao,
+                    data_provavel_parto,
+                    data_inicio: new Date().toISOString().split('T')[0]
+                  }]);
+                  
+                if (error) throw error;
+                
+                await fetchPregnancyData(user.id);
+                showNotification("Calendário configurado com sucesso!");
+              } catch (error) {
+                console.error("Erro ao configurar dados da gravidez:", error);
+                showNotification("Erro ao configurar dados. Tente novamente.", "error");
+              } finally {
+                setIsLoading(false);
+              }
+            }}>
+              <div className="mb-5">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="data_ultima_menstruacao">
+                  Data da última menstruação
+                </label>
+                <input
+                  id="data_ultima_menstruacao"
+                  type="date"
+                  name="data_ultima_menstruacao"
+                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">Usamos esta data para calcular a semana da gravidez</p>
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="data_provavel_parto">
+                  Data provável do parto (opcional)
+                </label>
+                <input
+                  id="data_provavel_parto"
+                  type="date"
+                  name="data_provavel_parto"
+                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                />
+                <p className="text-xs text-gray-500 mt-1">Se seu médico já informou uma data provável</p>
+              </div>
+              
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+              >
+                {isLoading ? (
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                ) : (
+                  <span className="mr-2">✨</span>
+                )}
+                Configurar Calendário
+              </button>
+            </form>
           </div>
         </div>
       )}
