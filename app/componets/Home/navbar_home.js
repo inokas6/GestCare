@@ -9,7 +9,6 @@ const Navbar = () => {
     const router = useRouter();
 
     const handleLogout = () => {
-        // Aqui você pode adicionar a lógica de logout
         router.push('/login');
     };
 
@@ -22,12 +21,10 @@ const Navbar = () => {
             
             <Menuhamburguer />
 
-            {/* Título */}
             <div className="flex-1 text-center">
                 <a onClick={() => router.push('/home')} className="btn btn-ghost text-xl cursor-pointer">GestCare</a>
             </div>
 
-            {/* Menu Dropdown */}
             <div className="flex-none relative">
                 <button 
                     className="btn btn-square btn-ghost"

@@ -10,7 +10,7 @@ const MinhaBarriga = () => {
   const [userPhotos, setUserPhotos] = useState(Array(9).fill(null));
   const [activeTab, setActiveTab] = useState("development");
   const user = useSupabaseUser();
-  const client = useSupabaseClient();
+  const supabase = useSupabaseClient();
   
   const developmentImages = Array(9).fill("/api/placeholder/400/320");
     
@@ -19,7 +19,12 @@ const MinhaBarriga = () => {
       if (!user?.id) return;
 
       try {
-        const { data: fotos } = await useFetch(`/api/fotos_barriga/${user.id}`);
+        const { data: fotos, error } = await supabase
+          .from('user_fotos_barriga')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
         
         if (fotos) {
           const fotosOrganizadas = Array(9).fill(null);
@@ -34,7 +39,7 @@ const MinhaBarriga = () => {
     };
 
     carregarFotos();
-  }, [user]);
+  }, [user, supabase]);
 
   const handlePrevious = () => {
     if (!isTransitioning && currentMonth > 1) {
@@ -86,19 +91,19 @@ const MinhaBarriga = () => {
       // Upload da imagem para o storage do Supabase
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${currentMonth}-${Date.now()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await client.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('fotos-barriga')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       // Obter URL pública da imagem
-      const { data: { publicUrl } } = client.storage
+      const { data: { publicUrl } } = supabase.storage
         .from('fotos-barriga')
         .getPublicUrl(fileName);
 
       // Salvar referência no banco de dados
-      const { error: dbError } = await client
+      const { error: dbError } = await supabase
         .from('user_fotos_barriga')
         .upsert({
           user_id: user.id,
@@ -167,6 +172,8 @@ const MinhaBarriga = () => {
   
   return (
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto p-4 bg-pink-50 rounded-3xl shadow-lg">
+      
+
       {/* Header */}
       <div className="w-full bg-pink-400 text-white p-4 rounded-t-2xl shadow-md mb-6">
         <h1 className="text-2xl font-bold text-center">Minha Barriga</h1>
@@ -236,11 +243,26 @@ const MinhaBarriga = () => {
             // User Photos
             <div className="relative h-full w-full flex items-center justify-center">
               {userPhotos[currentMonth - 1] ? (
-                <img 
-                  src={userPhotos[currentMonth - 1]} 
-                  alt={`Minha barriga no mês ${currentMonth}`} 
-                  className="h-64 md:h-80 object-contain rounded-xl shadow-lg"
-                />
+                <div className="relative h-full w-full">
+                  <img 
+                    src={userPhotos[currentMonth - 1]} 
+                    alt={`Minha barriga no mês ${currentMonth}`} 
+                    className="h-64 md:h-80 w-full object-contain rounded-xl shadow-lg"
+                  />
+                  <label 
+                    htmlFor="photo-upload" 
+                    className="absolute bottom-4 right-4 cursor-pointer bg-pink-500 hover:bg-pink-600 text-white p-2 rounded-full shadow-lg transition-colors"
+                  >
+                    <IconUpload />
+                  </label>
+                  <input 
+                    id="photo-upload" 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handlePhotoUpload} 
+                    className="hidden" 
+                  />
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center h-full w-full bg-pink-100 rounded-xl border-2 border-dashed border-pink-300">
                   <div className="text-pink-400 mb-3">
@@ -266,44 +288,20 @@ const MinhaBarriga = () => {
         
         {/* Animation definitions */}
         <style jsx>{`
-          @keyframes smoothSlideInLeft {
-            0% { transform: translateX(100%) scale(0.9); opacity: 0; }
-            20% { opacity: 0.5; }
-            100% { transform: translateX(0) scale(1); opacity: 1; }
-          }
-          
-          @keyframes smoothSlideInRight {
-            0% { transform: translateX(-100%) scale(0.9); opacity: 0; }
-            20% { opacity: 0.5; }
-            100% { transform: translateX(0) scale(1); opacity: 1; }
-          }
-          
-          @keyframes smoothSlideOutLeft {
-            0% { transform: translateX(0) scale(1); opacity: 1; }
-            20% { opacity: 0.5; }
-            100% { transform: translateX(-100%) scale(0.9); opacity: 0; }
-          }
-          
-          @keyframes smoothSlideOutRight {
-            0% { transform: translateX(0) scale(1); opacity: 1; }
-            20% { opacity: 0.5; }
-            100% { transform: translateX(100%) scale(0.9); opacity: 0; }
-          }
-          
           .animate-smooth-slide-in-left {
-            animation: smoothSlideInLeft 800ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+            @apply transition-all duration-300 ease-in-out transform translate-x-full opacity-0;
           }
           
           .animate-smooth-slide-in-right {
-            animation: smoothSlideInRight 800ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+            @apply transition-all duration-300 ease-in-out transform -translate-x-full opacity-0;
           }
           
           .animate-smooth-slide-out-left {
-            animation: smoothSlideOutLeft 800ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+            @apply transition-all duration-300 ease-in-out transform -translate-x-full opacity-0;
           }
           
           .animate-smooth-slide-out-right {
-            animation: smoothSlideOutRight 800ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+            @apply transition-all duration-300 ease-in-out transform translate-x-full opacity-0;
           }
         `}</style>
         

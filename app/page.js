@@ -8,9 +8,9 @@ import Contagem from "./componets/PaginaInicial/contagem";
 const BabyCarePage = () => {
   return (
     <div className="bg-gray-200 min-h-screen">
-      <Navbarbaby /> 
-      <Not />   
-      <Circulos/>         
+      <Navbarbaby />
+      <Not />
+      <Circulos/>
       <Contagem/>
       <Footerbaby />
     </div> 

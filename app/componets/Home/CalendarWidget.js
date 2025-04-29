@@ -33,18 +33,15 @@ const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
     }
   };
   
-  // Gerar dias do mês atual
   const getDaysInMonth = (month, year) => {
     const date = new Date(year, month, 1);
     const days = [];
     const firstDay = new Date(year, month, 1).getDay();
     
-    // Adicionar dias vazios do mês anterior
     for (let i = 0; i < firstDay; i++) {
       days.push(null);
     }
     
-    // Adicionar todos os dias do mês atual
     while (date.getMonth() === month) {
       days.push(new Date(date));
       date.setDate(date.getDate() + 1);
@@ -56,7 +53,6 @@ const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
   const days = getDaysInMonth(month, year);
   const currentDate = new Date();
   
-  // Avançar ou retroceder mês
   const changeMonth = (increment) => {
     let newMonth = month + increment;
     let newYear = year;
@@ -73,7 +69,6 @@ const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
     setYear(newYear);
   };
   
-  // Obter nome do mês
   const getMonthName = (month) => {
     const monthNames = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -82,7 +77,6 @@ const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
     return monthNames[month];
   };
   
-  // Verificar se um dia tem eventos
   const hasEvent = (day) => {
     if (!day) return false;
     return events.some(event => 

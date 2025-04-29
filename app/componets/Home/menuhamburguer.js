@@ -1,11 +1,15 @@
+// Importação dos módulos necessários
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from 'next/link';
 
+// Componente do menu hambúrguer
 const menuhamb = () => {
+    // Estado para controlar a abertura/fecho do menu
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
+        // Contentor do menu
         <div className="relative">
             <button
                 className="btn bg-neutral"
@@ -59,4 +63,5 @@ const menuhamb = () => {
     );
 };
 
+// Exporta o componente do menu hambúrguer
 export default menuhamb;

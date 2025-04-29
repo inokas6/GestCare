@@ -1,7 +1,9 @@
 import React from 'react';
 
+// Componente de estatísticas e notícias
 const not = () => {
     return (
+        // Contentor principal com fundo cinzento claro
         <div className="p-4 bg-gray-100 min-h-screen">
       <div className="grid grid-cols-4 gap-4 bg-pink-100 p-4 rounded-lg text-center text-pink-500 text-2xl font-semibold">
         <div>XX <br /> Casais</div>
@@ -34,4 +36,5 @@ const not = () => {
     );
 };
 
+// Exporta o componente de estatísticas e notícias
 export default not;

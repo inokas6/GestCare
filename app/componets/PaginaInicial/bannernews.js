@@ -1,7 +1,10 @@
+// Importação do módulo React
 import React from 'react';
 
+// Componente do banner de notícias e boas-vindas
 const not = () => {
     return (
+        // Contentor principal com largura ajustada
         <div className="w-[calc(100%-60px)] ">
             <div className="my-5 mx-8 flex flex-col md:flex-row w-[calc(100%-60px)] overflow-hidden rounded-lg shadow-md">
                 {/* Left section with pink background and text */}
@@ -28,4 +31,5 @@ const not = () => {
         </div>);
 };
 
+// Exporta o componente do banner
 export default not;

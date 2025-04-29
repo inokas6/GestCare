@@ -1,8 +1,11 @@
+// Importação dos módulos necessários
 import React from 'react';
 import Link from 'next/link';
 
+// Componente da barra de navegação
 const navbar = () => {
   return (
+    // Contentor principal da barra de navegação
     <div className="navbar bg-neutral">
       <div className="navbar-start">
         <div className="dropdown">
@@ -50,4 +53,5 @@ const navbar = () => {
     </div>);
 };
 
+// Exporta o componente
 export default navbar;
