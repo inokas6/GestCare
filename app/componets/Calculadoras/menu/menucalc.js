@@ -17,7 +17,7 @@ const PregnancyCalculators = () => {
       icon: '/icons/menuhamburguer.png',
       color: 'from-pink-500 to-pink-400',
       shadowColor: 'pink-300',
-      description: 'Descubra as possíveis características físicas que seu bebê pode ter com base na genética dos pais.',
+      description: 'Descubra as possíveis características físicas que seu bebé pode ter com base na genética dos pais.',
     },
     {
       id: 'periodoFertil',
@@ -33,7 +33,7 @@ const PregnancyCalculators = () => {
       icon: 'star',
       color: 'from-violet-500 to-violet-400',
       shadowColor: 'violet-300',
-      description: 'Descubra o signo do zodíaco e as características astrológicas do seu bebê com base na data de nascimento.',
+      description: 'Descubra o signo do zodíaco e as características astrológicas do seu bebé com base na data de nascimento.',
     },
     {
       id: 'dataParto',
@@ -49,7 +49,7 @@ const PregnancyCalculators = () => {
       icon: 'weight',
       color: 'from-pink-600 to-pink-500',
       shadowColor: 'pink-400',
-      description: 'Acompanhe o tamanho e peso estimados do seu bebê em cada semana da gestação, comparando com frutas e objetos.',
+      description: 'Acompanhe o tamanho e peso estimados do seu bebé em cada semana da gestação, comparando com frutas e objetos.',
     },
   ];
 

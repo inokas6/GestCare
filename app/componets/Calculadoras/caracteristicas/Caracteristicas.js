@@ -177,7 +177,7 @@ const Caracteristicas = () => {
 
       {resultado && (
         <div className="mt-6 p-4 bg-pink-50 rounded-lg">
-          <h3 className="text-lg font-semibold text-black mb-3">Probabilidades para o Bebê:</h3>
+          <h3 className="text-lg font-semibold text-black mb-3">Probabilidades para o Bebé:</h3>
           {Object.entries(resultado).map(([caracteristica, probabilidades]) => (
             <div key={caracteristica} className="mb-4">
               <h4 className="font-medium text-black mb-2">

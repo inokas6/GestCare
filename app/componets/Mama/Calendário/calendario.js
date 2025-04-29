@@ -123,7 +123,7 @@ export default function CalendarioGravidez() {
       // Se não encontrar info para semana específica, buscar conteúdo genérico
       setInfoSemanal({
         semana: semana,
-        desenvolvimento_bebe: "O bebê continua se desenvolvendo nesta semana.",
+        desenvolvimento_bebe: "O bebé continua se desenvolvendo nesta semana.",
         sintomas_comuns: "Cada gravidez é única. Consulte seu médico para mais informações.",
         dicas_mae: "Mantenha uma alimentação saudável e descanse o suficiente.",
         cuidados_especiais: "Faça os exames recomendados pelo seu médico."
@@ -391,7 +391,7 @@ export default function CalendarioGravidez() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-violet-50 to-pink-50 min-h-screen">
+    <div className="bg-gradient-to-b from-violet-50 to-pink-50 min-h-screen pt-20">
       {/* Barra de progresso da gravidez */}
       {pregnancyData.semanaAtual > 0 && (
         <div className="bg-white shadow-md p-4 mb-6 rounded-lg mx-4 md:mx-6 mt-4">
@@ -406,7 +406,7 @@ export default function CalendarioGravidez() {
                     )}
                   </>
                 ) : (
-                  <span className="font-bold text-pink-600">Seu bebê já deve ter nascido! 👶</span>
+                  <span className="font-bold text-pink-600">Seu bebé já deve ter nascido! 👶</span>
                 )}
               </h3>
               
@@ -489,7 +489,6 @@ export default function CalendarioGravidez() {
                   eventClick={handleEventClick}
                   selectable={true}
                   events={events}
-                  locale={ptBR}
                   height="auto"
                   eventTimeFormat={{
                     hour: "2-digit",
@@ -517,7 +516,6 @@ export default function CalendarioGravidez() {
                   }}
                   eventContent={(eventInfo) => {
                     if (eventInfo.event.display === 'background') {
-                      // Para eventos de semana da gravidez
                       return (
                         <div className="text-xs md:text-sm font-bold pl-1 pt-0.5 text-violet-700">
                           {eventInfo.event.title}
@@ -571,7 +569,7 @@ export default function CalendarioGravidez() {
                 
                 {/* Dica para o usuário */}
                 <div className="mt-6 bg-violet-50 border border-violet-100 rounded-lg p-4 text-center text-sm text-violet-700">
-                  <p>✨ <span className="font-medium">Dica:</span> Clique em uma data para adicionar um novo evento, em um evento existente para ver detalhes, ou em uma semana destacada para ver informações sobre o desenvolvimento do bebê.</p>
+                  <p>✨ <span className="font-medium">Dica:</span> Clique em uma data para adicionar um novo evento, em um evento existente para ver detalhes, ou em uma semana destacada para ver informações sobre o desenvolvimento do bebé.</p>
                 </div>
               </>
             )}
@@ -737,7 +735,7 @@ export default function CalendarioGravidez() {
                   >
                     <option value="consulta">👩‍⚕️ Consulta Médica</option>
                     <option value="exame">🔬 Exame</option>
-                    <option value="marco">🏆 Marco do Bebê</option>
+                    <option value="marco">🏆 Marco do Bebé</option>
                     <option value="ovulacao">🌱 Ovulação</option>
                     <option value="parto">👶 Parto</option>
                     <option value="lembrete">🔔 Lembrete</option>
@@ -865,7 +863,7 @@ export default function CalendarioGravidez() {
                     {selectedEvent.tipo_evento === 'exame' && 'Exame'}
                     {selectedEvent.tipo_evento === 'ovulacao' && 'Ovulação'}
                     {selectedEvent.tipo_evento === 'parto' && 'Parto'}
-                    {selectedEvent.tipo_evento === 'marco' && 'Marco do Bebê'}
+                    {selectedEvent.tipo_evento === 'marco' && 'Marco do Bebé'}
                     {selectedEvent.tipo_evento === 'lembrete' && 'Lembrete'}
                     {selectedEvent.tipo_evento === 'importante' && 'Evento Importante'}
                   </p>
@@ -933,11 +931,11 @@ export default function CalendarioGravidez() {
             </div>
             
             <div className="space-y-5">
-              {/* Desenvolvimento do bebê */}
+              {/* Desenvolvimento do bebé */}
               <div className="bg-pink-50 rounded-xl p-4">
                 <div className="flex items-center mb-3">
                   <span className="text-2xl mr-2">👶</span>
-                  <h4 className="text-lg font-semibold text-pink-800">Desenvolvimento do Bebê</h4>
+                  <h4 className="text-lg font-semibold text-pink-800">Desenvolvimento do Bebé</h4>
                 </div>
                 <p className="text-pink-700">{infoSemanal.desenvolvimento_bebe}</p>
               </div>
@@ -977,7 +975,7 @@ export default function CalendarioGravidez() {
                     setNewEvent(prev => ({
                       ...prev,
                       titulo: `Semana ${infoSemanal.semana} - Consulta de acompanhamento`,
-                      descricao: `Desenvolvimento do bebê: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}...`,
+                      descricao: `Desenvolvimento do bebé: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}...`,
                       inicio_data: format(new Date(), "yyyy-MM-dd"),
                       tipo_evento: "consulta",
                     }));
@@ -1022,22 +1020,36 @@ export default function CalendarioGravidez() {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) throw new Error("Usuário não autenticado");
                 
+                // Validar e formatar as datas
+                if (!data_ultima_menstruacao) {
+                  throw new Error("A data da última menstruação é obrigatória");
+                }
+
+                const dadosGravidez = {
+                  user_id: user.id,
+                  data_ultima_menstruacao: data_ultima_menstruacao,
+                  data_inicio: new Date().toISOString().split('T')[0]
+                };
+
+                // Adicionar data provável do parto apenas se fornecida
+                if (data_provavel_parto) {
+                  dadosGravidez.data_provavel_parto = data_provavel_parto;
+                }
+                
                 const { error } = await supabase
                   .from("gravidez_info")
-                  .insert([{
-                    user_id: user.id,
-                    data_ultima_menstruacao,
-                    data_provavel_parto,
-                    data_inicio: new Date().toISOString().split('T')[0]
-                  }]);
+                  .insert([dadosGravidez]);
                   
-                if (error) throw error;
+                if (error) {
+                  console.error("Erro detalhado:", error);
+                  throw new Error(`Erro ao inserir dados: ${error.message}`);
+                }
                 
                 await fetchPregnancyData(user.id);
                 showNotification("Calendário configurado com sucesso!");
               } catch (error) {
                 console.error("Erro ao configurar dados da gravidez:", error);
-                showNotification("Erro ao configurar dados. Tente novamente.", "error");
+                showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
               } finally {
                 setIsLoading(false);
               }

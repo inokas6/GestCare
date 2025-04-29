@@ -9,7 +9,7 @@ const DailyTip = () => {
       <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
         <h4 className="font-medium text-purple-800 mb-2">Hidratação é essencial</h4>
         <p className="text-gray-700 text-sm mb-3">
-          Nesta fase da gravidez, mantenha-se bem hidratada. Tente beber pelo menos 8-10 copos de água por dia para apoiar o desenvolvimento saudável do bebê e seu bem-estar.
+          Nesta fase da gravidez, mantenha-se bem hidratada. Tente beber pelo menos 8-10 copos de água por dia para apoiar o desenvolvimento saudável do bebé e seu bem-estar.
         </p>
         <div className="flex justify-between items-center">
           <div className="flex items-center text-purple-600">

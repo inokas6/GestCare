@@ -1,5 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { differenceInWeeks, addWeeks } from "date-fns";
 import Navbar from "../componets/Home/navbar_home";
 import NavButton from "../componets/Home/NavButton";
 import PregnancySummary from "../componets/Home/PregnancySummary";
@@ -11,7 +13,7 @@ import GrowthTracker from "../componets/Home/GrowthTracker";
 import AppointmentsWidget from "../componets/Home/AppointmentsWidget";
 
 const Home = () => {
-  const [currentWeek, setCurrentWeek] = useState(24);
+  const [currentWeek, setCurrentWeek] = useState(0);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMood, setCurrentMood] = useState('happy');
   const [moodHistory, setMoodHistory] = useState([
@@ -21,13 +23,48 @@ const Home = () => {
     { date: '31/03', mood: 'happy' },
     { date: '01/04', mood: 'happy' },
   ]);
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    const fetchPregnancyData = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from("gravidez_info")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+          
+        if (error) {
+          console.error("Erro ao buscar dados da gravidez:", error);
+          return;
+        }
+        
+        if (!data) return;
+        
+        const dataInicio = new Date(data.data_ultima_menstruacao || data.data_inicio);
+        const hoje = new Date();
+        
+        // Calcular semana atual (considerando que a gravidez começa 2 semanas após a última menstruação)
+        const semanasDesdeInicio = differenceInWeeks(hoje, dataInicio) + 2;
+        setCurrentWeek(semanasDesdeInicio);
+        
+      } catch (error) {
+        console.error("Erro ao buscar dados da gravidez:", error);
+      }
+    };
+
+    fetchPregnancyData();
+  }, []);
 
   return (
     <div className="bg-gradient-to-b from-purple-50 to-pink-50 min-h-screen pb-20">
       {/* Navbar personalizado */}
       <Navbar />
       
-      <div className="container mx-auto px-4 py-6 pt-20">
+      <div className="container mx-auto px-4 py-6 mt-[70px]">
         {/* Resumo da gravidez com progresso e modelo 3D */}
         <PregnancySummary week={currentWeek} />
         

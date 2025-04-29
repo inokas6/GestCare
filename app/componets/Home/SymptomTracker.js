@@ -2,7 +2,7 @@ const SymptomTracker = () => {
   const symptoms = [
     { name: 'Azia', level: 'medium', date: 'Ontem', color: 'pink' },
     { name: 'Fadiga', level: 'high', date: 'Há 3 dias', color: 'yellow' },
-    { name: 'Movimentos do bebê', level: 'positive', date: 'Hoje', color: 'green' },
+    { name: 'Movimentos do bebé', level: 'positive', date: 'Hoje', color: 'green' },
   ];
   
   return (
