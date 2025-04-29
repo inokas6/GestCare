@@ -5,11 +5,14 @@ import Sidebar from '../../../componets/Mama/Conversar/Forum/Sidebar';
 import Navbar from '../../../componets/Home/navbar_home';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import NewTopic from '../../../componets/Mama/Conversar/Forum/NewTopic';
 
 export default function ConversarPage() {
   const [topicos, setTopicos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showNewTopic, setShowNewTopic] = useState(false);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -47,8 +50,84 @@ export default function ConversarPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <Sidebar />
-      <div className="pl-0 sm:pl-48 lg:pl-64">
+      <div className="pl-0 sm:pl-48 lg:pl-64 mt-[80px]">
         <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          {/* Barra de pesquisa e botão New Topic */}
+          <div className="flex gap-4 mb-6">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Pesquisar tópicos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+              <svg
+                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <button
+              onClick={() => setShowNewTopic(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              New Topic
+            </button>
+          </div>
+
+          {/* Modal do New Topic */}
+          {showNewTopic && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+              <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800">Criar Novo Tópico</h2>
+                  <button
+                    onClick={() => setShowNewTopic(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <NewTopic onClose={() => setShowNewTopic(false)} />
+              </div>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
