@@ -6,6 +6,7 @@ import Navbar from '../../../componets/Home/navbar_home';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import NewTopic from '../../../componets/Mama/Conversar/Forum/NewTopic';
+import TopicComments from '../../../componets/Mama/Conversar/Forum/TopicComments';
 
 export default function ConversarPage() {
   const [topicos, setTopicos] = useState([]);
@@ -13,6 +14,7 @@ export default function ConversarPage() {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewTopic, setShowNewTopic] = useState(false);
+  const [comentariosAbertos, setComentariosAbertos] = useState({});
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -23,14 +25,20 @@ export default function ConversarPage() {
           .select(`
             *,
             users:user_id (id, nome, foto_perfil),
-            categorias:categoria_id (id, nome, cor)
+            categorias:categoria_id (id, nome, cor),
+            comentarios:comentarios(count)
           `)
           .order('created_at', { ascending: false })
           .limit(20);
 
         if (error) throw error;
         
-        setTopicos(data || []);
+        const topicosProcessados = data.map(topico => ({
+          ...topico,
+          totalComentarios: topico.comentarios?.[0]?.count || 0
+        }));
+        
+        setTopicos(topicosProcessados);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -44,6 +52,13 @@ export default function ConversarPage() {
   const formatarData = (dataString) => {
     if (!dataString) return '';
     return format(new Date(dataString), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
+  };
+
+  const toggleComentarios = (topicoId) => {
+    setComentariosAbertos(prev => ({
+      ...prev,
+      [topicoId]: !prev[topicoId]
+    }));
   };
 
   return (
@@ -170,6 +185,28 @@ export default function ConversarPage() {
                       <p className="text-gray-700 whitespace-pre-line">
                         {topico.conteudo}
                       </p>
+                      
+                      {/* Botão de comentários */}
+                      <div className="mt-4 border-t pt-4">
+                        <button
+                          onClick={() => toggleComentarios(topico.id)}
+                          className="flex items-center text-gray-500 hover:text-purple-600 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span>
+                            {topico.totalComentarios} {topico.totalComentarios === 1 ? 'comentário' : 'comentários'}
+                          </span>
+                        </button>
+                      </div>
+
+                      {/* Seção de comentários */}
+                      {comentariosAbertos[topico.id] && (
+                        <div className="mt-4">
+                          <TopicComments topicoId={topico.id} />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

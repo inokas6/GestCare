@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { supabase } from '../../../../lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function TopicComments({ topicoId }) {
     const [comentarios, setComentarios] = useState([]);
     const [novoComentario, setNovoComentario] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const supabase = createClientComponentClient();
 
     useEffect(() => {
         fetchComentarios();
@@ -43,25 +44,26 @@ export default function TopicComments({ topicoId }) {
         if (!novoComentario.trim()) return;
 
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-                throw new Error('Usuário não autenticado');
-            }
+            // Obter a sessão atual
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (sessionError) throw sessionError;
+            if (!session) throw new Error('Usuário não autenticado');
 
-            const { error } = await supabase
+            const { error: insertError } = await supabase
                 .from('comentarios')
                 .insert([
                     {
                         conteudo: novoComentario,
                         topico_id: topicoId,
-                        user_id: user.id
+                        user_id: session.user.id
                     }
                 ]);
 
-            if (error) throw error;
+            if (insertError) throw insertError;
 
             setNovoComentario('');
-            fetchComentarios();
+            fetchComentarios(); // Recarregar comentários após adicionar um novo
         } catch (err) {
             console.error('Erro ao adicionar comentário:', err);
             setError(err.message);
