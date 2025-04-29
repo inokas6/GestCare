@@ -78,7 +78,7 @@ export default function TopicoPage() {
                         <h2 className="text-lg sm:text-xl font-semibold mb-4">
                             {topico.respostas} Respostas
                         </h2>
-                        <Comments topicoId={topico.id} />
+                        <Comments topicId={topico.id} />
                     </div>
                 </div>
             </div>

@@ -5,7 +5,7 @@ import Sidebar from '../../../../componets/Mama/Conversar/Forum/Sidebar';
 import Navbar from '../../../../componets/Home/navbar_home';
 
 
-export default function ExplorePage() {
+export default function CategoriasPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [categorias, setCategorias] = useState([]);
@@ -109,7 +109,7 @@ export default function ExplorePage() {
                   {filteredCategorias.map((categoria) => (
                     <button
                       key={categoria.id}
-                      onClick={() => router.push(`/Menu/Mama/Conversar/explore/${categoria.id}`)}
+                      onClick={() => router.push(`/Menu/Mama/Conversar/categorias/${categoria.id}`)}
                       className="flex items-center justify-center md:justify-start space-x-2 px-4 py-3 rounded-lg hover:bg-gray-50 transition-all duration-200 border text-sm md:text-base cursor-pointer"
                       style={{ borderLeft: `4px solid ${categoria.cor}` }}
                     >

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { forum } from '../../../../server/api/forum';
+import { supabase } from '../../../../lib/supabase';
 
 export default function Comments({ topicId }) {
     const [respostas, setRespostas] = useState([]);
@@ -15,7 +15,7 @@ export default function Comments({ topicId }) {
             try {
                 const { data, error } = await forum.getRespostas(topicId);
                 if (error) throw error;
-                setRespostas(data);
+                setRespostas(data || []);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -34,7 +34,7 @@ export default function Comments({ topicId }) {
         setError(null);
 
         try {
-            const { data: user } = await supabase.auth.getUser();
+            const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 throw new Error('Usuário não autenticado');
             }
@@ -49,7 +49,7 @@ export default function Comments({ topicId }) {
 
             // Atualizar a lista de respostas
             const { data: updatedRespostas } = await forum.getRespostas(topicId);
-            setRespostas(updatedRespostas);
+            setRespostas(updatedRespostas || []);
             setNovaResposta('');
         } catch (err) {
             setError(err.message);
@@ -107,7 +107,7 @@ export default function Comments({ topicId }) {
                                     </svg>
                                 </button>
                                 <span className="text-xs sm:text-sm text-gray-500">
-                                    {resposta.reacoes}
+                                    {resposta.reacoes || 0} reações
                                 </span>
                             </div>
                         </div>

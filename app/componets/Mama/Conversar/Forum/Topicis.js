@@ -39,10 +39,10 @@ export default function Page() {
                         </div>
                     </>
                 );
-            case 'explore':
+            case 'categorias':
                 return (
                     <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
-                        <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Explore Tópicos</h2>
+                        <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Categorias</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
                             {topics.map((topic, index) => (
                                 <button

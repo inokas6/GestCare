@@ -10,7 +10,7 @@ export default function Sidebar() {
     
     const menuItems = [
         { id: 1, nome: 'Pagina inicial', path: '/Menu/Mama/Conversar' },
-        { id: 2, nome: 'Categorias', path: '/Menu/Mama/Conversar/explore' },
+        { id: 2, nome: 'Categorias', path: '/Menu/Mama/Conversar/categorias' },
         { id: 3, nome: 'Chat', path: '/Menu/Mama/Conversar/chat' },
         { id: 4, nome: 'Meus posts', path: '/Menu/Mama/Conversar/qna' },
     ];

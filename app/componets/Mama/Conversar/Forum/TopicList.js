@@ -4,6 +4,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import TopicComments from './TopicComments';
 
 export default function TopicList() {
     console.log('🚀 Iniciando componente TopicList');
@@ -260,55 +261,8 @@ export default function TopicList() {
 
                             {/* Seção de comentários expansível */}
                             {comentariosAbertos[topico.id] && (
-                                <div className="mt-6 border-t pt-4">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-4">
-                                        Comentários ({topico.totalComentarios})
-                                    </h4>
-                                    {topico.comentariosCarregados.length > 0 ? (
-                                        <div className="space-y-4">
-                                            {topico.comentariosCarregados.map((comentario) => {
-                                                console.log('🎨 Renderizando comentário:', { 
-                                                    id: comentario.id,
-                                                    autor: comentario.users?.nome,
-                                                    conteudo: comentario.conteudo?.substring(0, 50) + '...'
-                                                });
-                                                return (
-                                                    <div key={comentario.id} className="flex space-x-3">
-                                                        {comentario.users?.foto_perfil ? (
-                                                            <img
-                                                                src={comentario.users.foto_perfil}
-                                                                alt={comentario.users.nome}
-                                                                className="w-8 h-8 rounded-full"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                                                                <span className="text-purple-800 text-xs">
-                                                                    {comentario.users?.nome?.charAt(0) || '?'}
-                                                                </span>
-                                                            </div>
-                                                        )}
-                                                        <div className="flex-1">
-                                                            <div className="bg-gray-50 rounded-lg p-3">
-                                                                <p className="text-sm font-medium text-gray-900">
-                                                                    {comentario.users?.nome || 'Usuário'}
-                                                                </p>
-                                                                <p className="text-sm text-gray-700 mt-1">
-                                                                    {comentario.conteudo}
-                                                                </p>
-                                                            </div>
-                                                            <p className="text-xs text-gray-500 mt-1">
-                                                                {formatarData(comentario.created_at)}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <p className="text-center text-gray-500 py-4">
-                                            Sem comentários ainda
-                                        </p>
-                                    )}
+                                <div className="mt-4 border-t pt-4">
+                                    <TopicComments topicoId={topico.id} />
                                 </div>
                             )}
                         </div>
