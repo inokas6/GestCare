@@ -391,18 +391,18 @@ export default function CalendarioGravidez() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-violet-50 to-pink-50 min-h-screen pt-20">
+    <div className="bg-pink-50 min-h-screen pt-20">
       {/* Barra de progresso da gravidez */}
       {pregnancyData.semanaAtual > 0 && (
         <div className="bg-white shadow-md p-4 mb-6 rounded-lg mx-4 md:mx-6 mt-4">
           <div className="max-w-5xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold text-violet-800 mb-2 md:mb-0">
+              <h3 className="text-lg font-semibold text-pink-800 mb-2 md:mb-0">
                 {pregnancyData.semanaAtual <= 40 ? (
                   <>
                     Você está na <span className="font-bold text-pink-600">{pregnancyData.semanaAtual}ª semana</span> de 40 
                     {pregnancyData.diasNaSemana > 0 && (
-                      <span className="text-sm text-violet-600"> (+ {pregnancyData.diasNaSemana} {pregnancyData.diasNaSemana === 1 ? 'dia' : 'dias'})</span>
+                      <span className="text-sm text-pink-600"> (+ {pregnancyData.diasNaSemana} {pregnancyData.diasNaSemana === 1 ? 'dia' : 'dias'})</span>
                     )}
                   </>
                 ) : (
@@ -415,7 +415,7 @@ export default function CalendarioGravidez() {
                   fetchInfoSemanal(pregnancyData.semanaAtual);
                   setShowInfo(true);
                 }}
-                className="text-sm bg-violet-100 hover:bg-violet-200 text-violet-800 px-4 py-2 rounded-full transition-colors"
+                className="text-sm bg-pink-100 hover:bg-pink-200 text-pink-800 px-4 py-2 rounded-full transition-colors"
               >
                 Ver informações desta semana
               </button>
@@ -424,7 +424,7 @@ export default function CalendarioGravidez() {
             {/* Barra de progresso */}
             <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-violet-500 to-pink-500 transition-all duration-700 ease-in-out" 
+                className="h-full bg-gradient-to-r from-pink-500 to-pink-700 transition-all duration-700 ease-in-out" 
                 style={{ width: `${pregnancyData.progresso}%` }}
               ></div>
             </div>
@@ -445,14 +445,14 @@ export default function CalendarioGravidez() {
         <div className="max-w-5xl mx-auto">
           {/* Header com título e botão de adicionar */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-violet-800 flex items-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-pink-800 flex items-center">
               <span className="mr-2 text-pink-500 text-3xl">📅</span>
-              <span className="bg-gradient-to-r from-violet-700 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-pink-700">
                 Calendário da Gravidez
               </span>
             </h2>
             <button
-              className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+              className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
               onClick={() => {
                 setSelectedDate(format(new Date(), "yyyy-MM-dd"));
                 setNewEvent(prev => ({
@@ -470,10 +470,10 @@ export default function CalendarioGravidez() {
           </div>
 
           {/* Calendário principal */}
-          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 border border-violet-100 transition-all duration-300 hover:shadow-2xl">
+          <div className="bg-white rounded-2xl shadow-xl p-4 md:p-6 border border-pink-100 transition-all duration-300 hover:shadow-2xl">
             {isLoading ? (
               <div className="flex justify-center items-center py-20">
-                <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-500 rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin"></div>
               </div>
             ) : (
               <>
@@ -517,7 +517,7 @@ export default function CalendarioGravidez() {
                   eventContent={(eventInfo) => {
                     if (eventInfo.event.display === 'background') {
                       return (
-                        <div className="text-xs md:text-sm font-bold pl-1 pt-0.5 text-violet-700">
+                        <div className="text-xs md:text-sm font-bold pl-1 pt-0.5 text-pink-700">
                           {eventInfo.event.title}
                         </div>
                       );
@@ -538,7 +538,7 @@ export default function CalendarioGravidez() {
                 {/* Legenda de cores */}
                 <div className="mt-6 flex flex-wrap gap-3 justify-center">
                   <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
-                    <div className="w-3 h-3 rounded-full bg-violet-500 mr-2"></div>
+                    <div className="w-3 h-3 rounded-full bg-pink-500 mr-2"></div>
                     <span className="text-xs text-gray-700">Consulta</span>
                   </div>
                   <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
@@ -568,7 +568,7 @@ export default function CalendarioGravidez() {
                 </div>
                 
                 {/* Dica para o usuário */}
-                <div className="mt-6 bg-violet-50 border border-violet-100 rounded-lg p-4 text-center text-sm text-violet-700">
+                <div className="mt-6 bg-pink-50 border border-pink-100 rounded-lg p-4 text-center text-sm text-pink-700">
                   <p>✨ <span className="font-medium">Dica:</span> Clique em uma data para adicionar um novo evento, em um evento existente para ver detalhes, ou em uma semana destacada para ver informações sobre o desenvolvimento do bebé.</p>
                 </div>
               </>
@@ -576,8 +576,8 @@ export default function CalendarioGravidez() {
           </div>
           
           {/* Próximos eventos */}
-          <div className="mt-8 bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-violet-100">
-            <h3 className="text-lg font-bold text-violet-800 mb-4">Próximos Eventos</h3>
+          <div className="mt-8 bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-pink-100">
+            <h3 className="text-lg font-bold text-pink-800 mb-4">Próximos Eventos</h3>
             
             {events.filter(e => 
               new Date(e.start) >= new Date() && 
@@ -596,7 +596,7 @@ export default function CalendarioGravidez() {
                   .map(event => (
                     <div 
                       key={event.id} 
-                      className="flex items-center p-3 rounded-lg bg-gradient-to-r from-violet-50 to-pink-50 hover:from-violet-100 hover:to-pink-100 transition-colors cursor-pointer"
+                      className="flex items-center p-3 rounded-lg bg-gradient-to-r from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 transition-colors cursor-pointer"
                       onClick={() => {
                         setSelectedEvent({
                           id: event.id,
@@ -623,7 +623,7 @@ export default function CalendarioGravidez() {
                         <div className="text-xs text-gray-500">{formatEventDate(event.start)}</div>
                       </div>
                       {event.extendedProps.lembrete && (
-                        <div className="text-amber-500 text-lg">🔔</div>
+                        <div className="text-pink-500 text-lg">🔔</div>
                       )}
                     </div>
                   ))
@@ -646,7 +646,7 @@ export default function CalendarioGravidez() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-violet-800">
+              <h3 className="text-xl font-bold text-pink-800">
                 {selectedDate ? `Novo Evento: ${formatEventDate(selectedDate)}` : 'Novo Evento'}
               </h3>
               <button 
@@ -669,7 +669,7 @@ export default function CalendarioGravidez() {
                   name="titulo"
                   value={newEvent.titulo}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                   placeholder="Ex: Consulta pré-natal"
                   required
                 />
@@ -684,7 +684,7 @@ export default function CalendarioGravidez() {
                   name="descricao"
                   value={newEvent.descricao}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                   placeholder="Adicione detalhes sobre o evento..."
                   rows={3}
                 />
@@ -701,7 +701,7 @@ export default function CalendarioGravidez() {
                     name="inicio_data"
                     value={newEvent.inicio_data}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                     required
                   />
                 </div>
@@ -716,7 +716,7 @@ export default function CalendarioGravidez() {
                     value={newEvent.fim_data}
                     onChange={handleInputChange}
                     min={newEvent.inicio_data}
-                    className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -731,7 +731,7 @@ export default function CalendarioGravidez() {
                     name="tipo_evento"
                     value={newEvent.tipo_evento}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all appearance-none"
+                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none"
                   >
                     <option value="consulta">👩‍⚕️ Consulta Médica</option>
                     <option value="exame">🔬 Exame</option>
@@ -757,7 +757,7 @@ export default function CalendarioGravidez() {
                     name="lembrete"
                     checked={newEvent.lembrete}
                     onChange={handleInputChange}
-                    className="w-4 h-4 text-violet-600 border-violet-300 rounded focus:ring-violet-500"
+                    className="w-4 h-4 text-pink-600 border-pink-300 rounded focus:ring-pink-500"
                   />
                   <label htmlFor="lembrete" className="ml-2 block text-sm text-gray-700">
                     Definir lembrete para este evento
@@ -774,7 +774,7 @@ export default function CalendarioGravidez() {
                       name="lembrete_antecedencia"
                       value={newEvent.lembrete_antecedencia}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all appearance-none"
+                      className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none"
                     >
                       <option value="0">No dia</option>
                       <option value="1">1 dia antes</option>
@@ -797,7 +797,7 @@ export default function CalendarioGravidez() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+                  className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
                 >
                   {isLoading ? (
                     <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
@@ -822,7 +822,7 @@ export default function CalendarioGravidez() {
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center">
                 <span className="text-2xl mr-2">{getEventIcon(selectedEvent.tipo_evento)}</span>
-                <h3 className="text-xl font-bold text-violet-800 truncate">{selectedEvent.title}</h3>
+                <h3 className="text-xl font-bold text-pink-800 truncate">{selectedEvent.title}</h3>
               </div>
               <button 
                 onClick={() => setShowEventDetails(false)}
@@ -834,9 +834,9 @@ export default function CalendarioGravidez() {
             </div>
             
             <div className="mb-6">
-              <div className="bg-violet-50 rounded-lg p-4 mb-4">
+              <div className="bg-pink-50 rounded-lg p-4 mb-4">
                 <p className="font-medium text-sm text-gray-500 mb-1">Data</p>
-                <div className="text-violet-800">
+                <div className="text-pink-800">
                   {formatEventDate(selectedEvent.start)}
                   {selectedEvent.end && selectedEvent.start !== selectedEvent.end && (
                     <> até {formatEventDate(selectedEvent.end)}</>
@@ -901,7 +901,7 @@ export default function CalendarioGravidez() {
               </button>
               <button
                 onClick={() => setShowEventDetails(false)}
-                className="bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+                className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
               >
                 Fechar
               </button>
@@ -918,7 +918,7 @@ export default function CalendarioGravidez() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold bg-gradient-to-r from-violet-700 to-pink-600 bg-clip-text text-transparent">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-pink-700 to-pink-600 bg-clip-text text-transparent">
                 Semana {infoSemanal.semana} da Gravidez
               </h3>
               <button 
@@ -941,30 +941,30 @@ export default function CalendarioGravidez() {
               </div>
               
               {/* Sintomas comuns */}
-              <div className="bg-violet-50 rounded-xl p-4">
+              <div className="bg-pink-50 rounded-xl p-4">
                 <div className="flex items-center mb-3">
                   <span className="text-2xl mr-2">🤰</span>
-                  <h4 className="text-lg font-semibold text-violet-800">Sintomas Comuns</h4>
+                  <h4 className="text-lg font-semibold text-pink-800">Sintomas Comuns</h4>
                 </div>
-                <p className="text-violet-700">{infoSemanal.sintomas_comuns}</p>
+                <p className="text-pink-700">{infoSemanal.sintomas_comuns}</p>
               </div>
               
               {/* Dicas para a mãe */}
-              <div className="bg-blue-50 rounded-xl p-4">
+              <div className="bg-pink-50 rounded-xl p-4">
                 <div className="flex items-center mb-3">
                   <span className="text-2xl mr-2">💡</span>
-                  <h4 className="text-lg font-semibold text-blue-800">Dicas para a Mãe</h4>
+                  <h4 className="text-lg font-semibold text-pink-800">Dicas para a Mãe</h4>
                 </div>
-                <p className="text-blue-700">{infoSemanal.dicas_mae}</p>
+                <p className="text-pink-700">{infoSemanal.dicas_mae}</p>
               </div>
               
               {/* Cuidados especiais */}
-              <div className="bg-amber-50 rounded-xl p-4">
+              <div className="bg-pink-50 rounded-xl p-4">
                 <div className="flex items-center mb-3">
                   <span className="text-2xl mr-2">⚠️</span>
-                  <h4 className="text-lg font-semibold text-amber-800">Cuidados Especiais</h4>
+                  <h4 className="text-lg font-semibold text-pink-800">Cuidados Especiais</h4>
                 </div>
-                <p className="text-amber-700">{infoSemanal.cuidados_especiais}</p>
+                <p className="text-pink-700">{infoSemanal.cuidados_especiais}</p>
               </div>
               
               {/* Adicionar ao calendário */}
@@ -982,7 +982,7 @@ export default function CalendarioGravidez() {
                     setShowInfo(false);
                     setShowModal(true);
                   }}
-                  className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+                  className="w-full bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
                 >
                   <span className="mr-2">📅</span>
                   Adicionar consulta de acompanhamento ao calendário
@@ -1001,7 +1001,7 @@ export default function CalendarioGravidez() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-violet-800">
+              <h3 className="text-xl font-bold text-pink-800">
                 Vamos configurar sua gravidez
               </h3>
             </div>
@@ -1062,7 +1062,7 @@ export default function CalendarioGravidez() {
                   id="data_ultima_menstruacao"
                   type="date"
                   name="data_ultima_menstruacao"
-                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">Usamos esta data para calcular a semana da gravidez</p>
@@ -1076,7 +1076,7 @@ export default function CalendarioGravidez() {
                   id="data_provavel_parto"
                   type="date"
                   name="data_provavel_parto"
-                  className="w-full px-4 py-2.5 border border-violet-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
                 />
                 <p className="text-xs text-gray-500 mt-1">Se seu médico já informou uma data provável</p>
               </div>
@@ -1084,7 +1084,7 @@ export default function CalendarioGravidez() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-2"
+                className="w-full bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
               >
                 {isLoading ? (
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
