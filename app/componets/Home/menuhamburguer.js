@@ -1,10 +1,11 @@
 // Importação dos módulos necessários
-import React, { useState } from "react";
+"use client";
 import Image from "next/image";
 import Link from 'next/link';
+import { useState } from 'react';
 
 // Componente do menu hambúrguer
-const menuhamb = () => {
+const MenuHamb = () => {
     // Estado para controlar a abertura/fecho do menu
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -22,31 +23,32 @@ const menuhamb = () => {
                 <div className="absolute top-full left-0 w-56 bg-neutral p-2 shadow-lg rounded-box z-50">
                     <ul className="menu bg-neutral rounded-box w-full">
                         <li>
-                            <details close="true">
+                            <details>
                                 <summary>Mamã</summary>
                                 <ul>
                                     <li><Link href="/Menu/Mama/MinhaBarriga">Minha Barriga</Link></li>
                                     <li><Link href="/Menu/Mama/Conversar">Conversar</Link></li>
                                     <li><Link href="/Menu/Mama/Calendario">Calendario</Link></li>
+                                    <li><Link href="/Menu/Mama/Diario">Diário</Link></li>
                                 </ul>
                             </details>
                         </li>
                         <li>
-                            <details close="true">
+                            <details>
                                 <summary>Papá</summary>
                                 <ul>
-                                    <li><a>Ajuda</a></li>
-                                    <li><a>Videos</a></li>
+                                    <li><Link href="/Menu/Papa/Ajuda">Ajuda</Link></li>
+                                    <li><Link href="/Menu/Papa/Videos">Videos</Link></li>
                                 </ul>
                             </details>
                         </li>
                         <li>
-                            <details close="true">
+                            <details>
                                 <summary>Bebé</summary>
                                 <ul>
-                                    <li><a>Nomes</a></li>
-                                    <li><a>Ultrasom</a></li>
-                                    <li><a>Tamanhos</a></li>
+                                    <li><Link href="/Menu/Bebe/Nomes">Nomes</Link></li>
+                                    <li><Link href="/Menu/Bebe/Ultrasom">Ultrasom</Link></li>
+                                    <li><Link href="/Menu/Bebe/Tamanhos">Tamanhos</Link></li>
                                 </ul>
                             </details>
                         </li>
@@ -54,7 +56,7 @@ const menuhamb = () => {
                             <Link href="/Menu/Calculadoras/">Calculadoras</Link>
                         </li>
                         <li>
-                            <a>Modelo 3D</a>
+                            <Link href="/Menu/Modelo3D">Modelo 3D</Link>
                         </li>
                     </ul>
                 </div>
@@ -64,4 +66,4 @@ const menuhamb = () => {
 };
 
 // Exporta o componente do menu hambúrguer
-export default menuhamb;
+export default MenuHamb;

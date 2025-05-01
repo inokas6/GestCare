@@ -50,25 +50,29 @@ const MinhaBarriga = () => {
         }
 
         // Buscar fotos do usuário
-        if (session?.user?.id) {
+        const { data: userSession } = await supabase.auth.getSession();
+        if (userSession?.session?.user?.id) {
           const { data: userPhotosData, error: userError } = await supabase
             .from('user_fotos_barriga')
             .select('*')
-            .eq('user_id', session.user.id)
-            .order('mes');
+            .eq('user_id', userSession.session.user.id)
+            .order('created_at');
 
           if (userError) throw userError;
 
           if (userPhotosData) {
-            const photos = Array(9).fill([]);
+            // Inicializar array com 9 arrays vazios
+            const photos = Array(9).fill().map(() => []);
+            
+            // Distribuir as fotos pelos meses corretos
             userPhotosData.forEach(foto => {
-              const mes = foto.mes - 1;
-              if (!photos[mes]) photos[mes] = [];
-              photos[mes].push({
-                id: foto.id,
-                url: foto.url,
-                descricao: foto.descricao
-              });
+              if (foto.mes >= 1 && foto.mes <= 9) {
+                photos[foto.mes - 1].push({
+                  id: foto.id,
+                  url: foto.url,
+                  descricao: foto.descricao
+                });
+              }
             });
             setUserPhotos(photos);
           }
@@ -158,7 +162,7 @@ const MinhaBarriga = () => {
 
         // Upload do arquivo para o Supabase Storage
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('fotos-barriga')  // Certifique-se que este bucket existe no Supabase
+          .from('fotos-barriga')
           .upload(filePath, blob, {
             cacheControl: '3600',
             upsert: false
@@ -189,7 +193,6 @@ const MinhaBarriga = () => {
 
         if (saveError) {
           console.error('Erro ao salvar no banco:', saveError);
-          // Remover o arquivo se falhar ao salvar no banco
           await supabase.storage
             .from('fotos-barriga')
             .remove([filePath]);
@@ -197,15 +200,16 @@ const MinhaBarriga = () => {
           continue;
         }
 
-        // Atualizar estado local
+        // Atualizar estado local apenas para o mês atual
         const newPhotos = [...userPhotos];
-        const monthPhotos = [...(newPhotos[currentMonth - 1] || [])];
-        monthPhotos.push({
-          id: savedPhoto.id,
-          url: savedPhoto.url,
-          descricao: savedPhoto.descricao
-        });
-        newPhotos[currentMonth - 1] = monthPhotos;
+        newPhotos[currentMonth - 1] = [
+          ...newPhotos[currentMonth - 1],
+          {
+            id: savedPhoto.id,
+            url: savedPhoto.url,
+            descricao: savedPhoto.descricao
+          }
+        ];
         setUserPhotos(newPhotos);
       }
     } catch (error) {
