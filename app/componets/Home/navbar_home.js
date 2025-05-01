@@ -17,12 +17,12 @@ const Navbar = () => {
     };
 
     return (
-        <div className="navbar bg-neutral fixed top-0 left-0 w-full z-40 p-4 flex items-center">
+        <div className="navbar bg-neutral text-white fixed top-0 left-0 w-full z-40 p-4 flex items-center">
             
             <Menuhamburguer />
 
             <div className="flex-1 text-center">
-                <a onClick={() => router.push('/home')} className="btn btn-ghost text-xl cursor-pointer">GestCare</a>
+                <a onClick={() => router.push('/home')} className="btn btn-ghost text-xl text-white cursor-pointer">GestCare</a>
             </div>
 
             <div className="flex-none relative">

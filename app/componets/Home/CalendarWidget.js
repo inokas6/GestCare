@@ -1,16 +1,28 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
+// Opções de humor para exibir emojis e rótulos
+const moodOptions = [
+  { value: 'feliz', emoji: '😊', label: 'Feliz' },
+  { value: 'cansada', emoji: '😴', label: 'Cansada' },
+  { value: 'enjoada', emoji: '🤢', label: 'Enjoada' },
+  { value: 'ansiosa', emoji: '😰', label: 'Ansiosa' },
+  { value: 'energética', emoji: '⚡', label: 'Energética' },
+  { value: 'emotiva', emoji: '😢', label: 'Emotiva' }
+];
+
 const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
   const daysOfWeek = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
   const [month, setMonth] = useState(new Date().getMonth());
   const [year, setYear] = useState(new Date().getFullYear());
   const [events, setEvents] = useState([]);
+  const [moodEntries, setMoodEntries] = useState([]);
   const supabase = createClientComponentClient();
   
   useEffect(() => {
     fetchEvents();
-  }, []);
+    fetchMoodEntries();
+  }, [selectedDate]);
 
   const fetchEvents = async () => {
     try {
@@ -30,6 +42,25 @@ const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
       })));
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
+    }
+  };
+  
+  // Buscar as entradas de humor do usuário na data selecionada
+  const fetchMoodEntries = async () => {
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) return;
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('diario_entradas')
+        .select('humor')
+        .eq('user_id', user.id)
+        .eq('data', dateStr);
+      if (error) throw error;
+      setMoodEntries(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar humor:', error);
     }
   };
   
@@ -166,16 +197,24 @@ const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
       
       <div className="mt-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Eventos</h4>
-        {selectedDayEvents.length > 0 ? (
+        {(selectedDayEvents.length > 0 || moodEntries.length > 0) ? (
           <div className="space-y-2">
             {selectedDayEvents.map((event, index) => (
-              <div key={index} className={`p-2 rounded-lg text-sm ${getEventColor(event.type)}`}>
+              <div key={`evt-${index}`} className={`p-2 rounded-lg text-sm ${getEventColor(event.type)}`}>
                 {event.title}
                 {event.description && (
                   <p className="text-xs mt-1 opacity-75">{event.description}</p>
                 )}
               </div>
             ))}
+            {moodEntries.map((entry, i) => {
+              const option = moodOptions.find(m => m.value === entry.humor);
+              return (
+                <div key={`mood-${i}`} className="p-2 rounded-lg text-sm bg-gray-100 text-gray-700">
+                  {option?.emoji} {option?.label}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="text-sm text-gray-500 italic">
