@@ -281,7 +281,13 @@ const PregnancyDiary = () => {
     setSelectedDate(newDate);
   };
   
-  // Verifica se um dia tem entradas
+  // Adicionar esta função para obter o emoji do humor
+  const getMoodEmoji = (mood) => {
+    const moodOption = moodOptions.find(m => m.value === mood);
+    return moodOption ? moodOption.emoji : '●';
+  };
+  
+  // Modificar a função hasEntryOnDay
   const hasEntryOnDay = (day) => {
     if (!day) return false;
     
@@ -290,7 +296,8 @@ const PregnancyDiary = () => {
     const formattedYear = selectedDate.getFullYear();
     const dateString = `${formattedDay}/${formattedMonth}/${formattedYear}`;
     
-    return entries.some(entry => entry.date === dateString);
+    const entry = entries.find(entry => entry.date === dateString);
+    return entry ? entry.mood : false;
   };
   
   return (
@@ -403,7 +410,9 @@ const PregnancyDiary = () => {
                       <>
                         {day}
                         {hasEntryOnDay(day) && (
-                          <span className="absolute bottom-1 right-1 w-2 h-2 bg-pink-600 rounded-full"></span>
+                          <span className="absolute bottom-1 right-1 text-lg">
+                            {getMoodEmoji(hasEntryOnDay(day))}
+                          </span>
                         )}
                       </>
                     )}
