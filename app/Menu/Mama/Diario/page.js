@@ -1,6 +1,8 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import Navbar from "../../../componets/Home/navbar_home";
+import { useState, useEffect } from 'react';
+import Navbar from '../../../componets/Home/navbar_home';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { format } from 'date-fns';
 
 const PregnancyDiary = () => {
   const [currentWeek, setCurrentWeek] = useState(12);
@@ -12,18 +14,178 @@ const PregnancyDiary = () => {
   const [entries, setEntries] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [babySize, setBabySize] = useState('Limão');
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [lastKickTime, setLastKickTime] = useState(null);
+  const [symptoms, setSymptoms] = useState([]);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
   
-  // Mapeia semanas para tamanhos de frutas/vegetais
+  const supabase = createClientComponentClient();
+  
+  // Lista de sintomas comuns na gravidez
+  const symptomsList = [
+    'Náusea', 'Cansaço', 'Inchaço', 'Dor lombar', 
+    'Azia', 'Insônia', 'Dor de cabeça', 'Desejos alimentares'
+  ];
+  
+  // Mapeia semanas para tamanhos de frutas/vegetais com imagens
   const babySizes = {
-    8: 'Uva',
-    12: 'Limão',
-    16: 'Abacate',
-    20: 'Banana',
-    24: 'Milho',
-    28: 'Berinjela',
-    32: 'Melão',
-    36: 'Abacaxi',
-    40: 'Melancia'
+    4: { name: 'Semente de Papoula', description: 'Quase do tamanho de uma semente de papoula (1-2mm)' },
+    8: { name: 'Framboesa', description: 'Seu bebê está crescendo rapidamente, aproximadamente 1,6cm' },
+    12: { name: 'Limão', description: 'Agora com cerca de 5-6cm e pesando cerca de 14g' },
+    16: { name: 'Abacate', description: 'Seu bebê tem aproximadamente 11-12cm' },
+    20: { name: 'Banana', description: 'Cerca de 25cm do topo da cabeça até os calcanhares' },
+    24: { name: 'Milho', description: 'Seu bebê tem aproximadamente 30cm e pesa cerca de 600g' },
+    28: { name: 'Berinjela', description: 'Cerca de 37cm e pesando aproximadamente 1kg' },
+    32: { name: 'Melão', description: 'Seu bebê tem 42-43cm e pesa cerca de 1,7kg' },
+    36: { name: 'Abacaxi', description: 'Aproximadamente 47cm e pesando cerca de 2,5kg' },
+    40: { name: 'Melancia', description: 'Completamente desenvolvido! Cerca de 50cm e 3-3,5kg' }
+  };
+  
+  useEffect(() => {
+    const fetchUserAndData = async () => {
+      try {
+        // Buscar usuário atual
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        
+        if (user) {
+          setUserId(user.id);
+          
+          // Buscar dados da gravidez
+          const { data: gravidezData, error: gravidezError } = await supabase
+            .from('gravidez_info')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+            
+          if (gravidezError && gravidezError.code !== 'PGRST116') throw gravidezError;
+          
+          if (gravidezData) {
+            const dataInicio = new Date(gravidezData.data_ultima_menstruacao);
+            const hoje = new Date();
+            const diffWeeks = Math.floor((hoje - dataInicio) / (1000 * 60 * 60 * 24 * 7)) + 2;
+            setCurrentWeek(Math.min(diffWeeks, 40));
+          }
+          
+          // Buscar entradas do diário
+          await fetchDiaryEntries(user.id);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUserAndData();
+  }, []);
+
+  const fetchDiaryEntries = async (userId) => {
+    try {
+      const { data: entriesData, error: entriesError } = await supabase
+        .from('diario_entradas')
+        .select(`
+          *,
+          diario_sintomas (
+            sintoma
+          )
+        `)
+        .eq('user_id', userId)
+        .order('data', { ascending: false });
+        
+      if (entriesError) throw entriesError;
+      
+      const formattedEntries = entriesData.map(entry => ({
+        id: entry.id,
+        date: format(new Date(entry.data), 'dd/MM/yyyy'),
+        week: entry.semana_gestacao,
+        mood: entry.humor,
+        kicks: entry.chutes,
+        wellbeing: entry.bem_estar,
+        notes: entry.notas,
+        babySize: entry.tamanho_bebe,
+        symptoms: entry.diario_sintomas?.map(s => s.sintoma) || []
+      }));
+      
+      setEntries(formattedEntries);
+    } catch (error) {
+      console.error('Erro ao carregar entradas do diário:', error);
+    }
+  };
+
+  const handleSaveEntry = async () => {
+    if (!userId) {
+      alert('Por favor, faça login para salvar entradas no diário');
+      return;
+    }
+
+    try {
+      // Inserir entrada principal do diário
+      const { data: entryData, error: entryError } = await supabase
+        .from('diario_entradas')
+        .insert([{
+          user_id: userId,
+          data: new Date().toISOString(),
+          semana_gestacao: currentWeek,
+          humor: mood,
+          chutes: kicks,
+          bem_estar: wellbeing,
+          notas: notes,
+          tamanho_bebe: babySize.name
+        }])
+        .select()
+        .single();
+        
+      if (entryError) throw entryError;
+      
+      // Inserir sintomas relacionados
+      if (symptoms.length > 0) {
+        const sintomasData = symptoms.map(sintoma => ({
+          entrada_id: entryData.id,
+          sintoma: sintoma
+        }));
+        
+        const { error: sintomasError } = await supabase
+          .from('diario_sintomas')
+          .insert(sintomasData);
+          
+        if (sintomasError) throw sintomasError;
+      }
+      
+      // Atualizar lista de entradas
+      await fetchDiaryEntries(userId);
+      
+      // Limpar formulário
+      setNotes('');
+      setKicks(0);
+      setWellbeing(8);
+      setSymptoms([]);
+      setShowForm(false);
+      
+    } catch (error) {
+      console.error('Erro ao salvar entrada:', error);
+      alert('Erro ao salvar entrada no diário. Por favor, tente novamente.');
+    }
+  };
+  
+  // Regista o tempo entre os Pontapés
+  const handleKickTimer = () => {
+    const now = new Date();
+    if (!isTimerActive) {
+      setIsTimerActive(true);
+      setLastKickTime(now);
+    } else {
+      setKicks(kicks + 1);
+      setLastKickTime(now);
+    }
+  };
+  
+  // Parar o cronômetro de chutes
+  const stopKickTimer = () => {
+    setIsTimerActive(false);
   };
   
   // Atualiza o tamanho do bebê conforme a semana
@@ -38,228 +200,441 @@ const PregnancyDiary = () => {
   // Formata a data para o formato brasileiro
   useEffect(() => {
     const today = new Date();
-    const formattedDate = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+    const formattedDate = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
     setDate(formattedDate);
   }, []);
   
-  const moodOptions = ['feliz', 'cansada', 'enjoada', 'ansiosa', 'energética'];
+  // Formatador de tempo para o cronômetro
+  const formatTime = (time) => {
+    if (!time) return '00:00';
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
   
-  const handleSaveEntry = () => {
-    const newEntry = {
-      id: Date.now(),
-      date,
-      week: currentWeek,
-      mood,
-      kicks,
-      wellbeing,
-      notes,
-      babySize
-    };
+  // Opções de humor com emojis
+  const moodOptions = [
+    { value: 'feliz', emoji: '😊', label: 'Feliz' },
+    { value: 'cansada', emoji: '😴', label: 'Cansada' },
+    { value: 'enjoada', emoji: '🤢', label: 'Enjoada' },
+    { value: 'ansiosa', emoji: '😰', label: 'Ansiosa' },
+    { value: 'energética', emoji: '⚡', label: 'Energética' },
+    { value: 'emotiva', emoji: '😢', label: 'Emotiva' }
+  ];
+  
+  // Função para toggle de sintomas
+  const toggleSymptom = (symptom) => {
+    if (symptoms.includes(symptom)) {
+      setSymptoms(symptoms.filter(s => s !== symptom));
+    } else {
+      setSymptoms([...symptoms, symptom]);
+    }
+  };
+  
+  // Gera um gradiente de cores com base no bem-estar
+  const getWellbeingColor = (value) => {
+    if (value <= 3) return 'from-red-400 to-red-600';
+    if (value <= 6) return 'from-yellow-400 to-yellow-600';
+    return 'from-green-400 to-green-600';
+  };
+  
+  // Gera os dias do calendário
+  const generateCalendarDays = () => {
+    const daysInMonth = new Date(
+      selectedDate.getFullYear(), 
+      selectedDate.getMonth() + 1, 
+      0
+    ).getDate();
     
-    setEntries([newEntry, ...entries]);
-    setNotes('');
-    setKicks(0);
-    setWellbeing(8);
-    setShowForm(false);
+    const firstDay = new Date(
+      selectedDate.getFullYear(), 
+      selectedDate.getMonth(), 
+      1
+    ).getDay();
+    
+    const days = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    
+    return days;
+  };
+  
+  // Formata mês e ano para exibição no calendário
+  const formatMonthYear = (date) => {
+    const months = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    
+    return `${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+  
+  // Altera o mês do calendário
+  const changeMonth = (increment) => {
+    const newDate = new Date(selectedDate);
+    newDate.setMonth(newDate.getMonth() + increment);
+    setSelectedDate(newDate);
+  };
+  
+  // Verifica se um dia tem entradas
+  const hasEntryOnDay = (day) => {
+    if (!day) return false;
+    
+    const formattedDay = day.toString().padStart(2, '0');
+    const formattedMonth = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+    const formattedYear = selectedDate.getFullYear();
+    const dateString = `${formattedDay}/${formattedMonth}/${formattedYear}`;
+    
+    return entries.some(entry => entry.date === dateString);
   };
   
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white text-pink-900">
+      <div className="mt-[80px]">
         <Navbar />
-      {/* Header */}
-      <header className="bg-pink-800 text-white py-6 px-4 shadow-md">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Meu Diário de Gravidez</h1>
-            <p className="text-pink-200">{date} • Semana {currentWeek}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xl font-medium">Bebê do tamanho de um</p>
-            <p className="text-2xl font-bold">{babySize}</p>
-          </div>
-        </div>
-      </header>
+      </div>
       
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto p-4">
-        {/* Progress Bar */}
-        <div className="mb-8 bg-pink-100 rounded-full h-6 overflow-hidden">
-          <div 
-            className="bg-pink-800 h-full text-xs text-white flex items-center justify-center"
-            style={{ width: `${(currentWeek / 40) * 100}%` }}
-          >
-            {Math.round((currentWeek / 40) * 100)}%
-          </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-700"></div>
         </div>
-        
-        {/* Week Selector */}
-        <div className="mb-8 bg-pink-50 p-4 rounded-lg shadow">
-          <p className="text-pink-800 font-medium mb-2">Ajuste sua semana de gravidez:</p>
-          <div className="flex items-center">
-            <button 
-              onClick={() => setCurrentWeek(Math.max(1, currentWeek - 1))}
-              className="bg-pink-800 text-white w-8 h-8 rounded-full"
-            >
-              -
-            </button>
-            <input 
-              type="range" 
-              min="1" 
-              max="40" 
-              value={currentWeek} 
-              onChange={(e) => setCurrentWeek(Number(e.target.value))}
-              className="mx-4 w-full"
-            />
-            <button 
-              onClick={() => setCurrentWeek(Math.min(40, currentWeek + 1))}
-              className="bg-pink-800 text-white w-8 h-8 rounded-full"
-            >
-              +
-            </button>
-            <span className="ml-4 text-pink-800 font-bold text-xl">{currentWeek}</span>
+      ) : (
+        <main className="max-w-5xl mx-auto p-4 relative z-10">
+          {/* Progress Bar */}
+          <div className="mb-8 mt-6">
+            <div className="flex justify-between text-sm text-pink-700 mb-2">
+              <span>Semana 1</span>
+              <span>Semana 40</span>
+            </div>
+            <div className="h-4 bg-pink-100 rounded-full overflow-hidden shadow-inner">
+              <div 
+                className="h-full bg-gradient-to-r from-pink-400 to-pink-800 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${(currentWeek / 40) * 100}%` }}
+              >
+              </div>
+            </div>
+            <div className="flex justify-between mt-2">
+              <span className="text-xs text-pink-600">Primeiro trimestre</span>
+              <span className="text-xs text-pink-600">Segundo trimestre</span>
+              <span className="text-xs text-pink-600">Terceiro trimestre</span>
+            </div>
           </div>
-        </div>
-
-        {/* Add New Entry Button */}
-        {!showForm && (
-          <button 
-            className="bg-pink-800 text-white py-3 px-6 rounded-lg shadow-md hover:bg-pink-900 transition w-full flex justify-center items-center mb-8"
-            onClick={() => setShowForm(true)}
-          >
-            <span className="text-2xl mr-2">+</span> Adicionar entrada no diário
-          </button>
-        )}
-        
-        {/* Entry Form */}
-        {showForm && (
-          <div className="bg-pink-50 p-6 rounded-lg shadow-md mb-8">
-            <h2 className="text-2xl font-bold text-pink-800 mb-4">Como está se sentindo hoje?</h2>
+          
+          
+          
+          {/* Quick Stats & Calendar Toggle */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {/* Total Kicks */}
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-pink-100 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-pink-100 flex items-center justify-center mb-3">
+                <span className="text-pink-800 text-2xl font-bold">👶</span>
+              </div>
+              <h3 className="text-xl font-bold text-pink-800">Total de Pontapés</h3>
+              <p className="text-3xl font-bold text-pink-700 mt-2">{entries.reduce((sum, entry) => sum + entry.kicks, 0) + kicks}</p>
+            </div>
             
-            {/* Mood Selection */}
-            <div className="mb-6">
-              <p className="text-pink-800 font-medium mb-2">Humor:</p>
-              <div className="flex flex-wrap gap-2">
-                {moodOptions.map((option) => (
-                  <button
-                    key={option}
-                    onClick={() => setMood(option)}
-                    className={`px-4 py-2 rounded-full ${
-                      mood === option 
-                        ? 'bg-pink-800 text-white' 
-                        : 'bg-white text-pink-800 border border-pink-800'
-                    }`}
+            {/* Diary Entries */}
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-pink-100 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-pink-100 flex items-center justify-center mb-3">
+                <span className="text-pink-800 text-2xl font-bold">📓</span>
+              </div>
+              <h3 className="text-xl font-bold text-pink-800">Entradas no Diário</h3>
+              <p className="text-3xl font-bold text-pink-700 mt-2">{entries.length}</p>
+            </div>
+            
+            {/* Calendar Toggle */}
+            <div 
+              className="bg-gradient-to-r from-pink-600 to-pink-800 p-6 rounded-2xl shadow-lg text-white cursor-pointer hover:shadow-xl transition-all"
+              onClick={() => setShowCalendar(!showCalendar)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold">Calendário</h3>
+                  <p className="text-pink-200 mt-1">{showCalendar ? "Ocultar" : "Visualizar"} calendário</p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                  <span className="text-2xl">📅</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Calendar (Conditionally Rendered) */}
+          {showCalendar && (
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-pink-100 mb-10">
+              <div className="flex justify-between items-center mb-4">
+                <button
+                  onClick={() => changeMonth(-1)}
+                  className="text-pink-800 hover:text-pink-600 p-2"
+                >
+                  &lt; Anterior
+                </button>
+                <h3 className="text-xl font-bold text-pink-800">{formatMonthYear(selectedDate)}</h3>
+                <button
+                  onClick={() => changeMonth(1)}
+                  className="text-pink-800 hover:text-pink-600 p-2"
+                >
+                  Próximo &gt;
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-7 gap-2 text-center">
+                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+                  <div key={day} className="text-pink-800 font-medium p-2">
+                    {day}
+                  </div>
+                ))}
+                
+                {generateCalendarDays().map((day, index) => (
+                  <div 
+                    key={index}
+                    className={`
+                      p-2 rounded-lg relative
+                      ${day ? 'hover:bg-pink-50 cursor-pointer' : ''}
+                      ${hasEntryOnDay(day) ? 'bg-pink-100' : ''}
+                    `}
                   >
-                    {option}
-                  </button>
+                    {day && (
+                      <>
+                        {day}
+                        {hasEntryOnDay(day) && (
+                          <span className="absolute bottom-1 right-1 w-2 h-2 bg-pink-600 rounded-full"></span>
+                        )}
+                      </>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
-            
-            {/* Kicks Counter */}
-            <div className="mb-6">
-              <p className="text-pink-800 font-medium mb-2">Chutinhos hoje:</p>
-              <div className="flex items-center">
-                <button 
-                  onClick={() => setKicks(Math.max(0, kicks - 1))}
-                  className="bg-pink-200 text-pink-800 w-10 h-10 rounded-full font-bold text-xl"
-                >
-                  -
-                </button>
-                <span className="mx-6 text-pink-800 font-bold text-2xl">{kicks}</span>
-                <button 
-                  onClick={() => setKicks(kicks + 1)}
-                  className="bg-pink-800 text-white w-10 h-10 rounded-full font-bold text-xl"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-            
-            {/* Wellbeing Slider */}
-            <div className="mb-6">
-              <p className="text-pink-800 font-medium mb-2">Bem-estar (1-10):</p>
-              <div className="flex items-center">
-                <span className="text-pink-800">1</span>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="10" 
-                  value={wellbeing} 
-                  onChange={(e) => setWellbeing(Number(e.target.value))}
-                  className="mx-4 w-full"
-                />
-                <span className="text-pink-800">10</span>
-              </div>
-              <div className="text-center mt-2">
-                <span className="text-pink-800 font-bold text-xl">{wellbeing}</span>
-              </div>
-            </div>
-            
-            {/* Notes */}
-            <div className="mb-6">
-              <p className="text-pink-800 font-medium mb-2">Anotações do dia:</p>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Como foi seu dia? Alguma novidade?"
-                className="w-full p-4 border border-pink-300 rounded-lg h-32"
-              />
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <button 
-                className="bg-pink-800 text-white py-2 px-6 rounded-lg shadow-md hover:bg-pink-900 transition flex-1"
-                onClick={handleSaveEntry}
-              >
-                Salvar
-              </button>
-              <button 
-                className="bg-white text-pink-800 border border-pink-800 py-2 px-6 rounded-lg shadow-md hover:bg-pink-100 transition"
-                onClick={() => setShowForm(false)}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* Past Entries */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-pink-800 mb-4">Entradas anteriores</h2>
+          )}
           
-          {entries.length === 0 ? (
-            <div className="text-center p-8 bg-pink-50 rounded-lg">
-              <p className="text-pink-600">Sem entradas ainda. Adicione seu primeiro registro!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {entries.map(entry => (
-                <div key={entry.id} className="bg-pink-50 p-4 rounded-lg shadow">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="font-bold text-pink-800">{entry.date} • Semana {entry.week}</p>
-                      <p className="text-pink-600">Humor: {entry.mood} • Chutinhos: {entry.kicks} • Bem-estar: {entry.wellbeing}/10</p>
-                    </div>
-                    <div className="bg-white p-2 rounded-lg text-center">
-                      <p className="text-xs text-pink-600">Bebê do tamanho de</p>
-                      <p className="text-pink-800 font-bold">{entry.babySize}</p>
-                    </div>
-                  </div>
-                  {entry.notes && <p className="text-gray-700">{entry.notes}</p>}
+          {/* Add New Entry Button */}
+          {!showForm && (
+            <button 
+              className="bg-gradient-to-r from-pink-600 to-pink-800 text-white py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all w-full flex justify-center items-center mb-10 transform hover:-translate-y-1"
+              onClick={() => setShowForm(true)}
+            >
+              <span className="text-2xl mr-2">+</span> Adicionar entrada no diário
+            </button>
+          )}
+          
+          {/* Entry Form */}
+          {showForm && (
+            <div className="bg-white p-8 rounded-2xl shadow-xl border border-pink-100 mb-10">
+              <h2 className="text-2xl font-bold text-pink-800 mb-6 text-center">Como está se sentindo hoje?</h2>
+              
+              {/* Mood Selection */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-pink-800 mb-4">Humor:</h3>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                  {moodOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setMood(option.value)}
+                      className={`
+                        flex flex-col items-center justify-center p-4 rounded-xl transition-all
+                        ${mood === option.value 
+                          ? 'bg-pink-700 text-white shadow-lg transform scale-105' 
+                          : 'bg-white text-pink-800 border border-pink-200 hover:border-pink-400'}
+                      `}
+                    >
+                      <span className="text-2xl mb-1">{option.emoji}</span>
+                      <span className="text-sm">{option.label}</span>
+                    </button>
+                  ))}
                 </div>
-              ))}
+              </div>
+              
+              {/* Symptoms Checklist */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-pink-800 mb-4">Sintomas:</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {symptomsList.map((symptom) => (
+                    <button
+                      key={symptom}
+                      onClick={() => toggleSymptom(symptom)}
+                      className={`
+                        py-3 px-4 rounded-lg text-left text-sm transition-all
+                        ${symptoms.includes(symptom) 
+                          ? 'bg-pink-700 text-white shadow-md' 
+                          : 'bg-white text-pink-800 border border-pink-200 hover:border-pink-400'}
+                      `}
+                    >
+                      <span className="mr-2">{symptoms.includes(symptom) ? '✓' : '○'}</span>
+                      {symptom}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Kicks Timer */}
+              <div className="mb-8 bg-pink-50 p-6 rounded-xl">
+                <h3 className="text-lg font-semibold text-pink-800 mb-4">Contador de Chutinhos:</h3>
+                <div className="flex flex-col items-center">
+                  <div className="text-center mb-4">
+                    <div className="text-4xl font-bold text-pink-700 mb-2">{kicks}</div>
+                    <p className="text-pink-600">pontapés registrados</p>
+                  </div>
+                  
+                  {isTimerActive ? (
+                    <div className="w-full max-w-md">
+                      <div className="bg-white border-2 border-pink-400 rounded-full h-24 w-24 mx-auto flex items-center justify-center mb-4 shadow-lg">
+                        <button
+                          onClick={handleKickTimer}
+                          className="h-20 w-20 rounded-full bg-pink-600 text-white flex items-center justify-center transform active:scale-95 transition-all text-sm font-medium"
+                        >
+                          CHUTE!
+                        </button>
+                      </div>
+                      
+                      <div className="flex justify-center mb-4">
+                        <button
+                          onClick={stopKickTimer}
+                          className="bg-pink-200 text-pink-800 py-2 px-6 rounded-full text-sm"
+                        >
+                          Parar contador
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleKickTimer}
+                      className="bg-gradient-to-r from-pink-600 to-pink-800 text-white py-3 px-8 rounded-xl shadow-md hover:shadow-lg transition-all"
+                    >
+                      Iniciar contador de pontapés
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Wellbeing Slider */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-pink-800 mb-4">Bem-estar:</h3>
+                <div className="flex items-center mb-2">
+                  <span className="text-pink-800 text-sm">1</span>
+                  <div className="flex-1 mx-4 relative">
+                    <input 
+                      type="range" 
+                      min="1" 
+                      max="10" 
+                      value={wellbeing} 
+                      onChange={(e) => setWellbeing(Number(e.target.value))}
+                      className="w-full h-3 bg-pink-200 rounded-lg appearance-none cursor-pointer accent-pink-700"
+                    />
+                  </div>
+                  <span className="text-pink-800 text-sm">10</span>
+                </div>
+                <div className="flex justify-center mt-4">
+                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${getWellbeingColor(wellbeing)} flex items-center justify-center shadow-md`}>
+                    <span className="text-white font-bold text-xl">{wellbeing}</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Notes */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-pink-800 mb-4">Anotações do dia:</h3>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Como foi seu dia? Alguma novidade? Sentimentos ou pensamentos especiais?"
+                  className="w-full p-4 border border-pink-200 rounded-xl h-40 focus:border-pink-400 focus:ring focus:ring-pink-200 focus:ring-opacity-50 outline-none"
+                />
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button 
+                  className="bg-gradient-to-r from-pink-600 to-pink-800 text-white py-3 px-8 rounded-xl shadow-md hover:shadow-lg transition-all flex-1 font-medium"
+                  onClick={handleSaveEntry}
+                >
+                  Salvar no diário
+                </button>
+                <button 
+                  className="bg-white text-pink-800 border border-pink-300 py-3 px-8 rounded-xl shadow-sm hover:bg-pink-50 transition-all"
+                  onClick={() => setShowForm(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
             </div>
           )}
-        </div>
-      </main>
-      
-      {/* Footer */}
-      <footer className="bg-pink-800 text-white py-4 mt-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <p>Diário de Gravidez • Acompanhe sua jornada</p>
-        </div>
-      </footer>
+          
+          {/* Past Entries */}
+          <div className="mt-8 mb-16">
+            <h2 className="text-2xl font-bold text-pink-800 mb-6 flex items-center">
+              <span className="w-8 h-8 bg-pink-700 text-white rounded-full flex items-center justify-center mr-2 text-sm">📖</span>
+              Entradas anteriores
+            </h2>
+            
+            {entries.length === 0 ? (
+              <div className="text-center p-12 bg-white rounded-2xl shadow-md border border-pink-100">
+                <div className="w-20 h-20 mx-auto bg-pink-100 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-4xl">📝</span>
+                </div>
+                <h3 className="text-xl font-bold text-pink-800 mb-2">Sem entradas ainda</h3>
+                <p className="text-pink-600">Adicione seu primeiro registro para começar a documentar sua jornada!</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {entries.map(entry => (
+                  <div key={entry.id} className="bg-white p-6 rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-all">
+                    <div className="flex flex-col md:flex-row justify-between mb-4">
+                      <div className="mb-4 md:mb-0">
+                        <div className="flex items-center">
+                          <span className="bg-pink-700 text-white text-xs px-3 py-1 rounded-full mr-2">Semana {entry.week}</span>
+                          <span className="text-pink-600">{entry.date}</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-pink-800 mt-2">
+                          {moodOptions.find(m => m.value === entry.mood)?.emoji || ''} {entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1)}
+                        </h3>
+                      </div>
+                      <div className="bg-pink-50 p-3 rounded-xl flex space-x-6">
+                        <div className="text-center">
+                          <p className="text-xs text-pink-600">Pontapés</p>
+                          <p className="text-pink-800 font-bold text-lg">{entry.kicks}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-pink-600">Bem-estar</p>
+                          <p className="text-pink-800 font-bold text-lg">{entry.wellbeing}/10</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-pink-600">Bebê</p>
+                          <p className="text-pink-800 font-bold text-lg">{entry.babySize}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {entry.symptoms.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-sm text-pink-600 mb-2">Sintomas:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {entry.symptoms.map(symptom => (
+                            <span key={symptom} className="bg-pink-100 text-pink-700 text-xs px-3 py-1 rounded-full">
+                              {symptom}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {entry.notes && (
+                      <div className="bg-pink-50 p-4 rounded-xl mt-4">
+                        <p className="text-pink-800">{entry.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </main>
+      )}
     </div>
   );
 };

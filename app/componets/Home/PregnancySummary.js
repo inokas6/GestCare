@@ -3,96 +3,124 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import DevelopmentItem from './DevelopmentItem';
 import BabyModel3D from './BabyModel3D';
 
-// Função auxiliar para obter o tamanho do bebé com base na semana
-const getBabySize = (week) => {
-  const sizes = [
-    "tamanho de uma semente de papoula",
-    "tamanho de uma semente de gergelim",
-    "tamanho de um grão de arroz",
-    "tamanho de um feijão pequeno",
-    "tamanho de uma amora",
-    "tamanho de uma framboesa",
-    "tamanho de uma uva",
-    "tamanho de uma azeitona",
-    "tamanho de um morango",
-    "tamanho de uma tâmara",
-    "tamanho de um figo",
-    "tamanho de um limão",
-    "tamanho de um pêssego",
-    "tamanho de uma laranja",
-    "tamanho de uma maçã",
-    "tamanho de uma pêra",
-    "tamanho de uma batata",
-    "tamanho de uma pimenta",
-    "tamanho de uma manga",
-    "tamanho de uma banana",
-    "tamanho de uma cenoura",
-    "tamanho de um abacate",
-    "tamanho de uma papaia",
-    "tamanho de um milho",
-    "tamanho de uma couve-flor",
-    "tamanho de uma couve",
-    "tamanho de uma alface",
-    "tamanho de uma berinjela",
-    "tamanho de um abacaxi",
-    "tamanho de um melão pequeno",
-    "tamanho de um repolho",
-    "tamanho de um coco",
-    "tamanho de um melão",
-    "tamanho de um abacaxi grande",
-    "tamanho de um melão cantaloupe",
-    "tamanho de uma melancia pequena",
-    "tamanho de um alface romana",
-    "tamanho de uma melancia",
-    "tamanho de uma abóbora",
-    "tamanho de uma melancia média"
-  ];
-  
-  return week <= 40 ? sizes[week - 1] : "tamanho de um bebé recém-nascido";
-};
-
 const PregnancySummary = ({ week }) => {
   const [infoSemanal, setInfoSemanal] = useState({
     dicas_mae: "Carregando dicas..."
   });
+  const [tamanhoBebe, setTamanhoBebe] = useState("Carregando...");
+  const [error, setError] = useState(null);
   const supabase = createClientComponentClient();
   
   useEffect(() => {
-    const fetchInfoSemanal = async () => {
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
+        console.log('Buscando dados para a semana:', week);
+        
+        // Buscar usuário atual
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+
+        if (!user) {
+          setError("Por favor, faça login para ver suas informações");
+          return;
+        }
+
+        // Buscar informações da semana
+        const { data: infoData, error: infoError } = await supabase
           .from("info_gestacional")
           .select("*")
           .eq("semana", week)
           .single();
           
-        if (error) {
-          console.error("Erro ao buscar informações semanais:", error);
-          setInfoSemanal({
-            dicas_mae: "Dicas e informações serão atualizadas em breve."
+        if (infoError) {
+          console.error("Erro ao buscar informações semanais:", {
+            message: infoError.message,
+            details: infoError.details,
+            hint: infoError.hint
           });
-          return;
-        }
-        
-        if (!data) {
+          
+          if (infoError.code !== 'PGRST116') {
+            setError("Erro ao buscar informações semanais");
+            setInfoSemanal({
+              dicas_mae: "Erro ao carregar dicas. Por favor, tente novamente mais tarde."
+            });
+          }
+        } else if (infoData) {
+          console.log('Informações semanais encontradas:', infoData);
           setInfoSemanal({
-            dicas_mae: "Dicas e informações serão atualizadas em breve."
+            dicas_mae: infoData.dicas_mae || "Dicas e informações serão atualizadas em breve."
           });
-          return;
         }
-        
-        setInfoSemanal({
-          dicas_mae: data.dicas_mae || "Dicas e informações serão atualizadas em breve."
-        });
+
+        // Buscar tamanho do bebê específico do usuário
+        console.log('Buscando tamanho do bebê para a semana:', week);
+        const { data: tamanhoData, error: tamanhoError } = await supabase
+          .from("tamanhos_bebe")
+          .select("fruta")
+          .eq("user_id", user.id)
+          .eq("semana", week)
+          .single();
+          
+        if (tamanhoError) {
+          console.error("Erro ao buscar tamanho do bebê:", {
+            message: tamanhoError.message,
+            details: tamanhoError.details,
+            hint: tamanhoError.hint,
+            code: tamanhoError.code
+          });
+
+          if (tamanhoError.code === 'PGRST116') {
+            // Se não encontrou tamanho para o usuário, criar os tamanhos padrão
+            const { error: insertError } = await supabase.rpc('criar_tamanhos_padrao_usuario', {
+              user_id: user.id
+            });
+
+            if (insertError) {
+              console.error("Erro ao criar tamanhos padrão:", insertError);
+              setError("Erro ao configurar tamanhos do bebê");
+            } else {
+              // Tentar buscar o tamanho novamente
+              const { data: newTamanhoData, error: newTamanhoError } = await supabase
+                .from("tamanhos_bebe")
+                .select("fruta")
+                .eq("user_id", user.id)
+                .eq("semana", week)
+                .single();
+
+              if (newTamanhoError) {
+                setError("Erro ao buscar tamanho do bebê");
+                setTamanhoBebe("Informação não disponível");
+              } else {
+                setTamanhoBebe(newTamanhoData.fruta);
+              }
+            }
+          } else {
+            setError("Erro ao buscar tamanho do bebê");
+            setTamanhoBebe("Informação não disponível");
+          }
+        } else if (tamanhoData) {
+          console.log('Tamanho do bebê encontrado:', tamanhoData);
+          setTamanhoBebe(tamanhoData.fruta);
+        } else {
+          console.log('Nenhum tamanho encontrado para a semana:', week);
+          setTamanhoBebe("Informação não disponível para esta semana");
+        }
       } catch (error) {
-        console.error("Erro ao buscar informações semanais:", error);
+        console.error("Erro ao buscar dados:", error);
+        setError("Erro ao buscar dados");
         setInfoSemanal({
-          dicas_mae: "Dicas e informações serão atualizadas em breve."
+          dicas_mae: "Erro ao carregar informações. Por favor, tente novamente mais tarde."
         });
+        setTamanhoBebe("Informação não disponível");
       }
     };
 
-    fetchInfoSemanal();
+    if (week > 0 && week <= 42) {
+      fetchData();
+    } else {
+      console.log('Semana inválida:', week);
+      setTamanhoBebe("Semana inválida");
+    }
   }, [week]);
 
   const progressPercentage = (week / 40) * 100;
@@ -106,6 +134,11 @@ const PregnancySummary = ({ week }) => {
   
   return (
     <div className="bg-white rounded-2xl shadow-md mb-6 p-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
       <div className="flex flex-col md:flex-row items-center">
         <div className="w-full md:w-1/2 flex flex-col justify-center p-4">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Semana {week}</h2>
@@ -136,7 +169,7 @@ const PregnancySummary = ({ week }) => {
             <div className="flex items-center gap-2">
               <span className="text-purple-600">📏</span>
               <p className="text-purple-800 font-medium">
-                O seu bebé tem agora o {getBabySize(week)}
+                O seu bebé tem agora o tamanho de {tamanhoBebe}
               </p>
             </div>
           </div>
