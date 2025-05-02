@@ -117,7 +117,7 @@ const SignUp = () => {
       }
 
       console.log('Usuário inserido com sucesso!');
-      alert('Conta criada com sucesso! Faça login para continuar.');
+      alert('Conta criada com sucesso! Por favor, verifique seu email para confirmar o cadastro.');
       router.push('/login');
       
     } catch (error) {
@@ -142,7 +142,7 @@ const SignUp = () => {
   return (
     <div className="hero bg-base-200 min-h-screen flex items-center justify-center">
       <div className="card bg-base-100 w-full max-w-md p-6 shadow-2xl">
-        <h1 className="text-2xl font-bold text-center mb-4">Criar Conta</h1>
+        <h1 className="text-2xl font-bold text-center text-black mb-4">Criar Conta</h1>
 
         {error && (
           <div className="mb-4 p-3 text-red-700 bg-red-100 rounded">
@@ -185,7 +185,7 @@ const SignUp = () => {
             <input
               type="text"
               name="nome"
-              placeholder="Seu nome"
+              placeholder="nome"
               className="input input-bordered w-full text-black"
               value={formData.nome}
               onChange={handleChange}
@@ -200,7 +200,7 @@ const SignUp = () => {
             <input
               type="email"
               name="email"
-              placeholder="Digite seu email"
+              placeholder="email"
               className="input input-bordered w-full text-black"
               value={formData.email}
               onChange={handleChange}
@@ -215,7 +215,7 @@ const SignUp = () => {
             <input
               type="password"
               name="password"
-              placeholder="Digite sua senha"
+              placeholder="senha"
               className="input input-bordered w-full text-black"
               value={formData.password}
               onChange={handleChange}
@@ -229,11 +229,11 @@ const SignUp = () => {
             type="submit" 
             disabled={loading}
           >
-            {loading ? 'Registrando...' : 'Registrar'}
+            {loading ? 'A criar conta...' : 'Criar conta'}
           </button>
         </form>
 
-        <div className="mt-4 text-center">
+        <div className="mt-4 text-black text-center">
           <span>Já tem uma conta? </span>
           <Link className="text-blue-500" href="/login">
             Entrar

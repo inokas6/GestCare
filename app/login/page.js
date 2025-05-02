@@ -68,7 +68,6 @@ export default function Login() {
     <div className="hero bg-base-200 min-h-screen">
       <div className="hero-content flex-col lg:flex-row-reverse">
         <div className="text-center lg:text-left">
-          <h1 className="text-2xl font-bold">Entrar</h1>
           {error && <div className="mb-4 rounded bg-red-100 p-3 text-red-700">{error}</div>}
         </div>
 
@@ -95,7 +94,7 @@ export default function Login() {
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="Digite sua senha" 
+                  placeholder="senha" 
                   className="input input-bordered text-black w-full pr-10" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 

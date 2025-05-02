@@ -69,7 +69,7 @@ const Register = () => {
         <h2 className="text-2xl font-bold text-black text-center mb-6">Criar Conta</h2>
         
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-black px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -160,7 +160,7 @@ const Register = () => {
               />
               <span className="label-text text-black">
                 Li e aceito os{' '}
-                <Link href="/terms" className="text-pink-600 hover:text-pink-700">
+                <Link href="/terms" className="text-black hover:text-black">
                   termos de uso
                 </Link>
               </span>
@@ -178,7 +178,7 @@ const Register = () => {
 
           <div className="text-center text-black">
             <p>Já tem uma conta?</p>
-            <Link href="/login" className="text-pink-600 hover:text-pink-700 font-medium">
+            <Link href="/login" className="text-black hover:text-black font-medium">
               Faça login aqui
             </Link>
           </div>
