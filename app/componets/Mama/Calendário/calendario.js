@@ -1002,11 +1002,11 @@ export default function CalendarioGravidez() {
           >
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-xl font-bold text-pink-800">
-                Vamos configurar sua gravidez
+                Configurar calendário
               </h3>
             </div>
             
-            <p className="text-gray-600 mb-6">Para personalizar seu calendário da gravidez, precisamos de algumas informações:</p>
+            <p className="text-gray-600 mb-6">Para personalizar o seu calendário da gravidez, precisamos de algumas informações:</p>
             
             <form onSubmit={async (e) => {
               e.preventDefault();
@@ -1062,7 +1062,7 @@ export default function CalendarioGravidez() {
                   id="data_ultima_menstruacao"
                   type="date"
                   name="data_ultima_menstruacao"
-                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">Usamos esta data para calcular a semana da gravidez</p>
@@ -1076,9 +1076,9 @@ export default function CalendarioGravidez() {
                   id="data_provavel_parto"
                   type="date"
                   name="data_provavel_parto"
-                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                 />
-                <p className="text-xs text-gray-500 mt-1">Se seu médico já informou uma data provável</p>
+                <p className="text-xs text-gray-500 mt-1">Se o seu médico já a informou de uma data provável</p>
               </div>
               
               <button

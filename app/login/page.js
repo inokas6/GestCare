@@ -58,7 +58,11 @@ export default function Login() {
       router.push('/home');
     } catch (error) {
       console.error('Erro no login:', error);
-      setError(error.message || 'Erro ao fazer login.');
+      if (error.message.includes('Email not confirmed')) {
+        setError('Email não confirmado, por favor confirmar');
+      } else {
+        setError(error.message || 'Erro ao fazer login.');
+      }
     } finally {
       setLoading(false);
     }
