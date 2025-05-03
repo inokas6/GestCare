@@ -1,12 +1,19 @@
 'use client';
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 const SignUp = () => {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const [supabase, setSupabase] = useState(null);
+
+  useEffect(() => {
+    // Inicializar o cliente Supabase dentro do useEffect
+    const client = createClientComponentClient();
+    setSupabase(client);
+  }, []);
 
   const [formData, setFormData] = useState({
     nome: '',
@@ -30,11 +37,14 @@ const SignUp = () => {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Criar URL de preview
+      if (file.size > 1 * 1024 * 1024) {
+        setError('A imagem deve ter menos de 1MB');
+        return;
+      }
+      
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       
-      // Converter para base64
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({
@@ -51,89 +61,100 @@ const SignUp = () => {
     setError('');
     setLoading(true);
 
+    if (!supabase) {
+      setError('Erro de conexão com o servidor. Por favor, tente novamente mais tarde.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Validate form data
       if (!formData.nome || !formData.email || !formData.password) {
-        throw new Error('Por favor, preencha todos os campos');
+        throw new Error('Por favor, preencha todos os campos obrigatórios');
       }
 
-      // Verificar se o e-mail já existe
-      const { data: existingUser, error: checkError } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', formData.email)
-        .single();
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('Erro ao verificar e-mail:', checkError);
-        throw new Error('Erro ao verificar se o e-mail já existe');
-      }
-
-      if (existingUser) {
-        throw new Error('Este e-mail já está cadastrado');
-      }
-
-      // Processo em duas etapas - primeiro criar o usuário na autenticação
-      console.log('Criando usuário na autenticação...');
+      // Tentar criar usuário apenas com email e senha
+      console.log("Tentando criar usuário básico...");
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            nome: formData.nome
+            nome: formData.nome,
+            foto_perfil: formData.foto_perfil
           }
         }
       });
 
       if (authError) {
-        console.error('Erro na autenticação:', authError);
-        throw authError;
+        console.error("Erro detalhado no registro:", {
+          message: authError.message,
+          status: authError.status,
+          name: authError.name,
+          stack: authError.stack
+        });
+        
+        // Tratamento específico para erros de banco de dados
+        if (authError.message.includes('Database')) {
+          throw new Error('Erro ao salvar usuário no banco de dados. Por favor, tente novamente mais tarde.');
+        }
+        throw new Error(`Erro no registro: ${authError.message}`);
       }
 
-      if (!authData.user) {
-        throw new Error('Falha ao criar conta - nenhum usuário retornado');
+      console.log("Registro básico bem-sucedido:", {
+        userId: authData?.user?.id,
+        email: authData?.user?.email
+      });
+
+      if (!authData?.user) {
+        throw new Error('Não foi possível criar a conta.');
       }
 
-      console.log('Usuário criado na autenticação:', authData.user.id);
+      // Aguardar um momento para o trigger processar
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Depois inserir na tabela users
-      console.log('Inserindo na tabela users...');
-      const { error: insertError } = await supabase
+      // Verificar se o usuário foi criado na tabela public.users
+      const { data: userData, error: userError } = await supabase
         .from('users')
-        .insert([
-          {
-            id: authData.user.id,
-            nome: formData.nome,
-            email: formData.email,
-            foto_perfil: formData.foto_perfil,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ]);
+        .select('*')
+        .eq('id', authData.user.id)
+        .single();
 
-      if (insertError) {
-        console.error('Erro ao inserir usuário:', insertError);
-        throw insertError;
+      if (userError) {
+        console.error("Erro ao verificar usuário:", userError);
+        throw new Error('Erro ao verificar criação do usuário.');
       }
 
-      console.log('Usuário inserido com sucesso!');
-      alert('Conta criada com sucesso! Por favor, verifique seu email para confirmar o cadastro.');
+      if (!userData) {
+        throw new Error('Usuário não foi criado corretamente na base de dados.');
+      }
+
+      // Atualizar a foto de perfil se necessário
+      if (formData.foto_perfil) {
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ foto_perfil: formData.foto_perfil })
+          .eq('id', authData.user.id);
+
+        if (updateError) {
+          console.warn("Não foi possível atualizar a foto de perfil:", updateError);
+        }
+      }
+
+      // Limpar o formulário e redirecionar
+      setFormData({
+        nome: '',
+        email: '',
+        password: '',
+        foto_perfil: null
+      });
+      setPreviewUrl(null);
+
+      alert("Registro bem-sucedido! Por favor, verifique seu email para confirmar a conta.");
       router.push('/login');
       
     } catch (error) {
-      console.error('Erro completo:', error);
-      
-      let errorMessage = 'Erro ao criar conta. Tente novamente.';
-      
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.error_description) {
-        errorMessage = error.error_description;
-      } else if (error.details) {
-        errorMessage = error.details;
-      }
-      
-      setError(errorMessage);
+      console.error('Erro inesperado:', error);
+      setError(error.message || 'Ocorreu um erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -142,7 +163,7 @@ const SignUp = () => {
   return (
     <div className="hero bg-base-200 min-h-screen flex items-center justify-center">
       <div className="card bg-base-100 w-full max-w-md p-6 shadow-2xl">
-        <h1 className="text-2xl font-bold text-center text-black mb-4">Criar Conta</h1>
+        <h1 className="text-2xl font-bold text-center mb-4">Criar Conta</h1>
 
         {error && (
           <div className="mb-4 p-3 text-red-700 bg-red-100 rounded">
@@ -185,7 +206,7 @@ const SignUp = () => {
             <input
               type="text"
               name="nome"
-              placeholder="nome"
+              placeholder="Seu nome"
               className="input input-bordered w-full text-black"
               value={formData.nome}
               onChange={handleChange}
@@ -200,7 +221,7 @@ const SignUp = () => {
             <input
               type="email"
               name="email"
-              placeholder="email"
+              placeholder="Digite seu email"
               className="input input-bordered w-full text-black"
               value={formData.email}
               onChange={handleChange}
@@ -215,7 +236,7 @@ const SignUp = () => {
             <input
               type="password"
               name="password"
-              placeholder="senha"
+              placeholder="Digite sua senha"
               className="input input-bordered w-full text-black"
               value={formData.password}
               onChange={handleChange}
@@ -240,7 +261,6 @@ const SignUp = () => {
           </Link>
         </div>
       </div>
-      
     </div>
   );
 };
