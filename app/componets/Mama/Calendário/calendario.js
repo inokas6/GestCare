@@ -8,6 +8,76 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { format, parseISO, addWeeks, differenceInWeeks } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+/*
+SQL necessário para criar a tabela de planejamento da gravidez:
+
+-- Tabela para armazenar informações de planejamento da gravidez
+CREATE TABLE planejamento_gravidez (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    data_ultima_menstruacao DATE NOT NULL,
+    ciclo_menstrual INTEGER DEFAULT 28,
+    tipo VARCHAR(20) DEFAULT 'planejamento',
+    data_criacao TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    data_atualizacao TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    observacoes TEXT,
+    meta_data DATE,
+    status VARCHAR(20) DEFAULT 'ativo',
+    ultima_ovulacao DATE,
+    proxima_ovulacao DATE,
+    periodo_fertil_inicio DATE,
+    periodo_fertil_fim DATE,
+    sintomas_ovulacao JSONB,
+    exames_realizados JSONB,
+    medicamentos JSONB,
+    consultas_medicas JSONB
+);
+
+-- Índices para melhor performance
+CREATE INDEX idx_planejamento_user_id ON planejamento_gravidez(user_id);
+CREATE INDEX idx_planejamento_data_ultima_menstruacao ON planejamento_gravidez(data_ultima_menstruacao);
+CREATE INDEX idx_planejamento_proxima_ovulacao ON planejamento_gravidez(proxima_ovulacao);
+
+-- Trigger para atualizar data_atualizacao
+CREATE OR REPLACE FUNCTION update_planejamento_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.data_atualizacao = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_planejamento_timestamp
+    BEFORE UPDATE ON planejamento_gravidez
+    FOR EACH ROW
+    EXECUTE FUNCTION update_planejamento_timestamp();
+
+-- Função para calcular próxima ovulação
+CREATE OR REPLACE FUNCTION calcular_proxima_ovulacao(
+    data_ultima_menstruacao DATE,
+    ciclo_menstrual INTEGER
+) RETURNS DATE AS $$
+BEGIN
+    RETURN data_ultima_menstruacao + (ciclo_menstrual - 14);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Função para calcular período fértil
+CREATE OR REPLACE FUNCTION calcular_periodo_fertil(
+    data_ovulacao DATE
+) RETURNS TABLE (
+    inicio DATE,
+    fim DATE
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        data_ovulacao - INTERVAL '2 days' AS inicio,
+        data_ovulacao + INTERVAL '2 days' AS fim;
+END;
+$$ LANGUAGE plpgsql;
+*/
+
 export default function CalendarioGravidez() {
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -17,6 +87,8 @@ export default function CalendarioGravidez() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [infoSemanal, setInfoSemanal] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [showPregnancyForm, setShowPregnancyForm] = useState(false);
+  const [showPlanningForm, setShowPlanningForm] = useState(false);
   const [pregnancyData, setPregnancyData] = useState({
     dataInicio: null,
     semanaAtual: 0,
@@ -58,7 +130,7 @@ export default function CalendarioGravidez() {
         throw new Error("ID do usuário não fornecido");
       }
 
-      // Buscar dados da gravidez do usuário
+      // Buscar dados da gravidez ou planejamento do usuário
       const { data, error } = await supabase
         .from("gravidez_info")
         .select("*")
@@ -77,26 +149,52 @@ export default function CalendarioGravidez() {
         console.log("Nenhum dado de gravidez encontrado");
         return;
       }
-      
+
+      // Se for planejamento, não calcular semanas de gravidez, mas sim ovulação
+      if (data.tipo === 'planejamento') {
+        // Calcular próximas ovulações
+        const ciclo = data.ciclo_menstrual || 28;
+        const dataUltimaMenstruacao = new Date(data.data_ultima_menstruacao);
+        const hoje = new Date();
+        let proximaOvulacao = new Date(dataUltimaMenstruacao);
+        while (proximaOvulacao < hoje) {
+          proximaOvulacao.setDate(proximaOvulacao.getDate() + ciclo);
+        }
+        // Período fértil: 2 dias antes e 2 dias depois da ovulação
+        const inicioFertil = new Date(proximaOvulacao);
+        inicioFertil.setDate(proximaOvulacao.getDate() - 2);
+        const fimFertil = new Date(proximaOvulacao);
+        fimFertil.setDate(proximaOvulacao.getDate() + 2);
+
+        setPregnancyData({
+          dataInicio: data.data_ultima_menstruacao,
+          semanaAtual: 0,
+          diasNaSemana: 0,
+          progresso: 0,
+          tipo: 'planejamento',
+          ciclo_menstrual: ciclo,
+          proximaOvulacao: proximaOvulacao,
+          inicioFertil: inicioFertil,
+          fimFertil: fimFertil
+        });
+        return;
+      }
+      // Caso seja gravidez
       const dataInicio = new Date(data.data_ultima_menstruacao || data.data_inicio);
       const hoje = new Date();
-      
-      // Calcular semana atual (considerando que a gravidez começa 2 semanas após a última menstruação)
       const semanasDesdeInicio = differenceInWeeks(hoje, dataInicio) + 2;
       const diasNaSemana = Math.floor((hoje - addWeeks(dataInicio, semanasDesdeInicio - 2)) / (1000 * 60 * 60 * 24));
       const progresso = Math.min(Math.round((semanasDesdeInicio / 40) * 100), 100);
-      
       setPregnancyData({
         dataInicio,
         semanaAtual: semanasDesdeInicio,
         diasNaSemana,
         progresso,
         dataProvavel: data.data_provavel_parto,
+        tipo: 'gravida',
+        ciclo_menstrual: data.ciclo_menstrual || 28
       });
-      
-      // Buscar informações da semana atual
       await fetchInfoSemanal(semanasDesdeInicio);
-      
     } catch (error) {
       console.error("Erro ao buscar dados da gravidez:", {
         message: error.message,
@@ -393,7 +491,7 @@ export default function CalendarioGravidez() {
   return (
     <div className="bg-pink-50 min-h-screen pt-20">
       {/* Barra de progresso da gravidez */}
-      {pregnancyData.semanaAtual > 0 && (
+      {pregnancyData.tipo === 'gravida' && pregnancyData.semanaAtual > 0 && (
         <div className="bg-white shadow-md p-4 mb-6 rounded-lg mx-4 md:mx-6 mt-4">
           <div className="max-w-5xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
@@ -437,6 +535,22 @@ export default function CalendarioGravidez() {
               <div>3º Trimestre</div>
               <div>40ª Semana</div>
             </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Exibir período fértil se for planejamento */}
+      {pregnancyData.tipo === 'planejamento' && pregnancyData.inicioFertil && (
+        <div className="bg-white shadow-md p-4 mb-6 rounded-lg mx-4 md:mx-6 mt-4">
+          <div className="max-w-5xl mx-auto">
+            <h3 className="text-lg font-semibold text-pink-800 mb-2">Seu próximo período fértil:</h3>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-2">
+              <span className="text-pink-600 font-bold">
+                {format(new Date(pregnancyData.inicioFertil), "dd 'de' MMMM", { locale: ptBR })} até {format(new Date(pregnancyData.fimFertil), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </span>
+              <span className="text-sm text-gray-500">(Baseado em ciclo de {pregnancyData.ciclo_menstrual} dias)</span>
+            </div>
+            <div className="mt-2 text-pink-700">Dica: Aproveite esse período para tentar engravidar! O ideal é manter relações um dia antes e no dia da ovulação.</div>
           </div>
         </div>
       )}
@@ -577,7 +691,7 @@ export default function CalendarioGravidez() {
           
           {/* Próximos eventos */}
           <div className="mt-8 bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-pink-100">
-            <h3 className="text-lg font-bold text-pink-800 mb-4">Próximos Eventos</h3>
+            <h3 className="text-lg font-bold text-black mb-4">Próximos Eventos</h3>
             
             {events.filter(e => 
               new Date(e.start) >= new Date() && 
@@ -1006,7 +1120,49 @@ export default function CalendarioGravidez() {
               </h3>
             </div>
             
-            <p className="text-gray-600 mb-6">Para personalizar o seu calendário da gravidez, precisamos de algumas informações:</p>
+            <p className="text-gray-600 mb-6">Para personalizar o seu calendário, por favor, selecione uma opção:</p>
+            
+            <div className="space-y-4 mb-6">
+              <button
+                onClick={() => setShowPregnancyForm(true)}
+                className="w-full bg-pink-600 hover:bg-pink-700 text-white px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
+              >
+                <span className="mr-2">🤰</span>
+                Estou Grávida
+              </button>
+              
+              <button
+                onClick={() => setShowPlanningForm(true)}
+                className="w-full bg-pink-500 hover:bg-pink-600 text-white px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
+              >
+                <span className="mr-2">📅</span>
+                Quero Engravidar
+              </button>
+              
+              <button
+                onClick={() => setShowModal(false)}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+              >
+                <span className="mr-2">⏰</span>
+                Definir Depois
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para configuração da gravidez */}
+      {showPregnancyForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl font-bold text-pink-800">
+                Estou grávida!
+              </h3>
+            </div>
             
             <form onSubmit={async (e) => {
               e.preventDefault();
@@ -1020,7 +1176,6 @@ export default function CalendarioGravidez() {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (!user) throw new Error("Usuário não autenticado");
                 
-                // Validar e formatar as datas
                 if (!data_ultima_menstruacao) {
                   throw new Error("A data da última menstruação é obrigatória");
                 }
@@ -1028,10 +1183,10 @@ export default function CalendarioGravidez() {
                 const dadosGravidez = {
                   user_id: user.id,
                   data_ultima_menstruacao: data_ultima_menstruacao,
-                  data_inicio: new Date().toISOString().split('T')[0]
+                  data_inicio: new Date().toISOString().split('T')[0],
+                  tipo: 'gravida'
                 };
 
-                // Adicionar data provável do parto apenas se fornecida
                 if (data_provavel_parto) {
                   dadosGravidez.data_provavel_parto = data_provavel_parto;
                 }
@@ -1040,13 +1195,12 @@ export default function CalendarioGravidez() {
                   .from("gravidez_info")
                   .insert([dadosGravidez]);
                   
-                if (error) {
-                  console.error("Erro detalhado:", error);
-                  throw new Error(`Erro ao inserir dados: ${error.message}`);
-                }
+                if (error) throw error;
                 
                 await fetchPregnancyData(user.id);
                 showNotification("Calendário configurado com sucesso!");
+                setShowPregnancyForm(false);
+                setShowModal(false);
               } catch (error) {
                 console.error("Erro ao configurar dados da gravidez:", error);
                 showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
@@ -1081,18 +1235,161 @@ export default function CalendarioGravidez() {
                 <p className="text-xs text-gray-500 mt-1">Se o seu médico já a informou de uma data provável</p>
               </div>
               
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
-              >
-                {isLoading ? (
-                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
-                ) : (
-                  <span className="mr-2">✨</span>
-                )}
-                Configurar Calendário
-              </button>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPregnancyForm(false)}
+                  className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Voltar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
+                >
+                  {isLoading ? (
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                  ) : (
+                    <span className="mr-2">✨</span>
+                  )}
+                  Configurar Calendário
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para planejamento da gravidez */}
+      {showPlanningForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div 
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-xl font-bold text-pink-800">
+                Quero engravidar!
+              </h3>
+            </div>
+            
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              setIsLoading(true);
+              
+              const formData = new FormData(e.target);
+              const data_ultima_menstruacao = formData.get('data_ultima_menstruacao');
+              const ciclo_menstrual = formData.get('ciclo_menstrual');
+              
+              try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) throw new Error("Usuário não autenticado");
+                
+                if (!data_ultima_menstruacao) {
+                  throw new Error("A data da última menstruação é obrigatória");
+                }
+
+                const dadosPlanejamento = {
+                  user_id: user.id,
+                  data_ultima_menstruacao: data_ultima_menstruacao,
+                  ciclo_menstrual: ciclo_menstrual || 28,
+                  tipo: 'planejamento',
+                  data_inicio: new Date().toISOString().split('T')[0]
+                };
+                
+                const { error } = await supabase
+                  .from("gravidez_info")
+                  .insert([dadosPlanejamento]);
+                  
+                if (error) throw error;
+
+                // Calcular e adicionar próximas ovulações
+                const dataUltimaMenstruacao = new Date(data_ultima_menstruacao);
+                const ciclo = parseInt(ciclo_menstrual) || 28;
+                
+                // Adicionar próximas 6 ovulações
+                for (let i = 0; i < 6; i++) {
+                  const dataOvulacao = new Date(dataUltimaMenstruacao);
+                  dataOvulacao.setDate(dataOvulacao.getDate() + (ciclo * i) + 14); // 14 dias após a menstruação
+                  
+                  const eventoOvulacao = {
+                    user_id: user.id,
+                    titulo: `Período Fértil - Ciclo ${i + 1}`,
+                    descricao: `Período fértil estimado para o ciclo ${i + 1}. A ovulação geralmente ocorre 14 dias após o início da menstruação.`,
+                    inicio_data: dataOvulacao.toISOString().split('T')[0],
+                    fim_data: new Date(dataOvulacao.getTime() + (5 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0], // 5 dias de período fértil
+                    tipo_evento: 'ovulacao',
+                    lembrete: true,
+                    lembrete_antecedencia: 2
+                  };
+                  
+                  await supabase
+                    .from("calendario")
+                    .insert([eventoOvulacao]);
+                }
+                
+                await fetchEvents(user.id);
+                showNotification("Calendário de planejamento configurado com sucesso!");
+                setShowPlanningForm(false);
+                setShowModal(false);
+              } catch (error) {
+                console.error("Erro ao configurar planejamento:", error);
+                showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
+              } finally {
+                setIsLoading(false);
+              }
+            }}>
+              <div className="mb-5">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="data_ultima_menstruacao">
+                  Data da última menstruação
+                </label>
+                <input
+                  id="data_ultima_menstruacao"
+                  type="date"
+                  name="data_ultima_menstruacao"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
+                  required
+                />
+              </div>
+              
+              <div className="mb-6">
+                <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="ciclo_menstrual">
+                  Duração do ciclo menstrual (em dias)
+                </label>
+                <input
+                  id="ciclo_menstrual"
+                  type="number"
+                  name="ciclo_menstrual"
+                  min="21"
+                  max="35"
+                  defaultValue="28"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
+                />
+                <p className="text-xs text-gray-500 mt-1">O ciclo padrão é de 28 dias. Ajuste conforme seu ciclo.</p>
+              </div>
+              
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPlanningForm(false)}
+                  className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Voltar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
+                >
+                  {isLoading ? (
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                  ) : (
+                    <span className="mr-2">✨</span>
+                  )}
+                  Configurar Calendário
+                </button>
+              </div>
             </form>
           </div>
         </div>
