@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import Navbar from '../../componets/Home/navbar_home';
-import { createClient } from '@supabase/supabase-js';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 // Importando o componente Modelo3D com carregamento dinâmico para evitar problemas com SSR
 const Modelo3D = dynamic(() => import('../../componets/Modelo3D/modelo3d.js'), {
@@ -39,40 +39,95 @@ const semanaData = {
   // Adicionar dados para outras semanas aqui
 };
 
-// Inicializar o cliente Supabase
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
 export default function BabyDevelopmentPage() {
   const [semanaAtual, setSemanaAtual] = useState(null);
   const [trimestreAtivo, setTrimestreAtivo] = useState(1);
   const [dadosSemana, setDadosSemana] = useState(null);
   const [loading, setLoading] = useState(true);
   const [erroModelo, setErroModelo] = useState(false);
+  const [erroAuth, setErroAuth] = useState(false);
+  const supabase = createClientComponentClient();
 
   // Buscar semana atual do banco de dados
   useEffect(() => {
     const buscarSemanaAtual = async () => {
       try {
-        const { data: infoData, error: infoError } = await supabase
-          .from("info_gestacional")
-          .select("*")
-          .eq("semana", 18) // Semana atual fixa
+        setLoading(true);
+        
+        // Buscar usuário atual
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Erro ao buscar sessão:", sessionError);
+          setErroAuth(true);
+          setLoading(false);
+          return;
+        }
+
+        if (!session) {
+          console.log("Usuário não autenticado");
+          setErroAuth(true);
+          setLoading(false);
+          return;
+        }
+
+        // Buscar dados da gravidez do usuário
+        const { data: gravidezData, error: gravidezError } = await supabase
+          .from('gravidez_info')
+          .select('*')
+          .eq('user_id', session.user.id)
           .single();
 
-        if (infoError) {
-          console.error("Erro ao buscar semana atual:", infoError);
-          setSemanaAtual(18); // Valor padrão em caso de erro
-        } else if (infoData) {
-          console.log('Semana atual encontrada:', infoData);
-          setSemanaAtual(infoData.semana);
-          setTrimestreAtivo(infoData.semana <= 13 ? 1 : infoData.semana <= 26 ? 2 : 3);
+        if (gravidezError) {
+          console.error("Erro ao buscar dados da gravidez:", gravidezError);
+          setLoading(false);
+          return;
         }
+
+        if (gravidezData) {
+          console.log('Dados da gravidez encontrados:', gravidezData);
+          
+          // Calcular a semana atual com base na data da última menstruação
+          const dataDUM = new Date(gravidezData.data_ultima_menstruacao);
+          const hoje = new Date();
+          
+          // Calcular a diferença em dias
+          const diffTime = Math.abs(hoje - dataDUM);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          // Calcular a semana atual (considerando que a gravidez começa 2 semanas após a DUM)
+          const semanaAtual = Math.floor(diffDays / 7) + 2;
+          
+          console.log('Data DUM:', dataDUM);
+          console.log('Dias desde DUM:', diffDays);
+          console.log('Semana atual calculada:', semanaAtual);
+
+          // Limitar a semana atual a 40 semanas
+          const semanaFinal = Math.min(semanaAtual, 40);
+
+          // Buscar informações da semana atual
+          const { data: infoData, error: infoError } = await supabase
+            .from('info_gestacional')
+            .select('*')
+            .eq('semana', semanaFinal)
+            .single();
+
+          if (infoError) {
+            console.error("Erro ao buscar informações gestacionais:", infoError);
+            setLoading(false);
+            return;
+          }
+
+          if (infoData) {
+            console.log('Informações da semana encontradas:', infoData);
+            setSemanaAtual(semanaFinal);
+            setTrimestreAtivo(semanaFinal <= 13 ? 1 : semanaFinal <= 26 ? 2 : 3);
+          }
+        }
+        setLoading(false);
       } catch (error) {
         console.error("Erro ao buscar semana atual:", error);
-        setSemanaAtual(18); // Valor padrão em caso de erro
+        setLoading(false);
       }
     };
 
@@ -125,17 +180,29 @@ export default function BabyDevelopmentPage() {
     <div className="min-h-screen bg-pink-50">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mt-16 mx-auto px-4 py-8">
         {loading ? (
           <div className="text-center mt-16">
             <p className="text-pink-700 text-xl">Carregando informações...</p>
           </div>
+        ) : erroAuth ? (
+          <div className="text-center mt-16">
+            <div className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto">
+              <h2 className="text-2xl font-bold text-pink-700 mb-4">Acesso Restrito</h2>
+              <p className="text-gray-600 mb-6">
+                Para visualizar o modelo 3D do seu bebê, você precisa estar logada.
+              </p>
+              <Link 
+                href="/login" 
+                className="inline-block bg-pink-600 text-white px-6 py-3 rounded-full hover:bg-pink-700 transition-colors"
+              >
+                Fazer Login
+              </Link>
+            </div>
+          </div>
         ) : (
           <>
-            <header className="text-center mb-4">
-              <h1 className="text-3xl font-bold text-pink-800">Desenvolvimento do Bebê</h1>
-              <p className="text-pink-600">Acompanhe o crescimento semana a semana</p>
-            </header>
+            
             
             {/* Layout reorganizado */}
             <div className="flex flex-col md:flex-row gap-8">
@@ -215,16 +282,7 @@ export default function BabyDevelopmentPage() {
                         {semanaAtual <= 13 ? '1º Trimestre' : semanaAtual <= 27 ? '2º Trimestre' : '3º Trimestre'}
                       </div>
                     </div>
-                    <div className="stat p-4 text-center">
-                      <div className="stat-title text-pink-700 text-sm font-medium">Tamanho</div>
-                      <div className="stat-value text-pink-800 text-2xl font-bold">{dadosSemana?.tamanho || '14 cm'}</div>
-                      <div className="stat-desc text-pink-600 text-xs">{dadosSemana?.comparacao || 'Tamanho de um pimentão'}</div>
-                    </div>
-                    <div className="stat p-4 text-center">
-                      <div className="stat-title text-pink-700 text-sm font-medium">Peso</div>
-                      <div className="stat-value text-pink-800 text-2xl font-bold">{dadosSemana?.peso || '190g'}</div>
-                      <div className="stat-desc text-pink-600 text-xs">Crescendo rapidamente</div>
-                    </div>
+                    
                   </div>
                 </div>
                 
