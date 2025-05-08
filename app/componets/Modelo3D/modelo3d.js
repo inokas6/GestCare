@@ -36,6 +36,14 @@ function Modelo3D({ semana = null, onError }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [modelLoaded, setModelLoaded] = useState(false);
+  const [key, setKey] = useState(0); // Novo estado para forçar re-renderização
+
+  // Resetar estados quando a semana mudar
+  useEffect(() => {
+    setModelLoaded(false);
+    setError(null);
+    setKey(prev => prev + 1); // Incrementa a key para forçar re-renderização
+  }, [semana]);
 
   // Pré-carregar o modelo quando a semana mudar
   useEffect(() => {
@@ -54,6 +62,7 @@ function Modelo3D({ semana = null, onError }) {
     const fetchSemana = async () => {
       setIsLoading(true);
       setModelLoaded(false);
+      setError(null);
       
       // Se uma semana específica foi fornecida como prop, use-a
       if (semana !== null) {
@@ -72,17 +81,20 @@ function Modelo3D({ semana = null, onError }) {
           return;
         }
 
-        const { data: gestacaoData, error: gestacaoError } = await supabase
-          .from("gestacao")
-          .select("semana_atual")
-          .eq("user_id", user.id)
+        // Buscar informações da semana atual
+        const { data: infoData, error: infoError } = await supabase
+          .from("info_gestacional")
+          .select("semana")
+          .order('semana', { ascending: false })
+          .limit(1)
           .single();
 
-        if (gestacaoError) {
-          console.error("Erro ao buscar semana atual:", gestacaoError);
+        if (infoError) {
+          console.error("Erro ao buscar semana atual:", infoError);
           setError("Erro ao buscar semana atual");
-        } else if (gestacaoData) {
-          setSemanaAtual(gestacaoData.semana_atual);
+        } else if (infoData) {
+          console.log('Semana atual encontrada:', infoData);
+          setSemanaAtual(infoData.semana);
         }
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
@@ -97,6 +109,7 @@ function Modelo3D({ semana = null, onError }) {
 
   const handleModelError = () => {
     setModelLoaded(false);
+    setError("Erro ao carregar modelo 3D");
     if (onError) onError();
   };
 
@@ -125,7 +138,7 @@ function Modelo3D({ semana = null, onError }) {
     { 
       style: { height: '500px' },
       camera: { position: [0, 0, 5], fov: 50 },
-      key: semanaAtual // Força re-renderização quando a semana mudar
+      key: key // Usa a key para forçar re-renderização
     },
     React.createElement('ambientLight', { intensity: 0.6 }),
     React.createElement('directionalLight', { position: [0, 5, 5] }),
