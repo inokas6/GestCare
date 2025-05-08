@@ -33,18 +33,11 @@ const PregnancySummary = ({ week }) => {
           .single();
           
         if (infoError) {
-          console.error("Erro ao buscar informações semanais:", {
-            message: infoError.message,
-            details: infoError.details,
-            hint: infoError.hint
+          console.error("Erro ao buscar informações semanais:", infoError);
+          setError("Erro ao buscar informações semanais");
+          setInfoSemanal({
+            dicas_mae: "Erro ao carregar dicas. Por favor, tente novamente mais tarde."
           });
-          
-          if (infoError.code !== 'PGRST116') {
-            setError("Erro ao buscar informações semanais");
-            setInfoSemanal({
-              dicas_mae: "Erro ao carregar dicas. Por favor, tente novamente mais tarde."
-            });
-          }
         } else if (infoData) {
           console.log('Informações semanais encontradas:', infoData);
           setInfoSemanal({
@@ -52,59 +45,42 @@ const PregnancySummary = ({ week }) => {
           });
         }
 
-        // Buscar tamanho do bebê específico do usuário
-        console.log('Buscando tamanho do bebê para a semana:', week);
-        const { data: tamanhoData, error: tamanhoError } = await supabase
-          .from("tamanhos_bebe")
-          .select("fruta")
-          .eq("user_id", user.id)
-          .eq("semana", week)
-          .single();
-          
-        if (tamanhoError) {
-          console.error("Erro ao buscar tamanho do bebê:", {
-            message: tamanhoError.message,
-            details: tamanhoError.details,
-            hint: tamanhoError.hint,
-            code: tamanhoError.code
-          });
-
-          if (tamanhoError.code === 'PGRST116') {
-            // Se não encontrou tamanho para o usuário, criar os tamanhos padrão
-            const { error: insertError } = await supabase.rpc('criar_tamanhos_padrao_usuario', {
-              user_id: user.id
+        // Buscar tamanho do bebê
+        try {
+          console.log('Buscando tamanho do bebê para a semana:', week);
+          const { data: tamanhoData, error: tamanhoError } = await supabase
+            .from("tamanhos_bebe")
+            .select("fruta")
+            .eq("semana", week)
+            .single();
+            
+          if (tamanhoError) {
+            console.error("Erro ao buscar tamanho do bebê:", {
+              error: tamanhoError,
+              message: tamanhoError.message,
+              details: tamanhoError.details,
+              hint: tamanhoError.hint,
+              code: tamanhoError.code
             });
-
-            if (insertError) {
-              console.error("Erro ao criar tamanhos padrão:", insertError);
-              setError("Erro ao configurar tamanhos do bebê");
-            } else {
-              // Tentar buscar o tamanho novamente
-              const { data: newTamanhoData, error: newTamanhoError } = await supabase
-                .from("tamanhos_bebe")
-                .select("fruta")
-                .eq("user_id", user.id)
-                .eq("semana", week)
-                .single();
-
-              if (newTamanhoError) {
-                setError("Erro ao buscar tamanho do bebê");
-                setTamanhoBebe("Informação não disponível");
-              } else {
-                setTamanhoBebe(newTamanhoData.fruta);
-              }
-            }
-          } else {
             setError("Erro ao buscar tamanho do bebê");
             setTamanhoBebe("Informação não disponível");
+          } else if (tamanhoData) {
+            console.log('Tamanho do bebê encontrado:', tamanhoData);
+            setTamanhoBebe(tamanhoData.fruta);
+          } else {
+            console.log('Nenhum tamanho encontrado para a semana:', week);
+            setTamanhoBebe("Informação não disponível para esta semana");
           }
-        } else if (tamanhoData) {
-          console.log('Tamanho do bebê encontrado:', tamanhoData);
-          setTamanhoBebe(tamanhoData.fruta);
-        } else {
-          console.log('Nenhum tamanho encontrado para a semana:', week);
-          setTamanhoBebe("Informação não disponível para esta semana");
+        } catch (error) {
+          console.error("Erro ao buscar tamanho do bebê:", {
+            error,
+            message: error.message,
+            stack: error.stack
+          });
+          setError("Erro ao buscar tamanho do bebê");
+          setTamanhoBebe("Informação não disponível");
         }
+
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
         setError("Erro ao buscar dados");
