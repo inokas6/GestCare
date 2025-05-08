@@ -46,6 +46,7 @@ export default function BabyDevelopmentPage() {
   const [loading, setLoading] = useState(true);
   const [erroModelo, setErroModelo] = useState(false);
   const [erroAuth, setErroAuth] = useState(false);
+  const [modeloKey, setModeloKey] = useState(0); // Chave para forçar a atualização do modelo
   const supabase = createClientComponentClient();
 
   // Buscar semana atual do banco de dados
@@ -172,8 +173,36 @@ export default function BabyDevelopmentPage() {
   };
 
   // Seleciona uma semana específica
-  const selecionarSemana = (semana) => {
-    setSemanaAtual(semana);
+  const selecionarSemana = async (semana) => {
+    try {
+      setLoading(true);
+      setErroModelo(false);
+      
+      // Buscar informações da semana selecionada
+      const { data: infoData, error: infoError } = await supabase
+        .from('info_gestacional')
+        .select('*')
+        .eq('semana', semana)
+        .single();
+
+      if (infoError) {
+        console.error("Erro ao buscar informações da semana:", infoError);
+        setLoading(false);
+        return;
+      }
+
+      if (infoData) {
+        console.log('Informações da semana encontradas:', infoData);
+        setSemanaAtual(semana);
+        setTrimestreAtivo(semana <= 13 ? 1 : semana <= 26 ? 2 : 3);
+        setDadosSemana(infoData);
+        setModeloKey(prev => prev + 1); // Força a atualização do modelo
+      }
+    } catch (error) {
+      console.error("Erro ao selecionar semana:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -264,6 +293,7 @@ export default function BabyDevelopmentPage() {
                         </div>
                       ) : (
                         <Modelo3D 
+                          key={modeloKey}
                           semana={semanaAtual} 
                           onError={() => setErroModelo(true)}
                         />
