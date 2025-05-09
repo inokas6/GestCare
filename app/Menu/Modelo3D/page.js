@@ -357,10 +357,10 @@ export default function BabyDevelopmentPage() {
                     {trimestres[trimestreAtivo].map(semana => (
                       <button 
                         key={semana}
-                        className={`week-btn py-3 text-lg rounded-lg text-white transition-all ${
+                        className={`week-btn py-3 text-lg rounded-lg transition-all ${
                           semanaAtual === semana 
-                            ? 'bg-white text-pink-700 font-bold shadow-md transform scale-105' 
-                            : 'bg-pink-700 bg-opacity-70 hover:bg-pink-600'
+                            ? 'bg-pink-600 text-white font-bold shadow-md transform scale-105' 
+                            : 'bg-pink-700 bg-opacity-70 hover:bg-pink-600 text-white'
                         }`}
                         onClick={() => selecionarSemana(semana)}
                       >
