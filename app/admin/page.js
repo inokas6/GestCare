@@ -9,11 +9,18 @@ export default function AdminDashboard() {
   const [topics, setTopics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [newsletterData, setNewsletterData] = useState({
+    titulo: '',
+    conteudo: '',
+    destinatarios: 'todos' // 'todos' ou 'selecionados'
+  });
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'users', label: 'Utilizadores', icon: '👥' },
     { id: 'forum', label: 'Fórum', icon: '💬' },
+    { id: 'newsletter', label: 'Newsletter', icon: '📧' },
     { id: 'analytics', label: 'Análises', icon: '📈' },
     { id: 'settings', label: 'Configurações', icon: '⚙️' },
   ];
@@ -25,6 +32,45 @@ export default function AdminDashboard() {
       fetchTopics();
     }
   }, [activeMenu]);
+
+  const handleNewsletterSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const response = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...newsletterData,
+          selectedUsers: newsletterData.destinatarios === 'selecionados' ? selectedUsers : []
+        }),
+      });
+
+      if (!response.ok) throw new Error('Erro ao enviar newsletter');
+
+      alert('Newsletter enviada com sucesso!');
+      setNewsletterData({
+        titulo: '',
+        conteudo: '',
+        destinatarios: 'todos'
+      });
+      setSelectedUsers([]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUserSelection = (userId) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
 
   const fetchUsers = async () => {
     try {
@@ -88,6 +134,98 @@ export default function AdminDashboard() {
 
   const renderContent = () => {
     switch (activeMenu) {
+      case 'newsletter':
+        return (
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Enviar Newsletter
+              </h3>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleNewsletterSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Título
+                </label>
+                <input
+                  type="text"
+                  value={newsletterData.titulo}
+                  onChange={(e) => setNewsletterData(prev => ({ ...prev, titulo: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Conteúdo
+                </label>
+                <textarea
+                  value={newsletterData.conteudo}
+                  onChange={(e) => setNewsletterData(prev => ({ ...prev, conteudo: e.target.value }))}
+                  rows="6"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Destinatários
+                </label>
+                <select
+                  value={newsletterData.destinatarios}
+                  onChange={(e) => setNewsletterData(prev => ({ ...prev, destinatarios: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <option value="todos">Todos os utilizadores</option>
+                  <option value="selecionados">Utilizadores selecionados</option>
+                </select>
+              </div>
+
+              {newsletterData.destinatarios === 'selecionados' && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Selecionar Utilizadores
+                  </label>
+                  <div className="max-h-60 overflow-y-auto border rounded-md p-4">
+                    {users.map(user => (
+                      <div key={user.id} className="flex items-center space-x-2 py-2">
+                        <input
+                          type="checkbox"
+                          id={`user-${user.id}`}
+                          checked={selectedUsers.includes(user.id)}
+                          onChange={() => handleUserSelection(user.id)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor={`user-${user.id}`} className="text-sm text-gray-700">
+                          {user.nome} ({user.email})
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                >
+                  {loading ? 'A enviar...' : 'Enviar Newsletter'}
+                </button>
+              </div>
+            </form>
+          </div>
+        );
       case 'users':
         return (
           <div className="bg-white rounded-lg shadow p-6">
