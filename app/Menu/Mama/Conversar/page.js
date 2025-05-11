@@ -15,6 +15,7 @@ export default function ConversarPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewTopic, setShowNewTopic] = useState(false);
   const [comentariosAbertos, setComentariosAbertos] = useState({});
+  const [topicosFiltrados, setTopicosFiltrados] = useState([]);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function ConversarPage() {
         }));
         
         setTopicos(topicosProcessados);
+        setTopicosFiltrados(topicosProcessados);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -48,6 +50,26 @@ export default function ConversarPage() {
 
     fetchTopicos();
   }, []);
+
+  useEffect(() => {
+    const filtrarTopicos = () => {
+      if (!searchQuery.trim()) {
+        setTopicosFiltrados(topicos);
+        return;
+      }
+
+      const query = searchQuery.toLowerCase();
+      const filtrados = topicos.filter(topico => 
+        topico.titulo.toLowerCase().includes(query) ||
+        topico.conteudo.toLowerCase().includes(query) ||
+        topico.users?.nome?.toLowerCase().includes(query) ||
+        topico.categorias?.nome?.toLowerCase().includes(query)
+      );
+      setTopicosFiltrados(filtrados);
+    };
+
+    filtrarTopicos();
+  }, [searchQuery, topicos]);
 
   const formatarData = (dataString) => {
     if (!dataString) return '';
@@ -153,7 +175,7 @@ export default function ConversarPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {topicos.map((topico) => (
+              {topicosFiltrados.map((topico) => (
                 <div key={topico.id} className="bg-white rounded-xl shadow-sm border p-6">
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0">
