@@ -1,12 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Configurar o transporter do Nodemailer
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: true, // true para porta 465, false para outras portas
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 export async function POST(request) {
   try {
@@ -25,8 +34,8 @@ export async function POST(request) {
 
     // Enviar email para cada destinatário
     const emailPromises = users.map(user => 
-      resend.emails.send({
-        from: 'Newsletter <gestcare.com>',
+      transporter.sendMail({
+        from: process.env.SMTP_FROM || 'Newsletter <newsletter@seudominio.com>',
         to: user.email,
         subject: titulo,
         html: `
