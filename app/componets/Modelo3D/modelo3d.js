@@ -14,7 +14,7 @@ function preloadModel(semana) {
 
 function Modelo({ semana, onError }) {
   const modelPath = `/modelos3d/semana${semana}.glb`;
-  console.log('Tentando carregar modelo:', modelPath);
+  console.log('A carregar modelo:', modelPath);
   
   try {
     const gltf = useGLTF(modelPath);
@@ -115,7 +115,7 @@ function Modelo3D({ semana = null, onError }) {
 
   if (isLoading) {
     return React.createElement('div', { className: 'flex items-center justify-center h-[500px]' }, 
-      React.createElement('div', { className: 'text-gray-600' }, 'Carregando...')
+      React.createElement('div', { className: 'text-gray-600' }, 'A carregar...')
     );
   }
 
@@ -144,7 +144,7 @@ function Modelo3D({ semana = null, onError }) {
     React.createElement('directionalLight', { position: [0, 5, 5] }),
     React.createElement(Suspense, { 
       fallback: React.createElement('div', { className: 'flex items-center justify-center h-full' }, 
-        React.createElement('div', { className: 'text-gray-600' }, 'Carregando modelo...')
+        React.createElement('div', { className: 'text-gray-600' }, 'A carregar o modelo...')
       )
     },
       React.createElement(Modelo, { 

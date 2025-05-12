@@ -9,35 +9,9 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 // Importando o componente Modelo3D com carregamento dinâmico para evitar problemas com SSR
 const Modelo3D = dynamic(() => import('../../componets/Modelo3D/modelo3d.js'), {
   ssr: false,
-  loading: () => <p className="text-center text-pink-700">Carregando modelo 3D...</p>
+  loading: () => <p className="text-center text-pink-700">A carregar o modelo 3D...</p>
 });
 
-// Dados de exemplo para as semanas de gestação
-const semanaData = {
-  18: {
-    titulo: "Desenvolvimento incrível!",
-    tamanho: "14 cm",
-    comparacao: "Tamanho de um pimentão",
-    peso: "190g",
-    descricao: "Nesta semana, seu bebê já está com aproximadamente 14 centímetros e pesa cerca de 190 gramas. Os sistemas do corpo continuam a se desenvolver e aperfeiçoar. Os movimentos estão ficando mais coordenados e você pode começar a senti-los mais claramente.",
-    curiosidades: [
-      {
-        titulo: "Desenvolvimento dos Sentidos",
-        texto: "O bebê já consegue ouvir sons externos e pode reagir a músicas altas ou à sua voz."
-      },
-      {
-        titulo: "Movimentos",
-        texto: "O bebê está praticando movimentos de sucção e deglutição, preparando-se para a alimentação após o nascimento."
-      },
-      {
-        titulo: "Impressões Digitais",
-        texto: "As impressões digitais únicas do seu bebê já estão se formando nas pontas dos dedos."
-      }
-    ],
-    dica: "Falar com o bebê ajuda a estabelecer vínculo e estimular o desenvolvimento auditivo. Experimente ler histórias em voz alta ou conversar sobre seu dia."
-  }
-  // Adicionar dados para outras semanas aqui
-};
 
 export default function BabyDevelopmentPage() {
   const [semanaAtual, setSemanaAtual] = useState(null);
@@ -55,7 +29,7 @@ export default function BabyDevelopmentPage() {
       try {
         setLoading(true);
         
-        // Buscar usuário atual
+        // Buscar user atual
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -72,7 +46,7 @@ export default function BabyDevelopmentPage() {
           return;
         }
 
-        // Buscar dados da gravidez do usuário
+        // dados da gravidez do user
         const { data: gravidezData, error: gravidezError } = await supabase
           .from('gravidez_info')
           .select('*')
@@ -212,7 +186,7 @@ export default function BabyDevelopmentPage() {
       <main className="container mt-16 mx-auto px-4 py-8">
         {loading ? (
           <div className="text-center mt-16">
-            <p className="text-pink-700 text-xl">Carregando informações...</p>
+            <p className="text-pink-700 text-xl">A carregar...</p>
           </div>
         ) : erroAuth ? (
           <div className="text-center mt-16">
@@ -233,9 +207,7 @@ export default function BabyDevelopmentPage() {
           <>
             
             
-            {/* Layout reorganizado */}
             <div className="flex flex-col md:flex-row gap-8">
-              {/* 3D Model - Agora muito maior e mais proeminente */}
               <div className="md:w-1/2 flex flex-col items-center justify-start">
                 <div className="model-circle mb-6" style={{
                   width: '100%',
@@ -302,7 +274,7 @@ export default function BabyDevelopmentPage() {
                   </div>
                 </div>
                 
-                {/* Stats cards - redesenhados e mais atraentes */}
+                {/* Stats cards*/}
                 <div className="stats-container w-full max-w-md bg-white rounded-xl overflow-hidden shadow-lg border border-pink-100 mb-6">
                   <div className="grid grid-cols-3 divide-x divide-pink-100">
                     <div className="stat p-4 text-center">
@@ -368,9 +340,7 @@ export default function BabyDevelopmentPage() {
                       </button>
                     ))}
                   </div>
-                </div>
-                
-                
+                </div>    
               </div>
             </div>
           </>
