@@ -96,8 +96,7 @@ export default function CategoriasPage() {
           ) : (
             <div className="bg-white rounded-xl shadow-sm border p-6">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Comunidade de Mães</h2>
-                <p className="text-gray-500">Escolha uma categoria para explorar discussões com outras mães</p>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Categorias</h2>
               </div>
               
               {filteredCategorias.length === 0 ? (

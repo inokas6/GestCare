@@ -222,9 +222,6 @@ const CalendarWidget = ({ selectedDate, setSelectedDate }) => {
           </div>
         )}
         
-        <button className="mt-3 w-full py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition">
-          Adicionar evento
-        </button>
       </div>
     </div>
   );

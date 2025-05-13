@@ -312,25 +312,7 @@ const PregnancyDiary = () => {
         </div>
       ) : (
         <main className="max-w-5xl mx-auto p-4 relative z-10">
-          {/* Progress Bar */}
-          <div className="mb-8 mt-6">
-            <div className="flex justify-between text-sm text-pink-700 mb-2">
-              <span>Semana 1</span>
-              <span>Semana 40</span>
-            </div>
-            <div className="h-4 bg-pink-100 rounded-full overflow-hidden shadow-inner">
-              <div 
-                className="h-full bg-gradient-to-r from-pink-400 to-pink-800 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${(currentWeek / 40) * 100}%` }}
-              >
-              </div>
-            </div>
-            <div className="flex justify-between mt-2">
-              <span className="text-xs text-pink-600">Primeiro trimestre</span>
-              <span className="text-xs text-pink-600">Segundo trimestre</span>
-              <span className="text-xs text-pink-600">Terceiro trimestre</span>
-            </div>
-          </div>
+          
           
           
           
