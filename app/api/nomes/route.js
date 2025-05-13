@@ -1,71 +1,207 @@
-import { NextResponse } from 'next/server';
+const significadosNomes = {
+  'miguel': 'Significa "quem é como Deus" ou "semelhante a Deus".',
+  'sofia': 'Significa "sabedoria" ou "conhecimento".',
+  'gabriel': 'Significa "homem de Deus" ou "mensageiro de Deus".',
+  'isabella': 'Significa "promessa de Deus" ou "juramento de Deus".',
+  'lucas': 'Significa "luminoso" ou "iluminado".',
+  'maria': 'Significa "senhora soberana" ou "a pura".',
+  'arthur': 'Significa "urso" ou "forte como um urso".',
+  'alice': 'Significa "de linhagem nobre" ou "verdade".',
+  'pedro': 'Significa "pedra" ou "rocha".',
+  'laura': 'Significa "loureiro" ou "coroa de louros".',
+  'joão': 'Significa "Deus é gracioso" ou "agraciado por Deus".',
+  'beatriz': 'Significa "aquela que traz felicidade" ou "viajante".',
+  'matheus': 'Significa "dom de Deus" ou "presente de Deus".',
+  'júlia': 'Significa "jovem" ou "cheia de juventude".',
+  'davi': 'Significa "amado" ou "querido".',
+  'valentina': 'Significa "forte" ou "saudável".',
+  'enzo': 'Significa "senhor da casa" ou "proprietário".',
+  'manuela': 'Significa "Deus está conosco" ou "Deus está presente".',
+  'benjamin': 'Significa "filho da mão direita" ou "filho da felicidade".',
+  'cecilia': 'Significa "cega" ou "aquela que não vê".',
+  'samuel': 'Significa "nome de Deus" ou "Deus ouviu".',
+  'helena': 'Significa "tocha" ou "luz".',
+  'rafael': 'Significa "Deus curou" ou "curado por Deus".',
+  'lara': 'Significa "proteção" ou "refúgio".',
+  'daniel': 'Significa "Deus é meu juiz" ou "justiça de Deus".',
+  'mariana': 'Significa "combinação de Maria e Ana" ou "graça de Deus".',
+  'leonardo': 'Significa "leão forte" ou "forte como um leão".',
+  'isabela': 'Significa "promessa de Deus" ou "juramento de Deus".',
+  'theo': 'Significa "dom de Deus" ou "presente de Deus".',
+  'lorena': 'Significa "coroa de louros" ou "vitória".',
+  'tiago': 'Significa "aquele que vem de Jacó" ou "suplantador".',
+  'carolina': 'Significa "mulher livre" ou "forte".',
+  'francisco': 'Significa "francês" ou "livre".',
+  'margarida': 'Significa "pérola" ou "flor de margarida".',
+  'antonio': 'Significa "inestimável" ou "de valor incalculável".',
+  'catarina': 'Significa "pura" ou "casta".',
+  'jose': 'Significa "Deus acrescenta" ou "que o Senhor acrescente".',
+  'ana': 'Significa "graça" ou "favor".',
+  'duarte': 'Significa "guardião rico" ou "protetor da riqueza".',
+  'ines': 'Significa "pura" ou "casta".',
+  'afonso': 'Significa "nobre e pronto" ou "guerreiro preparado".',
+  'constança': 'Significa "constante" ou "firme".',
+  'joaquim': 'Significa "Deus estabelecerá" ou "aquele que Deus estabelece".',
+  'teresa': 'Significa "caçadora" ou "verão".',
+  'nuno': 'Significa "nono" ou "o nono filho".',
+  'madalena': 'Significa "da cidade de Magdala" ou "torre".',
+  'vasco': 'Significa "corvo" ou "pássaro".',
+  'henrique': 'Significa "senhor do lar" ou "governante da casa".',
+  'juliana': 'Significa "jovem" ou "cheia de juventude".',
+  'fernando': 'Significa "atrevido para a paz" ou "ousado para a paz".',
+  'manuel': 'Significa "Deus está conosco" ou "Deus está presente".',
+  'isabel': 'Significa "promessa de Deus" ou "juramento de Deus".',
+  'filipe': 'Significa "amigo dos cavalos" ou "amante dos cavalos".',
+  'antónio': 'Significa "inestimável" ou "de valor incalculável".',
+  'luís': 'Significa "guerreiro famoso" ou "combatente glorioso".',
+  'sara': 'Significa "princesa" ou "senhora".',
+  'tomás': 'Significa "gêmeo" ou "duplo".',
+  'marta': 'Significa "senhora" ou "dona da casa".',
+  'rodrigo': 'Significa "famoso pelo poder" ou "governante famoso".',
+  'clara': 'Significa "clara" ou "brilhante".',
+  'guilherme': 'Significa "protetor decidido" ou "guardião determinado".',
+  'raquel': 'Significa "ovelha" ou "cordeiro".',
+  'diogo': 'Significa "aquele que ensina" ou "mestre".',
+  'lurdes': 'Significa "referência a Nossa Senhora de Lourdes".',
+  'rui': 'Significa "famoso" ou "glorioso".',
+  'mónica': 'Significa "única" ou "sozinha".',
+  'bruno': 'Significa "marrom" ou "escuro".',
+  'patrícia': 'Significa "nobre" ou "de linhagem nobre".',
+  'hugo': 'Significa "inteligente" ou "espírito".',
+  'cristina': 'Significa "seguidora de Cristo" ou "cristã".',
+  'eduardo': 'Significa "guardião da riqueza" ou "protetor da fortuna".',
+  'susana': 'Significa "lírio" ou "flor de lírio".',
+  'marcos': 'Significa "consagrado ao deus Marte" ou "guerreiro".',
+  'rita': 'Significa "pérola" ou "preciosa".',
+  'simão': 'Significa "aquele que ouve" ou "que escuta".',
+  'rosa': 'Significa "rosa" ou "flor".',
+  'paulo': 'Significa "pequeno" ou "de baixa estatura".',
+  'alexandra': 'Significa "protetora da humanidade" ou "defensora dos homens".',
+  'carlos': 'Significa "homem livre" ou "homem do povo".',
+  'diana': 'Significa "divina" ou "celestial".',
+  'elena': 'Significa "tocha" ou "luz".',
+  'gonçalo': 'Significa "batalha" ou "combate".',
+  'lídia': 'Significa "da Lídia" ou "da Ásia Menor".',
+  'mário': 'Significa "homem" ou "masculino".',
+  'nádia': 'Significa "esperança" ou "esperançosa".',
+  'otávio': 'Significa "oitavo" ou "o oitavo filho".',
+  'paula': 'Significa "pequena" ou "de baixa estatura".',
+  'quitéria': 'Significa "pura" ou "casta".',
+  'raul': 'Significa "conselho do lobo" ou "sábio como um lobo".',
+  'sandra': 'Significa "protetora da humanidade" ou "defensora dos homens".',
+  'telma': 'Significa "vontade" ou "determinação".',
+  'ulisses': 'Significa "irritado" ou "zangado".',
+  'vanda': 'Significa "eslava" ou "da Eslavônia".',
+  'xavier': 'Significa "nova casa" ou "casa nova".',
+  'yara': 'Significa "senhora das águas" ou "mãe d\'água".',
+  'zé': 'Significa "Deus acrescenta" ou "que o Senhor acrescente".',
+  'adriana': 'Significa "da cidade de Adria" ou "do mar Adriático".',
+  'bernardo': 'Significa "forte como um urso" ou "urso corajoso".',
+  'carmo': 'Significa "jardim" ou "vinha".',
+  'dulce': 'Significa "doce" ou "suave".',
+  'elisa': 'Significa "Deus é juramento" ou "promessa de Deus".',
+  'fátima': 'Significa "referência a Nossa Senhora de Fátima".',
+  'gabriela': 'Significa "mulher de Deus" ou "mensageira de Deus".',
+  'horácio': 'Significa "aquele que tem boa visão" ou "que vê bem".',
+  'ivone': 'Significa "teixo" ou "árvore sagrada".',
+  'jéssica': 'Significa "rica" ou "abastada".',
+  'kátia': 'Significa "pura" ou "casta".',
+  'leonor': 'Significa "luz" ou "brilho".',
+  'marcelo': 'Significa "pequeno guerreiro" ou "jovem guerreiro".',
+  'nelson': 'Significa "filho de Neil" ou "campeão".',
+  'olívia': 'Significa "oliveira" ou "paz".',
+  'palmira': 'Significa "cidade das palmeiras" ou "palmeira".',
+  'quim': 'Significa "Deus estabelecerá" ou "aquele que Deus estabelece".',
+  'romana': 'Significa "de Roma" ou "romana".',
+  'sílvia': 'Significa "da floresta" ou "selvagem".',
+  'tânia': 'Significa "rainha das fadas" ou "fada".',
+  'úrsula': 'Significa "pequena ursa" ou "urso".',
+  'valter': 'Significa "governante do exército" ou "comandante".',
+  'wilson': 'Significa "filho de William" ou "filho do guerreiro".',
+  'xénia': 'Significa "estrangeira" ou "hospitaleira".',
+  'yolanda': 'Significa "violeta" ou "flor roxa".',
+  'zacarias': 'Significa "Deus se lembrou" ou "lembrado por Deus".',
+  'adelaide': 'Significa "de linhagem nobre" ou "nobre".',
+  'baltazar': 'Significa "proteja o rei" ou "guardião do rei".',
+  'celeste': 'Significa "celestial" ou "do céu".',
+  'damião': 'Significa "domador" ou "aquele que doma".',
+  'eugénia': 'Significa "bem nascida" ou "de boa linhagem".',
+  'florinda': 'Significa "flor" ou "florescente".',
+  'gertrudes': 'Significa "lança forte" ou "fortaleza".',
+  'herculano': 'Significa "consagrado a Hércules" ou "forte".',
+  'ilídio': 'Significa "do sol" ou "solar".',
+  'jordão': 'Significa "que desce" ou "rio que flui".',
+  'kelly': 'Significa "guerreira" ou "combatente".',
+  'lídio': 'Significa "da Lídia" ou "da Ásia Menor".',
+  'máximo': 'Significa "o maior" ou "máximo".',
+  'narciso': 'Significa "sono" ou "entorpecimento".',
+  'olavo': 'Significa "herança dos ancestrais" ou "legado".',
+  'pandora': 'Significa "todos os dons" ou "presentes".',
+  'quintino': 'Significa "quinto" ou "o quinto filho".',
+  'romualdo': 'Significa "glória de Roma" ou "famoso em Roma".',
+  'sabrina': 'Significa "do rio Severn" ou "fronteira".',
+  'taciano': 'Significa "silencioso" ou "calado".',
+  'urbano': 'Significa "da cidade" ou "civilizado".',
+  'viriato': 'Significa "homem" ou "viril".',
+  'wanda': 'Significa "eslava" ou "da Eslavônia".',
+  'xisto': 'Significa "polido" ou "liso".',
+  'yara': 'Significa "senhora das águas" ou "mãe d\'água".',
+  'zacarias': 'Significa "Deus se lembrou" ou "lembrado por Deus".',
+  'adélia': 'Significa "nobre" ou "de linhagem nobre".',
+  'belarmino': 'Significa "belo exército" ou "guerreiro belo".',
+  'cândida': 'Significa "branca" ou "pura".',
+  'dionísio': 'Significa "consagrado a Dionísio" ou "deus do vinho".',
+  'eulália': 'Significa "que fala bem" ou "bem falante".',
+  'firmino': 'Significa "firme" ou "constante".',
+  'gualter': 'Significa "governante do exército" ou "comandante".',
+  'hermínio': 'Significa "mensageiro" ou "intérprete".',
+  'idalina': 'Significa "perfeita" ou "ideal".',
+  'júlio': 'Significa "jovem" ou "cheio de juventude".',
+  'kátia': 'Significa "pura" ou "casta".',
+  'leopoldo': 'Significa "povo corajoso" ou "bravo".',
+  'marcília': 'Significa "consagrada a Marte" ou "guerreira".',
+  'narcisa': 'Significa "sono" ou "entorpecimento".',
+  'olímpia': 'Significa "do Olimpo" ou "celestial".',
+  'palmira': 'Significa "cidade das palmeiras" ou "palmeira".',
+  'quitéria': 'Significa "pura" ou "casta".',
+  'romualdo': 'Significa "glória de Roma" ou "famoso em Roma".',
+  'sabrina': 'Significa "do rio Severn" ou "fronteira".',
+  'taciano': 'Significa "silencioso" ou "calado".',
+  'urbano': 'Significa "da cidade" ou "civilizado".',
+  'viriato': 'Significa "homem" ou "viril".',
+  'wanda': 'Significa "eslava" ou "da Eslavônia".',
+  'xisto': 'Significa "polido" ou "liso".',
+  'yara': 'Significa "senhora das águas" ou "mãe d\'água".',
+  'zacarias': 'Significa "Deus se lembrou" ou "lembrado por Deus".',
+  'mafalda': 'Significa "poderosa em batalha" ou "forte na guerra".',
+  'alves': 'Significa "filho de Álvaro" ou "guardião de todos".',
+  'ruben': 'Significa "eis um filho" ou "veja, um filho".',
+  'antonia': 'Significa "inestimável" ou "de valor incalculável".',
+  'jorge': 'Significa "agricultor" ou "trabalhador da terra".',
+};
 
 export async function GET(request) {
-    const { searchParams } = new URL(request.url);
-    const nome = searchParams.get('nome');
+  const { searchParams } = new URL(request.url);
+  const nome = searchParams.get('nome')?.toLowerCase();
 
-    if (!nome) {
-        return NextResponse.json(
-            { error: 'Nome não informado' },
-            { status: 400 }
-        );
-    }
+  if (!nome) {
+    return new Response(JSON.stringify({ error: 'Nome não fornecido' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-    try {
-        console.log('Buscando nome:', nome);
+  const significado = significadosNomes[nome];
 
-        const response = await fetch(
-            `https://www.behindthename.com/api/lookup.json?name=${encodeURIComponent(nome)}&key=in177596553&exact=yes`,
-            {
-                headers: {
-                    'Accept': 'application/json',
-                },
-            }
-        );
+  if (!significado) {
+    return new Response(JSON.stringify({ error: 'Nome não encontrado' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-        console.log('Status da resposta:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Erro na API:', errorText);
-            throw new Error(`API externa retornou status ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Dados recebidos:', data);
-        
-        if (!data || (Array.isArray(data) && data.length === 0)) {
-            return NextResponse.json(
-                { error: 'Nome não encontrado' },
-                { status: 404 }
-            );
-        }
-
-        let significado = '';
-        if (Array.isArray(data)) {
-            const nomeInfo = data.find(item => 
-                item.name && item.name.toLowerCase() === nome.toLowerCase()
-            );
-            if (nomeInfo) {
-                significado = nomeInfo.meaning || nomeInfo.info?.meaning || 'Significado não disponível';
-            }
-        } else if (data.meaning) {
-            significado = data.meaning;
-        }
-
-        if (!significado) {
-            return NextResponse.json(
-                { error: 'Significado não encontrado para este nome' },
-                { status: 404 }
-            );
-        }
-
-        return NextResponse.json({ meaning: significado });
-    } catch (error) {
-        console.error('Erro ao buscar nome:', error);
-        return NextResponse.json(
-            { error: 'Erro ao buscar nome: ' + error.message },
-            { status: 500 }
-        );
-    }
+  return new Response(JSON.stringify({ meaning: significado }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 } 
