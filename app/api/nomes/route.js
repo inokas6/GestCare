@@ -178,6 +178,9 @@ const significadosNomes = {
   'ruben': 'Significa "eis um filho" ou "veja, um filho".',
   'antonia': 'Significa "inestimável" ou "de valor incalculável".',
   'jorge': 'Significa "agricultor" ou "trabalhador da terra".',
+  'henriete': 'Significa "senhora do lar" ou "governante da casa".',
+  'hélia': 'Significa "do sol" ou "solar".',
+  'hélder': 'Significa "guerreiro glorioso" ou "combatente famoso".',
 };
 
 export async function GET(request) {
