@@ -58,7 +58,7 @@ export default function Comments({ topicId }) {
         }
     };
 
-    if (loading) return <div className="text-center py-3 sm:py-4 text-sm sm:text-base">Carregando comentários...</div>;
+    if (loading) return <div className="text-center py-3 sm:py-4 text-sm sm:text-base">...</div>;
     if (error) return <div className="text-red-500 text-center py-3 sm:py-4 text-sm sm:text-base">Erro: {error}</div>;
 
     return (
@@ -67,7 +67,7 @@ export default function Comments({ topicId }) {
                 <textarea
                     value={novaResposta}
                     onChange={(e) => setNovaResposta(e.target.value)}
-                    placeholder="Adicione sua resposta..."
+                    placeholder="Responder..."
                     className="w-full px-3 sm:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 text-sm sm:text-base"
                     rows="3"
                     required
@@ -78,7 +78,7 @@ export default function Comments({ topicId }) {
                         disabled={submitting}
                         className="px-3 sm:px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm sm:text-base w-full sm:w-auto"
                     >
-                        {submitting ? 'Enviando...' : 'Responder'}
+                        {submitting ? '...' : 'Responder'}
                     </button>
                 </div>
             </form>

@@ -303,7 +303,7 @@ export default function Chat() {
                                 </div>
                             )}
                             {messages.length === 0 ? (
-                                <p className="text-gray-400 italic text-sm sm:text-base text-center py-8">Nenhuma mensagem ainda...</p>
+                                <p className="text-gray-400 italic text-sm sm:text-base text-center py-8">Sem mensagens...</p>
                             ) : (
                                 <div className="space-y-4">
                                     {messages.map((message) => (

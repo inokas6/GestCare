@@ -68,7 +68,7 @@ export default function NewTopic({ onClose }) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-2xl mx-4">
-                <h2 className="text-xl sm:text-2xl font-semibold mb-4">Novo Tópico</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold mb-4">Nova Publicação</h2>
                 
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded mb-4 text-sm sm:text-base">

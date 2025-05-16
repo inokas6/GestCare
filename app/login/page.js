@@ -136,7 +136,7 @@ export default function Login() {
 
             <div className="form-control mt-6">
               <button className="btn btn-primary" type="submit" disabled={loading}>
-                {loading ? 'Entrando...' : 'Login'}
+                {loading ? '...' : 'Login'}
               </button>
             </div>
 

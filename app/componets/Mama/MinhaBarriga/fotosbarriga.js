@@ -295,7 +295,7 @@ const MinhaBarriga = () => {
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto p-4 bg-gray-50 rounded-3xl shadow-lg">
       <div className="w-full bg-pink-800 text-white p-4 rounded-t-2xl shadow-md mb-6">
         <h1 className="text-2xl font-bold text-center">Minha Barriga</h1>
-        <p className="text-center text-pink-100">Acompanhe sua gestação mês a mês</p>
+        <p className="text-center text-pink-100">Acompanhe a sua gestação mês a mês</p>
       </div>
 
       <div className="flex w-full max-w-md mb-6">
@@ -413,7 +413,7 @@ const MinhaBarriga = () => {
             <input id="photo-upload-bottom" type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" multiple />
 
             <button onClick={shareAlbum} className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg transition-colors flex items-center">
-              <ShareIcon className="mr-2" /> Compartilhar Álbum
+              <ShareIcon className="mr-2" /> Partilhar Álbum
             </button>
           </div>
 
