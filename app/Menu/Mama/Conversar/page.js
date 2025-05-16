@@ -94,7 +94,7 @@ export default function ConversarPage() {
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder="Pesquisar tópicos..."
+                placeholder="Pesquiss publicações"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -130,7 +130,7 @@ export default function ConversarPage() {
                   clipRule="evenodd"
                 />
               </svg>
-              New Topic
+              Publicação
             </button>
           </div>
 
@@ -139,7 +139,7 @@ export default function ConversarPage() {
             <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
               <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800">Criar Novo Tópico</h2>
+                  <h2 className="text-xl font-semibold text-gray-800">Nova Publicação</h2>
                   <button
                     onClick={() => setShowNewTopic(false)}
                     className="text-gray-400 hover:text-gray-600"

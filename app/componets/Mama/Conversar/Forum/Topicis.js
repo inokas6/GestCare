@@ -27,7 +27,7 @@ export default function Page() {
                     <>
                         <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-4 sm:mb-8">
                             <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Bem-vindo ao Fórum</h2>
-                            <p className="text-gray-600 text-sm sm:text-base">Explore tópicos, participe de discussões e conecte-se com outros usuários.</p>
+                            <p className="text-gray-600 text-sm sm:text-base">Explore tópicos, participe de discussões e conecte-se com outros utilizadores.</p>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 sm:gap-6">
                             <div className="col-span-1 sm:col-span-9">
@@ -61,7 +61,7 @@ export default function Page() {
                 return (
                     <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
                         <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Chat</h2>
-                        <p className="text-gray-600 text-sm sm:text-base">Área de chat em desenvolvimento...</p>
+                        <p className="text-gray-600 text-sm sm:text-base">...</p>
                     </div>
                 );
             case 'qna':

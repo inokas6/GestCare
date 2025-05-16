@@ -84,7 +84,7 @@ export default function CategoriaPage() {
       <div className="pl-0 sm:pl-48 lg:pl-64 transition-all duration-300">
         <header className="bg-white shadow-sm flex justify-between items-center px-4 sm:px-6 py-4 border-b sticky top-0 z-10">
           <h1 className="text-xl font-bold text-purple-700">
-            {categoria?.nome || 'Carregando...'}
+            {categoria?.nome || '...'}
           </h1>
         </header>
 
@@ -110,7 +110,7 @@ export default function CategoriaPage() {
 
               {topicos.length === 0 ? (
                 <div className="text-center py-10">
-                  <p className="text-gray-500">Nenhum tópico encontrado nesta categoria</p>
+                  <p className="text-gray-500">Nenhuma publicação encontrada nesta categoria</p>
                 </div>
               ) : (
                 <div className="space-y-4">

@@ -22,7 +22,7 @@ export default function EditarTopico({ params }) {
         const fetchData = async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                if (!session) throw new Error('Usuário não autenticado');
+                if (!session) throw new Error('user não autenticado');
 
                 // Buscar o tópico
                 const { data: topicoData, error: topicoError } = await supabase
@@ -33,7 +33,7 @@ export default function EditarTopico({ params }) {
 
                 if (topicoError) throw topicoError;
                 if (topicoData.user_id !== session.user.id) {
-                    throw new Error('Você não tem permissão para editar este tópico');
+                    throw new Error('Você não tem permissão para editar esta publicação');
                 }
 
                 setTopico(topicoData);
@@ -187,7 +187,7 @@ export default function EditarTopico({ params }) {
                                 disabled={isSaving}
                                 className="px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
                             >
-                                {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+                                {isSaving ? '...' : 'Guardar'}
                             </button>
                         </div>
                     </form>

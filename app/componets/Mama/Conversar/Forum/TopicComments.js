@@ -70,7 +70,7 @@ export default function TopicComments({ topicoId }) {
         }
     };
 
-    if (loading) return <div className="text-center py-2 text-sm text-gray-500">Carregando comentários...</div>;
+    if (loading) return <div className="text-center py-2 text-sm text-gray-500">...</div>;
     if (error) return <div className="text-center py-2 text-sm text-red-500">Erro: {error}</div>;
 
     return (

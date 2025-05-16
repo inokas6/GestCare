@@ -28,9 +28,9 @@ export default function TopicoPage() {
         fetchTopico();
     }, [params.id]);
 
-    if (loading) return <div className="text-center py-4 sm:py-8 text-sm sm:text-base">Carregando...</div>;
+    if (loading) return <div className="text-center py-4 sm:py-8 text-sm sm:text-base">...</div>;
     if (error) return <div className="text-red-500 text-center py-4 sm:py-8 text-sm sm:text-base">Erro: {error}</div>;
-    if (!topico) return <div className="text-center py-4 sm:py-8 text-sm sm:text-base">Tópico não encontrado</div>;
+    if (!topico) return <div className="text-center py-4 sm:py-8 text-sm sm:text-base">Publicação não encontrada</div>;
 
     return (
         <div className="min-h-screen bg-gray-50">

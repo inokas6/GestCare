@@ -21,7 +21,7 @@ export default function QnaPage() {
         const fetchMeusTopicos = async () => {
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                if (!session) throw new Error('Usuário não autenticado');
+                if (!session) throw new Error('user não autenticado');
 
                 const { data, error } = await supabase
                     .from('topicos')
@@ -65,7 +65,7 @@ export default function QnaPage() {
     };
 
     const handleDelete = async (topicoId) => {
-        if (!confirm('Tem certeza que deseja excluir esta publicação?')) return;
+        if (!confirm('Tem certeza que deseja eliminar esta publicação? Todos os comentários serão apagados também!')) return;
         
         try {
             setIsDeleting(true);
@@ -78,7 +78,7 @@ export default function QnaPage() {
 
             setTopicos(topicos.filter(t => t.id !== topicoId));
         } catch (err) {
-            setError('Erro ao excluir a publicação: ' + err.message);
+            setError('Erro ao eliminar a publicação: ' + err.message);
         } finally {
             setIsDeleting(false);
         }
@@ -106,7 +106,7 @@ export default function QnaPage() {
                         </div>
                     ) : topicos.length === 0 ? (
                         <div className="text-center py-10">
-                            <p className="text-gray-500">Você ainda não criou nenhum post</p>
+                            <p className="text-gray-500">Ainda sem posts</p>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -173,7 +173,7 @@ export default function QnaPage() {
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                         </svg>
-                                                        Excluir
+                                                        Eliminar
                                                     </button>
                                                 </div>
                                             </div>

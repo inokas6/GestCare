@@ -135,7 +135,7 @@ export default function NewTopic({ onClose }) {
                             disabled={loading}
                             className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm sm:text-base"
                         >
-                            {loading ? 'Criando...' : 'Criar Tópico'}
+                            {loading ? '...' : 'Criar Tópico'}
                         </button>
                     </div>
                 </form>
