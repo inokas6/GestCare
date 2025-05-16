@@ -44,7 +44,7 @@ function Header({ mobileMenuOpen, setMobileMenuOpen, handleSectionClick, current
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center">
           <span className="text-pink-800 text-2xl mr-2">♥</span>
-          <h1 className="text-2xl font-bold text-pink-800">BebêCare</h1>
+          <h1 className="text-2xl font-bold text-pink-800">BebéCare</h1>
         </div>
         
         {/* Menu para desktop */}
@@ -105,23 +105,23 @@ function NavLinks({ onSectionClick, currentSection }) {
 function WeeklyDevelopmentSection() {
   const weeks = [
     { week: 1, description: 'O óvulo fertilizado começa a se dividir.', size: 'Do tamanho de uma semente de papoula.' },
-    { week: 4, description: 'O coração do bebê começa a bater.', size: 'Do tamanho de uma semente de mamão.' },
+    { week: 4, description: 'O coração do bebé começa a bater.', size: 'Do tamanho de uma semente de mamão.' },
     { week: 8, description: 'Todos os órgãos principais começam a se formar.', size: 'Do tamanho de um feijão.' },
-    { week: 12, description: 'O bebê pode sugar o polegar e tem unhas.', size: 'Do tamanho de um limão.' },
-    { week: 16, description: 'Os movimentos do bebê podem ser sentidos.', size: 'Do tamanho de um abacate.' },
-    { week: 20, description: 'O bebê tem sobrancelhas e cílios.', size: 'Do tamanho de uma banana.' },
-    { week: 24, description: 'O bebê responde a sons externos.', size: 'Do tamanho de uma espiga de milho.' },
+    { week: 12, description: 'O bebé pode sugar o polegar e tem unhas.', size: 'Do tamanho de um limão.' },
+    { week: 16, description: 'Os movimentos do bebé podem ser sentidos.', size: 'Do tamanho de um abacate.' },
+    { week: 20, description: 'O bebé tem sobrancelhas e cílios.', size: 'Do tamanho de uma banana.' },
+    { week: 24, description: 'O bebé responde a sons externos.', size: 'Do tamanho de uma espiga de milho.' },
     { week: 28, description: 'Os olhos podem abrir e fechar.', size: 'Do tamanho de uma berinjela.' },
-    { week: 32, description: 'O bebê pratica a respiração.', size: 'Do tamanho de um repolho.' },
-    { week: 36, description: 'O bebê ganha peso rapidamente.', size: 'Do tamanho de um melão.' },
-    { week: 40, description: 'O bebê está pronto para nascer!', size: 'Do tamanho de uma melancia pequena.' },
+    { week: 32, description: 'O bebé pratica a respiração.', size: 'Do tamanho de um repolho.' },
+    { week: 36, description: 'O bebé ganha peso rapidamente.', size: 'Do tamanho de um melão.' },
+    { week: 40, description: 'O bebé está pronto para nascer!', size: 'Do tamanho de uma melancia pequena.' },
   ];
 
   return (
     <section className="py-12 px-4">
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-pink-800 mb-8">Desenvolvimento Semana a Semana</h2>
-        <p className="text-gray-700 mb-8">Acompanhe o crescimento e desenvolvimento do seu bebê dentro da barriga, semana a semana.</p>
+        <p className="text-gray-700 mb-8">Acompanhe o crescimento e desenvolvimento do seu bebé dentro da barriga, semana a semana.</p>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {weeks.map((item) => (
@@ -191,7 +191,7 @@ function MilestonesSection() {
     <section className="py-12 px-4 bg-white">
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-pink-800 mb-8">Marcos do Desenvolvimento</h2>
-        <p className="text-gray-700 mb-8">Descubra o que esperar nos primeiros meses e anos do desenvolvimento do seu bebê.</p>
+        <p className="text-gray-700 mb-8">Descubra o que esperar nos primeiros meses e anos do desenvolvimento do seu bebé.</p>
         
         <div className="space-y-8">
           {milestones.map((milestone, index) => (
@@ -230,7 +230,7 @@ function NewbornCareSection() {
       title: 'Sono',
       icon: '😴',
       tips: [
-        'Colocar o bebê de barriga para cima',
+        'Colocar o bebé de barriga para cima',
         'Manter o ambiente calmo e escuro',
         'Estabelecer uma rotina de sono',
         'Evitar superaquecimento'
@@ -300,32 +300,32 @@ function WellnessSection() {
   
   const tabContent = {
     massage: {
-      title: 'Massagem para Bebê',
-      description: 'A massagem infantil fortalece o vínculo entre pais e bebê, além de proporcionar diversos benefícios para a saúde.',
+      title: 'Massagem para Bebé',
+      description: 'A massagem infantil fortalece o vínculo entre pais e bebé, além de proporcionar diversos benefícios para a saúde.',
       steps: [
-        'Escolha um momento tranquilo, quando o bebê estiver alerta e calmo',
-        'Use óleo vegetal natural próprio para bebês',
+        'Escolha um momento tranquilo, quando o bebé estiver alerta e calmo',
+        'Use óleo vegetal natural próprio para bebés',
         'Comece com toques suaves nas pernas, depois braços, barriga e costas',
-        'Observe os sinais do bebê: se ele mostrar desconforto, pare e tente outro dia',
-        'Mantenha contato visual e converse com seu bebê durante a massagem'
+        'Observe os sinais do bebé: se ele mostrar desconforto, pare e tente outro dia',
+        'Mantenha contato visual e converse com seu bebé durante a massagem'
       ]
     },
     sensory: {
       title: 'Estimulação Sensorial',
-      description: 'Atividades sensoriais ajudam o desenvolvimento cerebral e cognitivo do seu bebê.',
+      description: 'Atividades sensoriais ajudam o desenvolvimento cerebral e cognitivo do seu bebé.',
       steps: [
         'Ofereça brinquedos com diferentes texturas, cores e sons',
         'Crie um "tempo de barriga" diário para fortalecer os músculos',
         'Use livros de alto contraste para estimular a visão',
-        'Fale e cante frequentemente para o bebê',
-        'Permita que o bebê explore objetos seguros com a boca e mãos'
+        'Fale e cante frequentemente para o bebé',
+        'Permita que o bebé explorar objetos seguros com a boca e mãos'
       ]
     },
     music: {
       title: 'Música e Som',
-      description: 'A música tem um impacto positivo no desenvolvimento cerebral e emocional dos bebês.',
+      description: 'A música tem um impacto positivo no desenvolvimento cerebral e emocional dos bebés.',
       steps: [
-        'Cante para o seu bebê, independente da qualidade da sua voz',
+        'Cante para o seu bebé, independente da qualidade da sua voz',
         'Use músicas calmas durante a hora do sono',
         'Explore diferentes ritmos e estilos musicais',
         'Introduza instrumentos musicais simples como chocalhos',
@@ -334,12 +334,12 @@ function WellnessSection() {
     },
     touch: {
       title: 'Contato Pele a Pele',
-      description: 'O contato pele a pele, também conhecido como método canguru, traz inúmeros benefícios para o bebê e os pais.',
+      description: 'O contato pele a pele, também conhecido como método canguru, traz inúmeros benefícios para o bebé e os pais.',
       steps: [
-        'Posicione o bebê apenas de fralda contra o seu peito nu',
-        'Cubra as costas do bebê com uma manta leve',
+        'Posicione o bebé apenas de fralda contra o seu peito nu',
+        'Cubra as costas do bebé com uma manta leve',
         'Pratique por pelo menos 1 hora sem interrupções',
-        'Observe a respiração e temperatura do bebê',
+        'Observe a respiração e temperatura do bebé',
         'Aproveite este momento para fortalecer o vínculo'
       ]
     }
@@ -349,7 +349,7 @@ function WellnessSection() {
     <section className="py-12 px-4 bg-white">
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-pink-800 mb-8">Dicas de Bem-estar</h2>
-        <p className="text-gray-700 mb-8">Descubra atividades e práticas que promovem o bem-estar do seu bebê.</p>
+        <p className="text-gray-700 mb-8">Descubra atividades e práticas que promovem o bem-estar do seu bebé.</p>
         
         <div className="bg-pink-50 rounded-lg p-1 flex mb-8 overflow-x-auto">
           {tabs.map((tab) => (
@@ -398,7 +398,7 @@ function CommonProblemsSection() {
       symptoms: 'Choro intenso, pernas recolhidas para o abdômen, punhos cerrados, face avermelhada.',
       solutions: [
         'Massagem circular na barriga no sentido horário',
-        'Posição de "tigre" - bebê de barriga para baixo sobre o antebraço',
+        'Posição de "tigre" - bebé de barriga para baixo sobre o antebraço',
         'Compressas mornas na barriga',
         'Movimentos de bicicleta com as perninhas'
       ]
@@ -407,7 +407,7 @@ function CommonProblemsSection() {
       title: 'Refluxo',
       symptoms: 'Regurgitação frequente, irritabilidade após alimentação, choro durante as mamadas, problemas ao dormir.',
       solutions: [
-        'Manter o bebê em posição mais vertical durante e após a alimentação',
+        'Manter o bebé em posição mais vertical durante e após a alimentação',
         'Fazer pausas durante a mamada para arrotar',
         'Elevar a cabeceira do berço levemente',
         'Consultar o pediatra para avaliar a necessidade de tratamento'
@@ -418,8 +418,8 @@ function CommonProblemsSection() {
       symptoms: 'Temperatura acima de 37,8°C, irritabilidade, sonolência, falta de apetite.',
       solutions: [
         'Nos primeiros meses, qualquer febre requer consulta médica imediata',
-        'Manter o bebê hidratado',
-        'Vestir o bebê com roupas leves',
+        'Manter o bebé hidratado',
+        'Vestir o bebé com roupas leves',
         'Não medicar sem orientação médica'
       ]
     },
@@ -439,7 +439,7 @@ function CommonProblemsSection() {
     <section className="py-12 px-4">
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-pink-800 mb-8">Problemas Comuns</h2>
-        <p className="text-gray-700 mb-8">Saiba identificar e lidar com os problemas mais comuns do seu bebê.</p>
+        <p className="text-gray-700 mb-8">Saiba identificar e lidar com os problemas mais comuns do seu bebé.</p>
         
         <div className="space-y-8">
           {problems.map((problem, index) => (
@@ -503,7 +503,7 @@ function RecommendedProductsSection() {
     <section className="py-12 px-4 bg-white">
       <div className="container mx-auto">
         <h2 className="text-3xl font-bold text-pink-800 mb-8">Produtos Recomendados</h2>
-        <p className="text-gray-700 mb-8">Selecionamos os melhores produtos para o cuidado do seu bebê.</p>
+        <p className="text-gray-700 mb-8">Selecionamos os melhores produtos para o cuidado do seu bebé.</p>
         
         {categories.map((category, index) => (
           <div key={index} className="mb-12 last:mb-0">
@@ -548,10 +548,10 @@ function Footer() {
           <div className="mb-6 md:mb-0">
             <div className="flex items-center">
               <span className="text-2xl mr-2">♥</span>
-              <h2 className="text-xl font-bold">BebêCare</h2>
+              <h2 className="text-xl font-bold">BebéCare</h2>
             </div>
             <p className="mt-2 text-pink-200 max-w-md">
-              Seu guia completo sobre desenvolvimento infantil e cuidados com o bebê.
+              Seu guia completo sobre desenvolvimento infantil e cuidados com o bebé.
             </p>
           </div>
           
@@ -578,7 +578,7 @@ function Footer() {
             
             <div className="col-span-2 md:col-span-1">
               <h3 className="text-lg font-semibold mb-3">Newsletter</h3>
-              <p className="text-pink-200 mb-3">Receba dicas e novidades sobre cuidados com o bebê.</p>
+              <p className="text-pink-200 mb-3">Receba dicas e novidades sobre cuidados com o bebé.</p>
               <div className="flex">
                 <input 
                   type="email" 
@@ -594,7 +594,7 @@ function Footer() {
         </div>
         
         <div className="border-t border-pink-700 mt-8 pt-6 text-center text-pink-300">
-          <p>&copy; {new Date().getFullYear()} BebêCare. Todos os direitos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} BebéCare. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

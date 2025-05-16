@@ -64,7 +64,7 @@ export default function NomePage() {
                   className="w-full pl-12 pr-4 py-4 border-2 border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent text-lg transition-all duration-300 bg-pink-50/50 placeholder-pink-300 text-black"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  placeholder="Digite o nome do bebê..."
+                  placeholder="Digite o nome do bebé..."
                   onKeyPress={(e) => e.key === 'Enter' && buscarSignificado()}
                 />
               </div>
@@ -153,7 +153,7 @@ export default function NomePage() {
                 <span className="text-3xl">👶</span>
               </div>
               <p className="text-pink-500 text-center max-w-md">
-                Digite o nome do bebê para descobrir seu significado e origem.
+                Digite o nome do bebé para descobrir seu significado e origem.
               </p>
             </div>
           )}

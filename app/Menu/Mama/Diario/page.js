@@ -13,6 +13,7 @@ const PregnancyDiary = () => {
   const [notes, setNotes] = useState('');
   const [entries, setEntries] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
   const [babySize, setBabySize] = useState('Limão');
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [lastKickTime, setLastKickTime] = useState(null);
@@ -26,28 +27,28 @@ const PregnancyDiary = () => {
   
   // Lista de sintomas comuns na gravidez
   const symptomsList = [
-    'Náusea', 'Cansaço', 'Inchaço', 'Dor lombar', 
-    'Azia', 'Insônia', 'Dor de cabeça', 'Desejos alimentares'
+    'Náusea', 'Cansaço', 'Inchaço', 'Dor nas costas', 
+    'Azia', 'Insónia', 'Dor de cabeça', 'Desejos alimentares'
   ];
   
   // Mapeia semanas para tamanhos de frutas/vegetais com imagens
   const babySizes = {
-    4: { name: 'Semente de Papoula', description: 'Quase do tamanho de uma semente de papoula (1-2mm)' },
-    8: { name: 'Framboesa', description: 'Seu bebê está crescendo rapidamente, aproximadamente 1,6cm' },
+    4: { name: 'Semente de Papoila', description: 'Quase do tamanho de uma semente de papoila (1-2mm)' },
+    8: { name: 'Framboesa', description: 'O seu bebé está a crescer rapidamente, aproximadamente 1,6cm' },
     12: { name: 'Limão', description: 'Agora com cerca de 5-6cm e pesando cerca de 14g' },
-    16: { name: 'Abacate', description: 'Seu bebê tem aproximadamente 11-12cm' },
-    20: { name: 'Banana', description: 'Cerca de 25cm do topo da cabeça até os calcanhares' },
-    24: { name: 'Milho', description: 'Seu bebê tem aproximadamente 30cm e pesa cerca de 600g' },
-    28: { name: 'Berinjela', description: 'Cerca de 37cm e pesando aproximadamente 1kg' },
-    32: { name: 'Melão', description: 'Seu bebê tem 42-43cm e pesa cerca de 1,7kg' },
-    36: { name: 'Abacaxi', description: 'Aproximadamente 47cm e pesando cerca de 2,5kg' },
+    16: { name: 'Abacate', description: 'O seu bebé tem aproximadamente 11-12cm' },
+    20: { name: 'Banana', description: 'Cerca de 25cm do topo da cabeça até aos calcanhares' },
+    24: { name: 'Milho', description: 'O seu bebé tem aproximadamente 30cm e pesa cerca de 600g' },
+    28: { name: 'Beringela', description: 'Cerca de 37cm e pesando aproximadamente 1kg' },
+    32: { name: 'Melão', description: 'O seu bebé tem 42-43cm e pesa cerca de 1,7kg' },
+    36: { name: 'Ananás', description: 'Aproximadamente 47cm e pesando cerca de 2,5kg' },
     40: { name: 'Melancia', description: 'Completamente desenvolvido! Cerca de 50cm e 3-3,5kg' }
   };
   
   useEffect(() => {
     const fetchUserAndData = async () => {
       try {
-        // Buscar usuário atual
+        // Buscar utilizador atual
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError) throw userError;
         
@@ -116,58 +117,134 @@ const PregnancyDiary = () => {
     }
   };
 
+  const handleDeleteEntry = async (entryId) => {
+    if (!confirm('Tem certeza que deseja eliminar esta entrada?')) return;
+
+    try {
+      // Primeiro, eliminar os sintomas relacionados
+      const { error: sintomasError } = await supabase
+        .from('diario_sintomas')
+        .delete()
+        .eq('entrada_id', entryId);
+
+      if (sintomasError) throw sintomasError;
+
+      // Depois, eliminar a entrada principal
+      const { error: entryError } = await supabase
+        .from('diario_entradas')
+        .delete()
+        .eq('id', entryId);
+
+      if (entryError) throw entryError;
+
+      // Atualizar a lista de entradas
+      await fetchDiaryEntries(userId);
+    } catch (error) {
+      console.error('Erro ao eliminar entrada:', error);
+      alert('Erro ao eliminar entrada. Por favor, tente novamente.');
+    }
+  };
+
+  const handleEditEntry = (entry) => {
+    setEditingEntry(entry);
+    setMood(entry.mood);
+    setKicks(entry.kicks);
+    setWellbeing(entry.wellbeing);
+    setNotes(entry.notes);
+    setSymptoms(entry.symptoms);
+    setShowForm(true);
+  };
+
   const handleSaveEntry = async () => {
     if (!userId) {
-      alert('Por favor, faça login para salvar entradas no diário');
+      alert('Por favor, faça login para guardar entradas no diário');
       return;
     }
 
     try {
-      // Inserir entrada principal do diário
-      const { data: entryData, error: entryError } = await supabase
-        .from('diario_entradas')
-        .insert([{
-          user_id: userId,
-          data: new Date().toISOString(),
-          semana_gestacao: currentWeek,
-          humor: mood,
-          chutes: kicks,
-          bem_estar: wellbeing,
-          notas: notes,
-          tamanho_bebe: babySize.name
-        }])
-        .select()
-        .single();
-        
-      if (entryError) throw entryError;
-      
-      // Inserir sintomas relacionados
-      if (symptoms.length > 0) {
-        const sintomasData = symptoms.map(sintoma => ({
-          entrada_id: entryData.id,
-          sintoma: sintoma
-        }));
-        
-        const { error: sintomasError } = await supabase
+      if (editingEntry) {
+        // Atualizar entrada existente
+        const { error: entryError } = await supabase
+          .from('diario_entradas')
+          .update({
+            humor: mood,
+            chutes: kicks,
+            bem_estar: wellbeing,
+            notas: notes,
+            tamanho_bebe: babySize.name
+          })
+          .eq('id', editingEntry.id);
+
+        if (entryError) throw entryError;
+
+        // Eliminar sintomas antigos
+        const { error: deleteSintomasError } = await supabase
           .from('diario_sintomas')
-          .insert(sintomasData);
-          
-        if (sintomasError) throw sintomasError;
+          .delete()
+          .eq('entrada_id', editingEntry.id);
+
+        if (deleteSintomasError) throw deleteSintomasError;
+
+        // Inserir novos sintomas
+        if (symptoms.length > 0) {
+          const sintomasData = symptoms.map(sintoma => ({
+            entrada_id: editingEntry.id,
+            sintoma: sintoma
+          }));
+
+          const { error: sintomasError } = await supabase
+            .from('diario_sintomas')
+            .insert(sintomasData);
+
+          if (sintomasError) throw sintomasError;
+        }
+      } else {
+        // Inserir nova entrada
+        const { data: entryData, error: entryError } = await supabase
+          .from('diario_entradas')
+          .insert([{
+            user_id: userId,
+            data: new Date().toISOString(),
+            semana_gestacao: currentWeek,
+            humor: mood,
+            chutes: kicks,
+            bem_estar: wellbeing,
+            notas: notes,
+            tamanho_bebe: babySize.name
+          }])
+          .select()
+          .single();
+
+        if (entryError) throw entryError;
+
+        if (symptoms.length > 0) {
+          const sintomasData = symptoms.map(sintoma => ({
+            entrada_id: entryData.id,
+            sintoma: sintoma
+          }));
+
+          const { error: sintomasError } = await supabase
+            .from('diario_sintomas')
+            .insert(sintomasData);
+
+          if (sintomasError) throw sintomasError;
+        }
       }
-      
+
       // Atualizar lista de entradas
       await fetchDiaryEntries(userId);
-      
+
       // Limpar formulário
       setNotes('');
       setKicks(0);
       setWellbeing(8);
       setSymptoms([]);
       setShowForm(false);
-      
+      setEditingEntry(null);
+
     } catch (error) {
-      console.error('Erro ao salvar entrada:', error);
-      alert('Erro ao salvar entrada no diário. Por favor, tente novamente.');
+      console.error('Erro ao guardar entrada:', error);
+      alert('Erro ao guardar entrada no diário. Por favor, tente novamente.');
     }
   };
   
@@ -188,7 +265,7 @@ const PregnancyDiary = () => {
     setIsTimerActive(false);
   };
   
-  // Atualiza o tamanho do bebê conforme a semana
+  // Atualiza o tamanho do bebé conforme a semana
   useEffect(() => {
     const sizes = Object.keys(babySizes).map(Number);
     const closestWeek = sizes.reduce((prev, curr) => {
@@ -415,7 +492,9 @@ const PregnancyDiary = () => {
           {/* Entry Form */}
           {showForm && (
             <div className="bg-white p-8 rounded-2xl shadow-xl border border-pink-100 mb-10">
-              <h2 className="text-2xl font-bold text-pink-800 mb-6 text-center">Como está se sentindo hoje?</h2>
+              <h2 className="text-2xl font-bold text-pink-800 mb-6 text-center">
+                {editingEntry ? 'Editar entrada do diário' : 'Como se está a sentir hoje?'}
+              </h2>
               
               {/* Mood Selection */}
               <div className="mb-8">
@@ -463,11 +542,11 @@ const PregnancyDiary = () => {
               
               {/* Kicks Timer */}
               <div className="mb-8 bg-pink-50 p-6 rounded-xl">
-                <h3 className="text-lg font-semibold text-pink-800 mb-4">Contador de Chutinhos:</h3>
+                <h3 className="text-lg font-semibold text-pink-800 mb-4">Contador de Pontapés:</h3>
                 <div className="flex flex-col items-center">
                   <div className="text-center mb-4">
                     <div className="text-4xl font-bold text-pink-700 mb-2">{kicks}</div>
-                    <p className="text-pink-600">pontapés registrados</p>
+                    <p className="text-pink-600">pontapés registados</p>
                   </div>
                   
                   {isTimerActive ? (
@@ -477,7 +556,7 @@ const PregnancyDiary = () => {
                           onClick={handleKickTimer}
                           className="h-20 w-20 rounded-full bg-pink-600 text-white flex items-center justify-center transform active:scale-95 transition-all text-sm font-medium"
                         >
-                          CHUTE!
+                          PONTAPÉ!
                         </button>
                       </div>
                       
@@ -531,7 +610,7 @@ const PregnancyDiary = () => {
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Como foi seu dia? Alguma novidade? Sentimentos ou pensamentos especiais?"
+                  placeholder="Como foi o seu dia? Alguma novidade? Sentimentos ou pensamentos especiais?"
                   className="w-full p-4 border border-pink-200 rounded-xl h-40 focus:border-pink-400 focus:ring focus:ring-pink-200 focus:ring-opacity-50 outline-none"
                 />
               </div>
@@ -542,7 +621,7 @@ const PregnancyDiary = () => {
                   className="bg-gradient-to-r from-pink-600 to-pink-800 text-white py-3 px-8 rounded-xl shadow-md hover:shadow-lg transition-all flex-1 font-medium"
                   onClick={handleSaveEntry}
                 >
-                  Salvar no diário
+                  Guardar no diário
                 </button>
                 <button 
                   className="bg-white text-pink-800 border border-pink-300 py-3 px-8 rounded-xl shadow-sm hover:bg-pink-50 transition-all"
@@ -567,7 +646,7 @@ const PregnancyDiary = () => {
                   <span className="text-4xl">📝</span>
                 </div>
                 <h3 className="text-xl font-bold text-pink-800 mb-2">Sem entradas ainda</h3>
-                <p className="text-pink-600">Adicione seu primeiro registro para começar a documentar sua jornada!</p>
+                <p className="text-pink-600">Adicione o seu primeiro registo para começar a documentar a sua jornada!</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -583,18 +662,34 @@ const PregnancyDiary = () => {
                           {moodOptions.find(m => m.value === entry.mood)?.emoji || ''} {entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1)}
                         </h3>
                       </div>
-                      <div className="bg-pink-50 p-3 rounded-xl flex space-x-6">
-                        <div className="text-center">
-                          <p className="text-xs text-pink-600">Pontapés</p>
-                          <p className="text-pink-800 font-bold text-lg">{entry.kicks}</p>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="bg-pink-50 p-3 rounded-xl flex space-x-6">
+                          <div className="text-center">
+                            <p className="text-xs text-pink-600">Pontapés</p>
+                            <p className="text-pink-800 font-bold text-lg">{entry.kicks}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-pink-600">Bem-estar</p>
+                            <p className="text-pink-800 font-bold text-lg">{entry.wellbeing}/10</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-pink-600">Bebé</p>
+                            <p className="text-pink-800 font-bold text-lg">{entry.babySize}</p>
+                          </div>
                         </div>
-                        <div className="text-center">
-                          <p className="text-xs text-pink-600">Bem-estar</p>
-                          <p className="text-pink-800 font-bold text-lg">{entry.wellbeing}/10</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-pink-600">Bebê</p>
-                          <p className="text-pink-800 font-bold text-lg">{entry.babySize}</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditEntry(entry)}
+                            className="bg-pink-100 text-pink-700 px-3 py-1 rounded-lg text-sm hover:bg-pink-200 transition-colors"
+                          >
+                            ✏️ Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEntry(entry.id)}
+                            className="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-sm hover:bg-red-200 transition-colors"
+                          >
+                            🗑️ Eliminar
+                          </button>
                         </div>
                       </div>
                     </div>

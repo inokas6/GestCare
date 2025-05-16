@@ -193,7 +193,7 @@ export default function BabyDevelopmentPage() {
             <div className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto">
               <h2 className="text-2xl font-bold text-pink-700 mb-4">Acesso Restrito</h2>
               <p className="text-gray-600 mb-6">
-                Para visualizar o modelo 3D do seu bebê, você precisa estar logada.
+                Para visualizar o modelo 3D do seu bebé, você precisa estar logada.
               </p>
               <Link 
                 href="/login" 

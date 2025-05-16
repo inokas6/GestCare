@@ -391,8 +391,8 @@ export default function CalendarioGravidez() {
       setShowEventDetails(false);
       showNotification("Evento excluído com sucesso!");
     } catch (error) {
-      console.error("Erro ao excluir evento:", error);
-      showNotification("Erro ao excluir evento. Tente novamente.", "error");
+      console.error("Erro ao eliminar evento:", error);
+      showNotification("Erro ao eliminar evento. Tente novamente.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -600,7 +600,7 @@ export default function CalendarioGravidez() {
                   </div>
                   <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
                     <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <span className="text-xs text-gray-700">Marco</span>
+                    <span className="text-xs text-gray-700">Conquista</span>
                   </div>
                   <div className="flex items-center bg-white px-3 py-1.5 rounded-full shadow-sm">
                     <div className="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
@@ -780,7 +780,7 @@ export default function CalendarioGravidez() {
                   >
                     <option value="consulta">👩‍⚕️ Consulta Médica</option>
                     <option value="exame">🔬 Exame</option>
-                    <option value="marco">🏆 Marco do Bebé</option>
+                    <option value="marco">🏆 Conquista</option>
                     <option value="ovulacao">🌱 Ovulação</option>
                     <option value="parto">👶 Parto</option>
                     <option value="lembrete">🔔 Lembrete</option>
@@ -849,7 +849,7 @@ export default function CalendarioGravidez() {
                   ) : (
                     <span className="mr-2">💾</span>
                   )}
-                  Salvar Evento
+                  Guardar Evento
                 </button>
               </div>
             </form>
@@ -908,7 +908,7 @@ export default function CalendarioGravidez() {
                     {selectedEvent.tipo_evento === 'exame' && 'Exame'}
                     {selectedEvent.tipo_evento === 'ovulacao' && 'Ovulação'}
                     {selectedEvent.tipo_evento === 'parto' && 'Parto'}
-                    {selectedEvent.tipo_evento === 'marco' && 'Marco do Bebé'}
+                    {selectedEvent.tipo_evento === 'marco' && 'Conquista'}
                     {selectedEvent.tipo_evento === 'lembrete' && 'Lembrete'}
                     {selectedEvent.tipo_evento === 'importante' && 'Evento Importante'}
                   </p>
@@ -941,7 +941,7 @@ export default function CalendarioGravidez() {
                 {isLoading ? (
                   <span className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></span>
                 ) : (
-                  "Excluir"
+                  "Eliminar"
                 )}
               </button>
               <button
