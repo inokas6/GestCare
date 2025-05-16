@@ -9,7 +9,7 @@ import CalendarWidget from "../componets/Home/CalendarWidget";
 //import MoodTracker from "../componets/Home/MoodTracker";
 import DailyTip from "../componets/Home/DailyTip";
 import SymptomTracker from "../componets/Home/SymptomTracker";
-import GrowthTracker from "../componets/Home/GrowthTracker";
+import GrowthTracker from "../componets/Home/Nomes";
 import AppointmentsWidget from "../componets/Home/AppointmentsWidget";
 
 const Home = () => {

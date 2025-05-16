@@ -55,7 +55,7 @@ const GrowthTracker = () => {
             🔍
           </span>
           <input
-            className="w-full pl-10 pr-4 py-2 border-2 border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent text-sm transition-all duration-300 bg-pink-50/50 placeholder-pink-300"
+            className="w-full pl-10 pr-4 py-2 border-2 border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent text-sm transition-all duration-300 bg-pink-50/50 placeholder-pink-300 text-black"
             placeholder="Digite um nome..."
             value={nome}
             onChange={(e) => setNome(e.target.value)}

@@ -181,6 +181,13 @@ const significadosNomes = {
   'henriete': 'Significa "senhora do lar" ou "governante da casa".',
   'hélia': 'Significa "do sol" ou "solar".',
   'hélder': 'Significa "guerreiro glorioso" ou "combatente famoso".',
+  'mirene': 'Significa "paz" ou "tranquilidade".',
+  'marília': 'Significa "combinação de Maria e Lília" ou "graça e pureza".',
+  'luz': 'Significa "luz" ou "iluminação".',
+  'monteiro': 'Significa "morador do monte" ou "habitante da montanha".',
+  'freitas': 'Significa "pedras soltas" ou "terreno pedregoso".',
+  'miranda': 'Significa "admirável" ou "digna de admiração".',
+  'rodrigues': 'Significa "filho de Rodrigo" ou "descendente do governante famoso".',
 };
 
 export async function GET(request) {
