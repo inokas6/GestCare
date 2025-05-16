@@ -13,7 +13,6 @@ const PregnancyDiary = () => {
   const [notes, setNotes] = useState('');
   const [entries, setEntries] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingEntry, setEditingEntry] = useState(null);
   const [babySize, setBabySize] = useState('Limão');
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [lastKickTime, setLastKickTime] = useState(null);
@@ -117,52 +116,6 @@ const PregnancyDiary = () => {
     }
   };
 
-  const handleDeleteEntry = async (entryId) => {
-    if (!confirm('Tem certeza que deseja apagar esta entrada?')) return;
-
-    try {
-      // Primeiro, deletar os sintomas relacionados
-      const { error: sintomasError } = await supabase
-        .from('diario_sintomas')
-        .delete()
-        .eq('entrada_id', entryId);
-
-      if (sintomasError) throw sintomasError;
-
-      // Depois, deletar a entrada principal
-      const { error: entryError } = await supabase
-        .from('diario_entradas')
-        .delete()
-        .eq('id', entryId);
-
-      if (entryError) throw entryError;
-
-      // Atualizar a lista de entradas
-      await fetchDiaryEntries(userId);
-    } catch (error) {
-      console.error('Erro ao deletar entrada:', error);
-      alert('Erro ao deletar entrada. Por favor, tente novamente.');
-    }
-  };
-
-  const handleEditEntry = (entry) => {
-    setEditingEntry(entry);
-    setMood(entry.mood);
-    setKicks(entry.kicks);
-    setWellbeing(entry.wellbeing);
-    setNotes(entry.notes);
-    setSymptoms(entry.symptoms);
-    setShowForm(true);
-    
-    // Adiciona um pequeno delay para garantir que o formulário esteja renderizado
-    setTimeout(() => {
-      const formElement = document.querySelector('.bg-white.p-8.rounded-2xl');
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 100);
-  };
-
   const handleSaveEntry = async () => {
     if (!userId) {
       alert('Por favor, faça login para salvar entradas no diário');
@@ -170,86 +123,48 @@ const PregnancyDiary = () => {
     }
 
     try {
-      if (editingEntry) {
-        // Atualizar entrada existente
-        const { error: entryError } = await supabase
-          .from('diario_entradas')
-          .update({
-            humor: mood,
-            chutes: kicks,
-            bem_estar: wellbeing,
-            notas: notes,
-            tamanho_bebe: babySize.name
-          })
-          .eq('id', editingEntry.id);
-
-        if (entryError) throw entryError;
-
-        // Deletar sintomas antigos
-        const { error: deleteError } = await supabase
+      // Inserir entrada principal do diário
+      const { data: entryData, error: entryError } = await supabase
+        .from('diario_entradas')
+        .insert([{
+          user_id: userId,
+          data: new Date().toISOString(),
+          semana_gestacao: currentWeek,
+          humor: mood,
+          chutes: kicks,
+          bem_estar: wellbeing,
+          notas: notes,
+          tamanho_bebe: babySize.name
+        }])
+        .select()
+        .single();
+        
+      if (entryError) throw entryError;
+      
+      // Inserir sintomas relacionados
+      if (symptoms.length > 0) {
+        const sintomasData = symptoms.map(sintoma => ({
+          entrada_id: entryData.id,
+          sintoma: sintoma
+        }));
+        
+        const { error: sintomasError } = await supabase
           .from('diario_sintomas')
-          .delete()
-          .eq('entrada_id', editingEntry.id);
-
-        if (deleteError) throw deleteError;
-
-        // Inserir novos sintomas
-        if (symptoms.length > 0) {
-          const sintomasData = symptoms.map(sintoma => ({
-            entrada_id: editingEntry.id,
-            sintoma: sintoma
-          }));
-
-          const { error: sintomasError } = await supabase
-            .from('diario_sintomas')
-            .insert(sintomasData);
-
-          if (sintomasError) throw sintomasError;
-        }
-      } else {
-        // Inserir nova entrada
-        const { data: entryData, error: entryError } = await supabase
-          .from('diario_entradas')
-          .insert([{
-            user_id: userId,
-            data: new Date().toISOString(),
-            semana_gestacao: currentWeek,
-            humor: mood,
-            chutes: kicks,
-            bem_estar: wellbeing,
-            notas: notes,
-            tamanho_bebe: babySize.name
-          }])
-          .select()
-          .single();
-
-        if (entryError) throw entryError;
-
-        if (symptoms.length > 0) {
-          const sintomasData = symptoms.map(sintoma => ({
-            entrada_id: entryData.id,
-            sintoma: sintoma
-          }));
-
-          const { error: sintomasError } = await supabase
-            .from('diario_sintomas')
-            .insert(sintomasData);
-
-          if (sintomasError) throw sintomasError;
-        }
+          .insert(sintomasData);
+          
+        if (sintomasError) throw sintomasError;
       }
-
+      
       // Atualizar lista de entradas
       await fetchDiaryEntries(userId);
-
+      
       // Limpar formulário
       setNotes('');
       setKicks(0);
       setWellbeing(8);
       setSymptoms([]);
       setShowForm(false);
-      setEditingEntry(null);
-
+      
     } catch (error) {
       console.error('Erro ao salvar entrada:', error);
       alert('Erro ao salvar entrada no diário. Por favor, tente novamente.');
@@ -397,9 +312,7 @@ const PregnancyDiary = () => {
         </div>
       ) : (
         <main className="max-w-5xl mx-auto p-4 relative z-10">
-          
-          
-          
+                  
           
           {/* Quick Stats & Calendar Toggle */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -502,9 +415,7 @@ const PregnancyDiary = () => {
           {/* Entry Form */}
           {showForm && (
             <div className="bg-white p-8 rounded-2xl shadow-xl border border-pink-100 mb-10">
-              <h2 className="text-2xl font-bold text-pink-800 mb-6 text-center">
-                {editingEntry ? 'Editar entrada do diário' : 'Como está se sentindo hoje?'}
-              </h2>
+              <h2 className="text-2xl font-bold text-pink-800 mb-6 text-center">Como está se sentindo hoje?</h2>
               
               {/* Mood Selection */}
               <div className="mb-8">
@@ -672,34 +583,18 @@ const PregnancyDiary = () => {
                           {moodOptions.find(m => m.value === entry.mood)?.emoji || ''} {entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1)}
                         </h3>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="bg-pink-50 p-3 rounded-xl flex space-x-6">
-                          <div className="text-center">
-                            <p className="text-xs text-pink-600">Pontapés</p>
-                            <p className="text-pink-800 font-bold text-lg">{entry.kicks}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-pink-600">Bem-estar</p>
-                            <p className="text-pink-800 font-bold text-lg">{entry.wellbeing}/10</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-pink-600">Bebê</p>
-                            <p className="text-pink-800 font-bold text-lg">{entry.babySize}</p>
-                          </div>
+                      <div className="bg-pink-50 p-3 rounded-xl flex space-x-6">
+                        <div className="text-center">
+                          <p className="text-xs text-pink-600">Pontapés</p>
+                          <p className="text-pink-800 font-bold text-lg">{entry.kicks}</p>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditEntry(entry)}
-                            className="bg-pink-100 text-pink-700 px-3 py-1 rounded-lg text-sm hover:bg-pink-200 transition-colors"
-                          >
-                            ✏️ Editar
-                          </button>
-                          <button
-                            onClick={() => handleDeleteEntry(entry.id)}
-                            className="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-sm hover:bg-red-200 transition-colors"
-                          >
-                            🗑️ Apagar
-                          </button>
+                        <div className="text-center">
+                          <p className="text-xs text-pink-600">Bem-estar</p>
+                          <p className="text-pink-800 font-bold text-lg">{entry.wellbeing}/10</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-pink-600">Bebê</p>
+                          <p className="text-pink-800 font-bold text-lg">{entry.babySize}</p>
                         </div>
                       </div>
                     </div>
