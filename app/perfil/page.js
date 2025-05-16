@@ -527,7 +527,7 @@ const Perfil = () => {
                     onClick={handleDelete}
                     className="btn btn-outline btn-primary"
                   >
-                    Excluir Conta
+                    Eliminar Conta
                   </button>
                 </>
               )}
