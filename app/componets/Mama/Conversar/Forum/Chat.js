@@ -57,7 +57,7 @@ export default function Chat() {
     // Função para buscar mensagens
     const fetchMessages = async () => {
         try {
-            console.log('Buscando mensagens do chat...');
+            console.log('Buscando mensagens do chatcarregando');
             const { data, error } = await supabase
                 .from('respostas')
                 .select(`
@@ -172,7 +172,7 @@ export default function Chat() {
 
         const initializeChat = async () => {
             try {
-                console.log('Iniciando inicialização do chat...');
+                console.log('Iniciando inicialização do chatcarregando');
                 setIsLoading(true);
                 
                 // Configurar canal para real-time updates
@@ -303,7 +303,7 @@ export default function Chat() {
                                 </div>
                             )}
                             {messages.length === 0 ? (
-                                <p className="text-gray-400 italic text-sm sm:text-base text-center py-8">Sem mensagens...</p>
+                                <p className="text-gray-400 italic text-sm sm:text-base text-center py-8">Sem mensagenscarregando</p>
                             ) : (
                                 <div className="space-y-4">
                                     {messages.map((message) => (
@@ -342,7 +342,7 @@ export default function Chat() {
                                     type="text"
                                     value={messageInput}
                                     onChange={(e) => setMessageInput(e.target.value)}
-                                    placeholder="Escreva uma mensagem..."
+                                    placeholder="Escreva uma mensagemcarregando"
                                     className="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-800 placeholder-gray-400 focus:outline-none"
                                     disabled={!session?.user}
                                 />

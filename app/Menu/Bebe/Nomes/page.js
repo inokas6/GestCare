@@ -5,7 +5,7 @@ import Navbar from '../../../componets/Home/navbar_home';
 export default function NomePage() {
   const [nome, setNome] = useState('');
   const [resultado, setResultado] = useState('');
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setcarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [mostrarExemplos, setMostrarExemplos] = useState(false);
 
@@ -17,7 +17,7 @@ export default function NomePage() {
       return;
     }
 
-    setCarregando(true);
+    setcarregando(true);
     setResultado('');
     setErro('');
 
@@ -41,7 +41,7 @@ export default function NomePage() {
       console.error('Erro na busca:', err);
       setErro(err.message || 'Erro ao buscar nome');
     } finally {
-      setCarregando(false);
+      setcarregando(false);
     }
   };
 
@@ -64,7 +64,7 @@ export default function NomePage() {
                   className="w-full pl-12 pr-4 py-4 border-2 border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent text-lg transition-all duration-300 bg-pink-50/50 placeholder-pink-300 text-black"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  placeholder="Digite o nome do bebé..."
+                  placeholder="Digite o nome do bebécarregando"
                   onKeyPress={(e) => e.key === 'Enter' && buscarSignificado()}
                 />
               </div>
@@ -76,7 +76,7 @@ export default function NomePage() {
                 {carregando ? (
                   <>
                     <span className="mr-2 animate-spin text-xl">⏳</span>
-                    A procurar...
+                    A procurarcarregando
                   </>
                 ) : (
                   <>

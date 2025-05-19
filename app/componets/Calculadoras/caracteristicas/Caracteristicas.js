@@ -130,7 +130,7 @@ const Caracteristicas = () => {
               <select
                 className="select select-bordered border-pink-200 focus:border-pink-500 text-black"
                 value={caracteristicasPai[caracteristica]}
-                onChange={(e) => setCaracteristicasPai({...caracteristicasPai, [caracteristica]: e.target.value})}
+                onChange={(e) => setCaracteristicasPai({carregandocaracteristicasPai, [caracteristica]: e.target.value})}
               >
                 <option value="" className="text-black">Selecione</option>
                 {Object.keys(caracteristicasGeneticas[caracteristica]).map((valor) => (
@@ -154,7 +154,7 @@ const Caracteristicas = () => {
               <select
                 className="select select-bordered border-pink-200 focus:border-pink-500 text-black"
                 value={caracteristicasMae[caracteristica]}
-                onChange={(e) => setCaracteristicasMae({...caracteristicasMae, [caracteristica]: e.target.value})}
+                onChange={(e) => setCaracteristicasMae({carregandocaracteristicasMae, [caracteristica]: e.target.value})}
               >
                 <option value="" className="text-black">Selecione</option>
                 {Object.keys(caracteristicasGeneticas[caracteristica]).map((valor) => (

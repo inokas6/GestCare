@@ -30,7 +30,7 @@ const Perfil = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        console.log('Iniciando busca do usuário...');
+        console.log('Iniciando busca do usuáriocarregando');
 
         const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
 
@@ -124,7 +124,7 @@ const Perfil = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({
-          ...prev,
+          carregandoprev,
           foto_perfil: reader.result
         }));
       };
@@ -140,7 +140,7 @@ const Perfil = () => {
       setPendingEmail(value);
     } else {
       setFormData(prev => ({
-        ...prev,
+        carregandoprev,
         [name]: value
       }));
     }
@@ -176,7 +176,7 @@ const Perfil = () => {
 
       setEditMode(false);
       setUser(prev => ({
-        ...prev,
+        carregandoprev,
         nome: formData.nome,
         foto_perfil: formData.foto_perfil
       }));
@@ -215,7 +215,7 @@ const Perfil = () => {
       if (error) throw error;
 
       setUser(prev => ({
-        ...prev,
+        carregandoprev,
         nome: formData.nome,
         foto_perfil: formData.foto_perfil
       }));
@@ -324,7 +324,7 @@ const Perfil = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-primary">Carregando...</div>
+        <div className="text-primary">carregandocarregando</div>
       </div>
     );
   }

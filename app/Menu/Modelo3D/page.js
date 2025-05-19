@@ -9,7 +9,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 // Importando o componente Modelo3D com carregamento dinâmico para evitar problemas com SSR
 const Modelo3D = dynamic(() => import('../../componets/Modelo3D/modelo3d.js'), {
   ssr: false,
-  loading: () => <p className="text-center text-pink-700">A carregar o modelo 3D...</p>
+  loading: () => <p className="text-center text-pink-700">A carregar o modelo 3Dcarregando</p>
 });
 
 
@@ -186,7 +186,7 @@ export default function BabyDevelopmentPage() {
       <main className="container mt-16 mx-auto px-4 py-8">
         {loading ? (
           <div className="text-center mt-16">
-            <p className="text-pink-700 text-xl">A carregar...</p>
+            <p className="text-pink-700 text-xl">A carregarcarregando</p>
           </div>
         ) : erroAuth ? (
           <div className="text-center mt-16">
@@ -276,7 +276,7 @@ export default function BabyDevelopmentPage() {
                 
                 {/* Stats cards*/}
                 <div className="stats-container w-full max-w-md bg-white rounded-xl overflow-hidden shadow-lg border border-pink-100 mb-6">
-                  <div className="grid grid-cols-3 divide-x divide-pink-100">
+                  <div className="grid grid-cols-3 divide-x divide-pink-100 place-items-center">
                     <div className="stat p-4 text-center">
                       <div className="stat-title text-pink-700 text-sm font-medium">Semana Atual</div>
                       <div className="stat-value text-pink-800 text-2xl font-bold">{semanaAtual}</div>

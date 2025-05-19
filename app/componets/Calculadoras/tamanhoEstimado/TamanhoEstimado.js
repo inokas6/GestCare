@@ -73,14 +73,14 @@ const TamanhoEstimado = () => {
       const fatorAjuste = medidaReal / medidaPadrao;
 
       crescimentoAjustado = {
-        ...dadosSemana,
+        carregandodadosSemana,
         tamanho: (medidaReal).toFixed(1),
         peso: Math.round(parseFloat(dadosSemana.peso) * fatorAjuste)
       };
     }
 
     setResultado({
-      ...crescimentoAjustado,
+      carregandocrescimentoAjustado,
       semana
     });
   };

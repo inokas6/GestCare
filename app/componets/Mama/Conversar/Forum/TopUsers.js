@@ -24,7 +24,7 @@ export default function TopUsers() {
         fetchTopUsers();
     }, []);
 
-    if (loading) return <div className="text-center py-3 sm:py-4 text-sm sm:text-base">Carregando...</div>;
+    if (loading) return <div className="text-center py-3 sm:py-4 text-sm sm:text-base">carregandocarregando</div>;
     if (error) return <div className="text-red-500 text-center py-3 sm:py-4 text-sm sm:text-base">Erro: {error}</div>;
 
     return (

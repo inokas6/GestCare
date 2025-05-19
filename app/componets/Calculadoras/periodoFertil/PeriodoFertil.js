@@ -55,7 +55,7 @@ const PeriodoFertil = () => {
           onChange={(e) => setDuracaoCiclo(e.target.value)}
         >
           <option value="" className="text-black">Selecione</option>
-          {[...Array(15)].map((_, i) => (
+          {[carregandoArray(15)].map((_, i) => (
             <option key={i + 21} value={i + 21} className="text-black">{i + 21} dias</option>
           ))}
         </select>

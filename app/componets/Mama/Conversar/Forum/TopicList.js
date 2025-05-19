@@ -34,7 +34,7 @@ export default function TopicList() {
             console.warn('⚠️ Texto inválido recebido');
             return '';
         }
-        const textoTruncado = texto.length > 200 ? texto.substring(0, 200) + '...' : texto;
+        const textoTruncado = texto.length > 200 ? texto.substring(0, 200) + 'carregando' : texto;
         console.log('✂️ Texto truncado:', { tamanhoFinal: textoTruncado.length });
         return textoTruncado;
     };
@@ -74,7 +74,7 @@ export default function TopicList() {
                 setTopicos(topicos.map(topico => {
                     if (topico.id === topicoId) {
                         console.log('🔄 Atualizando tópico com comentários:', topicoId);
-                        return { ...topico, comentariosCarregados: data || [] };
+                        return { carregandotopico, comentariosCarregados: data || [] };
                     }
                     return topico;
                 }));
@@ -85,7 +85,7 @@ export default function TopicList() {
 
         setComentariosAbertos(prev => {
             const novoEstado = {
-                ...prev,
+                carregandoprev,
                 [topicoId]: !prev[topicoId]
             };
             console.log('🔄 Novo estado dos comentários:', novoEstado);
@@ -141,7 +141,7 @@ export default function TopicList() {
 
                 const topicosProcessados = data.map(topico => {
                     const topicoProcessado = {
-                        ...topico,
+                        carregandotopico,
                         totalComentarios: topico.comentarios?.length || 0,
                         comentariosCarregados: []
                     };
@@ -184,7 +184,7 @@ export default function TopicList() {
 
     if (loading) {
         console.log('⏳ Renderizando loading');
-        return <div className="text-center py-4">Carregando tópicos...</div>;
+        return <div className="text-center py-4">carregando tópicoscarregando</div>;
     }
     
     if (error) {

@@ -45,7 +45,7 @@ export default function CalendarioGravidez() {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setNewEvent(prev => ({ ...prev, user_id: user.id }));
+        setNewEvent(prev => ({ carregandoprev, user_id: user.id }));
         await fetchEvents(user.id);
         await fetchPregnancyData(user.id);
       }
@@ -234,7 +234,7 @@ export default function CalendarioGravidez() {
           });
         }
         
-        setEvents([...calendarEvents, ...semanasGravidez]);
+        setEvents([carregandocalendarEvents, carregandosemanasGravidez]);
       } else {
         setEvents(calendarEvents);
       }
@@ -276,7 +276,7 @@ export default function CalendarioGravidez() {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     
     setNewEvent(prev => ({
-      ...prev,
+      carregandoprev,
       titulo: "",
       descricao: "",
       inicio_data: info.dateStr,
@@ -292,7 +292,7 @@ export default function CalendarioGravidez() {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setNewEvent({ 
-      ...newEvent, 
+      carregandonewEvent, 
       [name]: type === 'checkbox' ? checked : value 
     });
   };
@@ -501,7 +501,7 @@ export default function CalendarioGravidez() {
               onClick={() => {
                 setSelectedDate(format(new Date(), "yyyy-MM-dd"));
                 setNewEvent(prev => ({
-                  ...prev,
+                  carregandoprev,
                   inicio_data: format(new Date(), "yyyy-MM-dd"),
                   fim_data: format(new Date(), "yyyy-MM-dd"),
                 }));
@@ -730,7 +730,7 @@ export default function CalendarioGravidez() {
                   value={newEvent.descricao}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
-                  placeholder="Adicione detalhes sobre o evento..."
+                  placeholder="Adicione detalhes sobre o eventocarregando"
                   rows={3}
                 />
               </div>
@@ -1018,9 +1018,9 @@ export default function CalendarioGravidez() {
                   onClick={() => {
                     setSelectedDate(format(new Date(), "yyyy-MM-dd"));
                     setNewEvent(prev => ({
-                      ...prev,
+                      carregandoprev,
                       titulo: `Semana ${infoSemanal.semana} - Consulta de acompanhamento`,
-                      descricao: `Desenvolvimento do bebé: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}...`,
+                      descricao: `Desenvolvimento do bebé: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}carregando`,
                       inicio_data: format(new Date(), "yyyy-MM-dd"),
                       tipo_evento: "consulta",
                     }));

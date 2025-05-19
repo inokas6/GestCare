@@ -5,9 +5,9 @@ import BabyModel3D from './BabyModel3D';
 
 const PregnancySummary = ({ week }) => {
   const [infoSemanal, setInfoSemanal] = useState({
-    dicas_mae: "Carregando dicas..."
+    dicas_mae: "carregando dicascarregando"
   });
-  const [tamanhoBebe, setTamanhoBebe] = useState("Carregando...");
+  const [tamanhoBebe, setTamanhoBebe] = useState("carregandocarregando");
   const [error, setError] = useState(null);
   const supabase = createClientComponentClient();
   
