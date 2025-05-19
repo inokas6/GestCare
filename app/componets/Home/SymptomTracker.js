@@ -88,7 +88,7 @@ const SymptomTracker = () => {
       <div className="space-y-3">
         {symptoms.length === 0 && moodEntries.length === 0 ? (
           <div className="text-center py-4 text-gray-500">
-            <p>Nenhuma entrada registrada no diário ainda.</p>
+            <p>Nenhuma entrada registada no diário ainda.</p>
             <p className="text-sm mt-1">Comece registrando seus sintomas e humor!</p>
           </div>
         ) : (
