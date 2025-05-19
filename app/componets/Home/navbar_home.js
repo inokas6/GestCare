@@ -45,6 +45,7 @@ const Navbar = () => {
                 .from("notificacoes")
                 .select("*")
                 .eq("user_id", user.id)
+                .gte("data_criacao", new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
                 .order("data_criacao", { ascending: false })
                 .limit(10);
 

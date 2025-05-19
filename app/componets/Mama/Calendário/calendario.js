@@ -569,7 +569,7 @@ export default function CalendarioGravidez() {
                     }
                     
                     return (
-                      <div className="px-2 py-1 flex items-center w-full overflow-hidden">
+                      <div className="px-2 py-1 flex items-center w-full overflow-hidden text-black">
                         <span className="mr-1">{getEventIcon(eventInfo.event.extendedProps.tipo_evento)}</span>
                         <span className="font-medium truncate">{eventInfo.event.title}</span>
                         {eventInfo.event.extendedProps.lembrete && (
@@ -625,14 +625,14 @@ export default function CalendarioGravidez() {
             <h3 className="text-lg font-bold text-black mb-4">Próximos Eventos</h3>
             
             {events.filter(e => 
-              new Date(e.start) >= new Date() && 
+              new Date(e.start) >= new Date(new Date().setHours(0, 0, 0, 0)) && 
               e.extendedProps && 
               e.extendedProps.tipo_evento !== "semana_gravidez"
             ).sort((a, b) => new Date(a.start) - new Date(b.start)).slice(0, 5).length > 0 ? (
               <div className="space-y-3">
                 {events
                   .filter(e => 
-                    new Date(e.start) >= new Date() && 
+                    new Date(e.start) >= new Date(new Date().setHours(0, 0, 0, 0)) && 
                     e.extendedProps && 
                     e.extendedProps.tipo_evento !== "semana_gravidez"
                   )
@@ -641,7 +641,7 @@ export default function CalendarioGravidez() {
                   .map(event => (
                     <div 
                       key={event.id} 
-                      className="flex items-center p-3 rounded-lg bg-gradient-to-r from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 transition-colors cursor-pointer"
+                      className="flex items-center p-3 rounded-lg bg-gradient-to-r from-pink-50 to-pink-100 hover:from-pink-100 hover:to-pink-200 transition-colors cursor-pointer text-black"
                       onClick={() => {
                         setSelectedEvent({
                           id: event.id,
@@ -658,17 +658,17 @@ export default function CalendarioGravidez() {
                       }}
                     >
                       <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm mr-3"
+                        className="w-10 h-10 rounded-full flex items-center justify-center shadow-sm mr-3 text-black"
                         style={{ backgroundColor: event.backgroundColor }}
                       >
                         {getEventIcon(event.extendedProps.tipo_evento)}
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium">{event.title}</div>
-                        <div className="text-xs text-gray-500">{formatEventDate(event.start)}</div>
+                        <div className="font-medium text-black">{event.title}</div>
+                        <div className="text-xs text-black">{formatEventDate(event.start)}</div>
                       </div>
                       {event.extendedProps.lembrete && (
-                        <div className="text-pink-500 text-lg">🔔</div>
+                        <div className="text-lg text-black">🔔</div>
                       )}
                     </div>
                   ))
@@ -714,7 +714,7 @@ export default function CalendarioGravidez() {
                   name="titulo"
                   value={newEvent.titulo}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   placeholder="Ex: Consulta pré-natal"
                   required
                 />
@@ -729,7 +729,7 @@ export default function CalendarioGravidez() {
                   name="descricao"
                   value={newEvent.descricao}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   placeholder="Adicione detalhes sobre o evento..."
                   rows={3}
                 />
@@ -746,7 +746,7 @@ export default function CalendarioGravidez() {
                     name="inicio_data"
                     value={newEvent.inicio_data}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                     required
                   />
                 </div>
@@ -761,7 +761,7 @@ export default function CalendarioGravidez() {
                     value={newEvent.fim_data}
                     onChange={handleInputChange}
                     min={newEvent.inicio_data}
-                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   />
                 </div>
               </div>
@@ -776,7 +776,7 @@ export default function CalendarioGravidez() {
                     name="tipo_evento"
                     value={newEvent.tipo_evento}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none"
+                    className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none text-black"
                   >
                     <option value="consulta">👩‍⚕️ Consulta Médica</option>
                     <option value="exame">🔬 Exame</option>
@@ -819,7 +819,7 @@ export default function CalendarioGravidez() {
                       name="lembrete_antecedencia"
                       value={newEvent.lembrete_antecedencia}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none"
+                      className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all appearance-none text-black"
                     >
                       <option value="0">No dia</option>
                       <option value="1">1 dia antes</option>
