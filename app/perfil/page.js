@@ -124,7 +124,7 @@ const Perfil = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({
-          carregandoprev,
+          ...prev,
           foto_perfil: reader.result
         }));
       };
@@ -140,7 +140,7 @@ const Perfil = () => {
       setPendingEmail(value);
     } else {
       setFormData(prev => ({
-        carregandoprev,
+        ...prev,
         [name]: value
       }));
     }
@@ -154,6 +154,13 @@ const Perfil = () => {
 
     try {
       if (!user?.id) throw new Error('Usuário não identificado');
+
+      // Validar nome
+      if (!formData.nome.trim()) {
+        setError('O nome não pode estar vazio ou conter apenas espaços');
+        setLoading(false);
+        return;
+      }
 
       // Alerta o usuário sobre a mudança de email pendente, mas permite salvar outras alterações
       if (emailChangePending) {
@@ -176,7 +183,7 @@ const Perfil = () => {
 
       setEditMode(false);
       setUser(prev => ({
-        carregandoprev,
+        ...prev,
         nome: formData.nome,
         foto_perfil: formData.foto_perfil
       }));
@@ -197,6 +204,12 @@ const Perfil = () => {
   const handleEdit = async () => {
     setWarning('');
     
+    // Validar nome
+    if (!formData.nome.trim()) {
+      setError('O nome não pode estar vazio ou conter apenas espaços');
+      return;
+    }
+    
     // Alerta o usuário sobre a mudança de email pendente, mas permite salvar outras alterações
     if (emailChangePending) {
       setWarning('Atenção: Suas outras alterações foram salvas, mas a mudança de email ainda está pendente de confirmação.');
@@ -215,7 +228,7 @@ const Perfil = () => {
       if (error) throw error;
 
       setUser(prev => ({
-        carregandoprev,
+        ...prev,
         nome: formData.nome,
         foto_perfil: formData.foto_perfil
       }));
@@ -324,7 +337,7 @@ const Perfil = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-primary">carregandocarregando</div>
+        <div className="text-primary">...</div>
       </div>
     );
   }

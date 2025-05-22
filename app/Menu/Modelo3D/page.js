@@ -276,17 +276,17 @@ export default function BabyDevelopmentPage() {
                 
                 {/* Stats cards*/}
                 <div className="stats-container w-full max-w-md bg-white rounded-xl overflow-hidden shadow-lg border border-pink-100 mb-6">
-                  <div className="grid grid-cols-3 divide-x divide-pink-100 place-items-center">
-                    <div className="stat p-4 text-center">
-                      <div className="stat-title text-pink-700 text-sm font-medium">Semana Atual</div>
-                      <div className="stat-value text-pink-800 text-2xl font-bold">{semanaAtual}</div>
-                      <div className="stat-desc text-pink-600 text-xs">
-                        {semanaAtual <= 13 ? '1º Trimestre' : semanaAtual <= 27 ? '2º Trimestre' : '3º Trimestre'}
-                      </div>
-                    </div>
-                    
-                  </div>
-                </div>
+  <div className="flex justify-center items-center">
+    <div className="stat p-4 text-center">
+      <div className="stat-title text-pink-700 text-sm font-medium">Semana Atual</div>
+      <div className="stat-value text-pink-800 text-2xl font-bold">{semanaAtual}</div>
+      <div className="stat-desc text-pink-600 text-xs">
+        {semanaAtual <= 13 ? '1º Trimestre' : semanaAtual <= 27 ? '2º Trimestre' : '3º Trimestre'}
+      </div>
+    </div>
+  </div>
+</div>
+
                 
                 <button 
                   className="current-week-btn text-white px-8 py-3 rounded-full font-semibold transition-transform hover:scale-105"
