@@ -94,13 +94,13 @@ export default function ConversarPage() {
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder="Pesquiss publicações"
+                placeholder="Pesquise publicações"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-4 py-2 pl-10 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               <svg
-                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                className="absolute left-3 top-2.5 h-5 w-5 text-black"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -139,10 +139,10 @@ export default function ConversarPage() {
             <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
               <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800">Nova Publicação</h2>
+                  <h2 className="text-xl font-semibold text-black">Nova Publicação</h2>
                   <button
                     onClick={() => setShowNewTopic(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-black hover:text-gray-600"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -197,14 +197,14 @@ export default function ConversarPage() {
                       <h2 className="text-xl font-semibold text-gray-800 mb-2">
                         {topico.titulo}
                       </h2>
-                      <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <span className="font-medium text-gray-900">{topico.users?.nome}</span>
+                      <div className="flex items-center text-sm text-black mb-4">
+                        <span className="font-medium text-black">{topico.users?.nome}</span>
                         <span className="mx-2">•</span>
                         <span>{formatarData(topico.created_at)}</span>
                         <span className="mx-2">•</span>
                         <span className="text-purple-600">{topico.categorias?.nome}</span>
                       </div>
-                      <p className="text-gray-700 whitespace-pre-line">
+                      <p className="text-black whitespace-pre-line">
                         {topico.conteudo}
                       </p>
                       
