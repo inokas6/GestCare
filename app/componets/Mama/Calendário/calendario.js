@@ -45,7 +45,7 @@ export default function CalendarioGravidez() {
       setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        setNewEvent(prev => ({ carregandoprev, user_id: user.id }));
+        setNewEvent(prev => ({ ...prev, user_id: user.id }));
         await fetchEvents(user.id);
         await fetchPregnancyData(user.id);
       }
@@ -234,7 +234,7 @@ export default function CalendarioGravidez() {
           });
         }
         
-        setEvents([carregandocalendarEvents, carregandosemanasGravidez]);
+        setEvents([...calendarEvents, ...semanasGravidez]);
       } else {
         setEvents(calendarEvents);
       }
@@ -276,7 +276,7 @@ export default function CalendarioGravidez() {
     const minutes = String(now.getMinutes()).padStart(2, '0');
     
     setNewEvent(prev => ({
-      carregandoprev,
+      ...prev,
       titulo: "",
       descricao: "",
       inicio_data: info.dateStr,
@@ -291,10 +291,10 @@ export default function CalendarioGravidez() {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setNewEvent({ 
-      carregandonewEvent, 
+    setNewEvent(prev => ({ 
+      ...prev, 
       [name]: type === 'checkbox' ? checked : value 
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -501,7 +501,7 @@ export default function CalendarioGravidez() {
               onClick={() => {
                 setSelectedDate(format(new Date(), "yyyy-MM-dd"));
                 setNewEvent(prev => ({
-                  carregandoprev,
+                  ...prev,
                   inicio_data: format(new Date(), "yyyy-MM-dd"),
                   fim_data: format(new Date(), "yyyy-MM-dd"),
                 }));
@@ -1018,7 +1018,7 @@ export default function CalendarioGravidez() {
                   onClick={() => {
                     setSelectedDate(format(new Date(), "yyyy-MM-dd"));
                     setNewEvent(prev => ({
-                      carregandoprev,
+                      ...prev,
                       titulo: `Semana ${infoSemanal.semana} - Consulta de acompanhamento`,
                       descricao: `Desenvolvimento do bebé: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}carregando`,
                       inicio_data: format(new Date(), "yyyy-MM-dd"),

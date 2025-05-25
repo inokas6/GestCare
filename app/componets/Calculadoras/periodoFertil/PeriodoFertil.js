@@ -31,6 +31,9 @@ const PeriodoFertil = () => {
     });
   };
 
+  // Array com as opções de duração do ciclo
+  const opcoesCiclo = Array.from({ length: 15 }, (_, i) => i + 21);
+
   return (
     <div className="space-y-4">
       <div className="form-control">
@@ -55,8 +58,8 @@ const PeriodoFertil = () => {
           onChange={(e) => setDuracaoCiclo(e.target.value)}
         >
           <option value="" className="text-black">Selecione</option>
-          {[carregandoArray(15)].map((_, i) => (
-            <option key={i + 21} value={i + 21} className="text-black">{i + 21} dias</option>
+          {opcoesCiclo.map((dias) => (
+            <option key={dias} value={dias} className="text-black">{dias} dias</option>
           ))}
         </select>
       </div>

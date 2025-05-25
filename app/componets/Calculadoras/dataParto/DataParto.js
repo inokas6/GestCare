@@ -2,22 +2,57 @@ import React, { useState } from 'react';
 
 const DataParto = () => {
   const [dataUltimaMenstruacao, setDataUltimaMenstruacao] = useState('');
+  const [dataConcepcao, setDataConcepcao] = useState('');
+  const [dataUltrassom, setDataUltrassom] = useState('');
   const [metodoCalculo, setMetodoCalculo] = useState('dum');
   const [cicloIrregular, setCicloIrregular] = useState(false);
   const [resultado, setResultado] = useState(null);
 
+  const validarData = (data) => {
+    const dataObj = new Date(data);
+    return dataObj instanceof Date && !isNaN(dataObj);
+  };
+
   const calcularDataParto = () => {
-    if (!dataUltimaMenstruacao) {
-      alert('Por favor, preencha a data da última menstruação');
-      return;
+    let dataBase;
+    let dataParto;
+
+    switch (metodoCalculo) {
+      case 'dum':
+        if (!dataUltimaMenstruacao || !validarData(dataUltimaMenstruacao)) {
+          alert('Por favor, preencha uma data válida da última menstruação');
+          return;
+        }
+        dataBase = new Date(dataUltimaMenstruacao);
+        dataParto = new Date(dataBase);
+        dataParto.setDate(dataBase.getDate() + 7);
+        dataParto.setMonth(dataBase.getMonth() + 9);
+        break;
+
+      case 'concepcao':
+        if (!dataConcepcao || !validarData(dataConcepcao)) {
+          alert('Por favor, preencha uma data válida da conceção');
+          return;
+        }
+        dataBase = new Date(dataConcepcao);
+        dataParto = new Date(dataBase);
+        dataParto.setDate(dataBase.getDate() + 266); // 38 semanas
+        break;
+
+      case 'ultrassom':
+        if (!dataUltrassom || !validarData(dataUltrassom)) {
+          alert('Por favor, preencha uma data válida da ecografia');
+          return;
+        }
+        dataBase = new Date(dataUltrassom);
+        dataParto = new Date(dataBase);
+        dataParto.setDate(dataBase.getDate() + 266);
+        break;
+
+      default:
+        alert('Método de cálculo inválido');
+        return;
     }
-
-    const dum = new Date(dataUltimaMenstruacao);
-    let dataParto = new Date(dum);
-
-    // Regra de Naegele: DUM + 7 dias + 9 meses
-    dataParto.setDate(dum.getDate() + 7);
-    dataParto.setMonth(dum.getMonth() + 9);
 
     // Ajuste para ciclo irregular (pode variar ±7 dias)
     const dataPartoMin = new Date(dataParto);
@@ -30,7 +65,7 @@ const DataParto = () => {
 
     // Cálculo da idade gestacional atual
     const hoje = new Date();
-    const diffTime = Math.abs(hoje - dum);
+    const diffTime = Math.abs(hoje - dataBase);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const semanasGestacao = Math.floor(diffDays / 7);
     const diasRestantes = diffDays % 7;
@@ -46,17 +81,47 @@ const DataParto = () => {
 
   return (
     <div className="space-y-4">
-      <div className="form-control">
-        <label className="label">
-          <span className="label-text text-black">Data da última menstruação</span>
-        </label>
-        <input 
-          type="date" 
-          className="input input-bordered border-pink-200 focus:border-pink-500 text-black"
-          value={dataUltimaMenstruacao}
-          onChange={(e) => setDataUltimaMenstruacao(e.target.value)}
-        />
-      </div>
+      {metodoCalculo === 'dum' && (
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-black">Data da última menstruação</span>
+          </label>
+          <input 
+            type="date" 
+            className="input input-bordered border-pink-200 focus:border-pink-500 text-black"
+            value={dataUltimaMenstruacao}
+            onChange={(e) => setDataUltimaMenstruacao(e.target.value)}
+          />
+        </div>
+      )}
+
+      {metodoCalculo === 'concepcao' && (
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-black">Data da conceção</span>
+          </label>
+          <input 
+            type="date" 
+            className="input input-bordered border-pink-200 focus:border-pink-500 text-black"
+            value={dataConcepcao}
+            onChange={(e) => setDataConcepcao(e.target.value)}
+          />
+        </div>
+      )}
+
+      {metodoCalculo === 'ultrassom' && (
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text text-black">Data da ecografia</span>
+          </label>
+          <input 
+            type="date" 
+            className="input input-bordered border-pink-200 focus:border-pink-500 text-black"
+            value={dataUltrassom}
+            onChange={(e) => setDataUltrassom(e.target.value)}
+          />
+        </div>
+      )}
       
       <div className="tabs tabs-boxed justify-center bg-pink-50 p-1">
         <a 

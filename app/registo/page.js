@@ -73,7 +73,7 @@ const SignUp = () => {
       }
 
       // Tentar criar usuário apenas com email e senha
-      console.log("Tentando criar usuário básico...");
+      console.log("Tentando criar user básico...");
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -95,7 +95,7 @@ const SignUp = () => {
         
         // Tratamento específico para erros de banco de dados
         if (authError.message.includes('Database')) {
-          throw new Error('Erro ao salvar usuário no banco de dados. Por favor, tente novamente mais tarde.');
+          throw new Error('Erro. Por favor, tente novamente mais tarde.');
         }
         throw new Error(`Erro no registro: ${authError.message}`);
       }
@@ -149,7 +149,7 @@ const SignUp = () => {
       });
       setPreviewUrl(null);
 
-      alert("Registro bem-sucedido! Por favor, verifique seu email para confirmar a conta.");
+      alert("Conta criada com sucesso! Por favor, verifique o seu email para confirmar a sua conta.");
       router.push('/login');
       
     } catch (error) {
@@ -163,7 +163,7 @@ const SignUp = () => {
   return (
     <div className="hero bg-base-200 min-h-screen flex items-center justify-center">
       <div className="card bg-base-100 w-full max-w-md p-6 shadow-2xl">
-        <h1 className="text-2xl font-bold text-center mb-4">Criar Conta</h1>
+        <h1 className="text-2xl font-bold text-black text-center mb-4">Criar Conta</h1>
 
         {error && (
           <div className="mb-4 p-3 text-red-700 bg-red-100 rounded">
@@ -231,12 +231,12 @@ const SignUp = () => {
 
           <div className="form-control">
             <label className="label">
-              <span className="label-text text-black">Senha</span>
+              <span className="label-text text-black">Password</span>
             </label>
             <input
               type="password"
               name="password"
-              placeholder="Digite sua senha"
+              placeholder="Digite sua password"
               className="input input-bordered w-full text-black"
               value={formData.password}
               onChange={handleChange}
@@ -246,11 +246,11 @@ const SignUp = () => {
           </div>
 
           <button 
-            className="btn btn-primary w-full" 
+            className="btn btn-primary w-full text-black" 
             type="submit" 
             disabled={loading}
           >
-            {loading ? 'A criar conta...' : 'Criar conta'}
+            {loading ? '...' : 'Criar conta'}
           </button>
         </form>
 

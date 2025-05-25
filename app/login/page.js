@@ -18,7 +18,7 @@ export default function Login() {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!email) {
-      setError('Por favor, insira seu email para recuperar a senha');
+      setError('Por favor, insira seu email para recuperar a password');
       return;
     }
 
@@ -93,12 +93,12 @@ export default function Login() {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text text-black">Senha</span>
+                <span className="label-text text-black">Password</span>
               </label>
               <div className="relative">
                 <input 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="senha" 
+                  placeholder="password" 
                   className="input input-bordered text-black w-full pr-10" 
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
@@ -123,7 +123,7 @@ export default function Login() {
               </div>
               <label className="label">
                 <a href="#" className="label-text-alt link link-hover" onClick={handleResetPassword}>
-                  Esqueceu a senha?
+                  Esqueceu a password?
                 </a>
               </label>
             </div>
