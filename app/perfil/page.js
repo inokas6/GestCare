@@ -245,7 +245,7 @@ const Perfil = () => {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.')) return;
+    if (!confirm('Tem certeza que deseja eliminar a sua conta? Esta ação não pode ser desfeita.')) return;
 
     try {
       const { error } = await supabase

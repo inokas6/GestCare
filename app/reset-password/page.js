@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
@@ -8,14 +8,25 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      }
+    };
+    checkSession();
+  }, [router, supabase.auth]);
+
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    setLoading(true);
 
     if (password !== confirmPassword) {
       setError('As senhas não coincidem');
@@ -30,11 +41,13 @@ export default function ResetPassword() {
 
       if (error) throw error;
 
-      alert('Senha alterada com sucesso!');
-      router.push('/login');
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     } catch (error) {
-      console.error('Erro ao resetar senha:', error);
-      setError(error.message || 'Erro ao resetar senha');
+      console.error('Erro ao redefinir senha:', error);
+      setError(error.message || 'Erro ao redefinir senha');
     } finally {
       setLoading(false);
     }
@@ -42,14 +55,14 @@ export default function ResetPassword() {
 
   return (
     <div className="hero bg-base-200 min-h-screen">
-      <div className="hero-content flex-col lg:flex-row-reverse">
-        <div className="text-center lg:text-left">
-          <h1 className="text-2xl font-bold">Redefinir Senha</h1>
-          {error && <div className="mb-4 rounded bg-red-100 p-3 text-red-700">{error}</div>}
-        </div>
-
+      <div className="hero-content flex-col">
         <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
           <form className="card-body" onSubmit={handleResetPassword}>
+            <h2 className="text-2xl font-bold text-center mb-4">Redefinir Senha</h2>
+            
+            {error && <div className="alert alert-error mb-4">{error}</div>}
+            {success && <div className="alert alert-success mb-4">Senha redefinida com sucesso!</div>}
+
             <div className="form-control">
               <label className="label">
                 <span className="label-text text-black">Nova Senha</span>
@@ -61,6 +74,7 @@ export default function ResetPassword() {
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
+                minLength={6}
               />
             </div>
 
@@ -75,12 +89,13 @@ export default function ResetPassword() {
                 value={confirmPassword} 
                 onChange={(e) => setConfirmPassword(e.target.value)} 
                 required 
+                minLength={6}
               />
             </div>
 
             <div className="form-control mt-6">
               <button className="btn btn-primary" type="submit" disabled={loading}>
-                {loading ? 'Alterando...' : 'Alterar Senha'}
+                {loading ? 'Processando...' : 'Redefinir Senha'}
               </button>
             </div>
           </form>

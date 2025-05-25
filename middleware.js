@@ -1,22 +1,22 @@
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 
-export function middleware(request) {
-  // Verifica se a rota é do admin
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    // Se for a página de login, permite o acesso
-    if (request.nextUrl.pathname === '/admin/login') {
-      return NextResponse.next();
-    }
+export async function middleware(req) {
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
 
-    // Para outras rotas do admin, permitimos o acesso
-    // A verificação do token será feita no lado do cliente
-    return NextResponse.next();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Se estiver na página de reset-password e não tiver sessão, redireciona para login
+  if (req.nextUrl.pathname === '/reset-password' && !session) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  return NextResponse.next();
+  return res;
 }
 
 export const config = {
-  matcher: '/admin/:path*',
+  matcher: ['/reset-password'],
 }; 
