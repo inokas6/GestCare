@@ -52,7 +52,18 @@ export default function Login() {
         .eq('email', email)
         .single();
 
-      if (userError) throw userError;
+      if (userError) {
+        if (userError.message.includes('multiple (or no) rows returned')) {
+          setError('Conta não criada, criar conta para continuar');
+        } else {
+          throw userError;
+        }
+      }
+
+      if (!userData) {
+        setError('Conta não criada');
+        return;
+      }
 
       alert(`Bem-vindo, ${userData.nome}!`);
       router.push('/home');

@@ -87,30 +87,7 @@ const MenuHamb = () => {
                                 </li>
                             </ul>
                         </details>
-                    </li>
-                    <li>
-                        <details>
-                            <summary>Papá</summary>
-                            <ul>
-                                <li>
-                                    <Link 
-                                        href="/Menu/Papa/Ajuda"
-                                        className={pathname === '/Menu/Papa/Ajuda' ? 'active' : ''}
-                                    >
-                                        Ajuda
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link 
-                                        href="/Menu/Papa/Videos"
-                                        className={pathname === '/Menu/Papa/Videos' ? 'active' : ''}
-                                    >
-                                        Vídeos
-                                    </Link>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
+                    </li>                   
                     <li>
                         <details>
                             <summary>Bebé</summary>
@@ -149,6 +126,14 @@ const MenuHamb = () => {
                                 </li>
                             </ul>
                         </details>
+                    </li>
+                    <li>
+                        <Link 
+                            href="/Menu/Chatgpt"
+                            className={pathname === '/Menu/Calculadoras' ? 'active' : ''}
+                        >
+                            teste chat
+                        </Link>
                     </li>
                     <li>
                         <Link 

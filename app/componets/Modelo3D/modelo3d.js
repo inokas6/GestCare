@@ -38,21 +38,21 @@ function Modelo3D({ semana = null, onError }) {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [key, setKey] = useState(0); // Novo estado para forçar re-renderização
 
-  // Resetar estados quando a semana mudar
+  // Renicia estados quando a semana mudar
   useEffect(() => {
     setModelLoaded(false);
     setError(null);
     setKey(prev => prev + 1); // Incrementa a key para forçar re-renderização
   }, [semana]);
 
-  // Pré-carregar o modelo quando a semana mudar
+  // carregar o modelo quando a semana mudar
   useEffect(() => {
     if (semanaAtual) {
       try {
         preloadModel(semanaAtual);
         setModelLoaded(true);
       } catch (error) {
-        console.error('Erro ao pré-carregar modelo:', error);
+        console.error('Erro ao carregar modelo:', error);
         setModelLoaded(false);
       }
     }
@@ -81,7 +81,7 @@ function Modelo3D({ semana = null, onError }) {
           return;
         }
 
-        // Buscar informações da semana atual
+        // informações da semana atual
         const { data: infoData, error: infoError } = await supabase
           .from("info_gestacional")
           .select("semana")
