@@ -7,7 +7,9 @@ export default function Page() {
     
     <div >
       <Navbar />
-      <ChatGPT />
+      <div className="chat-container mt-16">
+        <ChatGPT />
+      </div>
     </div>
   );
 }

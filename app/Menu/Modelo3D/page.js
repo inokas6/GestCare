@@ -9,7 +9,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 // Importando o componente Modelo3D com carregamento dinâmico para evitar problemas com SSR
 const Modelo3D = dynamic(() => import('../../componets/Modelo3D/modelo3d.js'), {
   ssr: false,
-  loading: () => <p className="text-center text-pink-700">A carregar o modelo 3Dcarregando</p>
+  loading: () => <p className="text-center text-pink-700">A carregar o modelo 3D</p>
 });
 
 
@@ -23,24 +23,24 @@ export default function BabyDevelopmentPage() {
   const [modeloKey, setModeloKey] = useState(0); // Chave para forçar a atualização do modelo
   const supabase = createClientComponentClient();
 
-  // Buscar semana atual do banco de dados
+  //semana atual da bd
   useEffect(() => {
     const buscarSemanaAtual = async () => {
       try {
         setLoading(true);
         
-        // Buscar user atual
+        //user atual
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error("Erro ao buscar sessão:", sessionError);
+          console.error("Erro ao encontrar sessão:", sessionError);
           setErroAuth(true);
           setLoading(false);
           return;
         }
 
         if (!session) {
-          console.log("Usuário não autenticado");
+          console.log("user não autenticado");
           setErroAuth(true);
           setLoading(false);
           return;
@@ -54,7 +54,7 @@ export default function BabyDevelopmentPage() {
           .single();
 
         if (gravidezError) {
-          console.error("Erro ao buscar dados da gravidez:", gravidezError);
+          console.error("Erro ao encontrar dados da gravidez:", gravidezError);
           setLoading(false);
           return;
         }
@@ -186,7 +186,7 @@ export default function BabyDevelopmentPage() {
       <main className="container mt-16 mx-auto px-4 py-8">
         {loading ? (
           <div className="text-center mt-16">
-            <p className="text-pink-700 text-xl">A carregarcarregando</p>
+            <p className="text-pink-700 text-xl">A carregar</p>
           </div>
         ) : erroAuth ? (
           <div className="text-center mt-16">
