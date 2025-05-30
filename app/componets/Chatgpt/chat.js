@@ -48,6 +48,10 @@ function Chatbot() {
   return (
     <div className="w-full max-w-3xl mx-auto">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        
+    <script src="https://cdn.botpress.cloud/webchat/v2.5/inject.js"></script>
+<script src="https://files.bpcontent.cloud/2025/05/27/10/20250527102638-9QQAQ5KC.js"></script>
+    
         <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">
             Assistente Virtual para Grávidas

@@ -342,7 +342,7 @@ export default function Chat() {
                                     type="text"
                                     value={messageInput}
                                     onChange={(e) => setMessageInput(e.target.value)}
-                                    placeholder="Escreva uma mensagemcarregando"
+                                    placeholder="Escreva uma mensagem..."
                                     className="flex-1 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base text-gray-800 placeholder-gray-400 focus:outline-none"
                                     disabled={!session?.user}
                                 />

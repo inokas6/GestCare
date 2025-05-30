@@ -38,7 +38,7 @@ const SymptomTracker = () => {
       const { data, error } = await supabase
         .from('diario_sintomas')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('entrada_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
