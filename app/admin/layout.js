@@ -12,6 +12,8 @@ export default function AdminLayout({ children }) {
     { name: 'Dashboard', path: '/admin', icon: '📊' },
     { name: 'Usuários', path: '/admin/users', icon: '👥' },
     { name: 'Informações gest', path: '/admin/info-gestacional', icon: '👥' },
+    { name: 'Categorias', path: '/admin/categorias', icon: '👥' },
+    { name: 'Calendário', path: '/admin/calendario', icon: '👥' },
     { name: 'Fotos Barriga', path: '/admin/fotos-barriga', icon: '👥' },    
     { name: 'Chat', path: '/admin/chat', icon: '👥' },
     { name: 'Publicações', path: '/admin/topicos', icon: '👥' },
