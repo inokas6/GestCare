@@ -13,7 +13,6 @@ const Perfil = () => {
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
   const [editMode, setEditMode] = useState(false);
-  const [theme, setTheme] = useState('valentine');
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -108,12 +107,6 @@ const Perfil = () => {
 
     fetchUser();
   }, [router]);
-
-  useEffect(() => {
-    // Aplicar o tema ao carregar a página
-    const html = document.documentElement;
-    html.setAttribute('data-theme', theme);
-  }, [theme]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -275,10 +268,6 @@ const Perfil = () => {
     });
   };
 
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'valentine' ? 'mytheme' : 'valentine');
-  };
-
   const promptEmailChange = () => {
     // Verifica se existe um email pendente para confirmar
     if (pendingEmail && pendingEmail !== originalEmail) {
@@ -343,19 +332,13 @@ const Perfil = () => {
   }
 
   return (
-    <div className="min-h-screen py-8" data-theme={theme}>
+    <div className="min-h-screen py-8" style={{ backgroundColor: '#F4E7FA' }}>
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 mt-20">
-        <div className="bg-base-100 rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-primary">Meu Perfil</h1>
             <div className="flex gap-2">
-              <button 
-                onClick={toggleTheme}
-                className="btn btn-primary btn-sm"
-              >
-                Mudar Tema
-              </button>
               <button onClick={handleLogout} className="btn btn-outline btn-error hover:text-white">
                 Sair
               </button>
