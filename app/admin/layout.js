@@ -11,6 +11,10 @@ export default function AdminLayout({ children }) {
   const menuItems = [
     { name: 'Dashboard', path: '/admin', icon: '📊' },
     { name: 'Usuários', path: '/admin/users', icon: '👥' },
+    { name: 'Informações gest', path: '/admin/info-gestacional', icon: '👥' },
+    { name: 'Fotos Barriga', path: '/admin/fotos-barriga', icon: '👥' },    
+    { name: 'Chat', path: '/admin/chat', icon: '👥' },
+    { name: 'Publicações', path: '/admin/topicos', icon: '👥' },
     { name: 'Configurações', path: '/admin/configuracoes', icon: '⚙️' },
   ];
 
