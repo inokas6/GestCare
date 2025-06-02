@@ -20,21 +20,34 @@ export default function AdminLogin() {
 
     const checkAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
         const adminAuth = localStorage.getItem('adminAuth');
         
-        if (session && adminAuth) {
-          if (isMounted) {
-            router.replace('/admin');
+        if (adminAuth) {
+          const authData = JSON.parse(adminAuth);
+          
+          // Verificar se o token não expirou
+          const tokenTimestamp = new Date(authData.timestamp);
+          const now = new Date();
+          const hoursDiff = (now - tokenTimestamp) / (1000 * 60 * 60);
+
+          if (hoursDiff <= 24 && authorizedEmails.includes(authData.email)) {
+            if (isMounted) {
+              router.replace('/admin');
+            }
+            return;
+          } else {
+            // Se o token expirou ou o email não está autorizado, limpa o localStorage
+            localStorage.removeItem('adminAuth');
           }
-        } else {
-          if (isMounted) {
-            setIsChecking(false);
-          }
+        }
+
+        if (isMounted) {
+          setIsChecking(false);
         }
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
         if (isMounted) {
+          localStorage.removeItem('adminAuth');
           setIsChecking(false);
         }
       }
@@ -53,27 +66,24 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      console.log('Iniciando processo de login...');
-
       // Verificar se o email está autorizado
       if (!authorizedEmails.includes(email)) {
         throw new Error('Email não autorizado para acesso administrativo');
       }
 
-      console.log('Email autorizado, tentando login com Supabase...');
-
       // Tentar fazer login com o Supabase
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (signInError) {
-        console.error('Erro no login Supabase:', signInError);
         throw signInError;
       }
 
-      console.log('Login Supabase bem sucedido, buscando dados do usuário...');
+      if (!session) {
+        throw new Error('Falha na autenticação');
+      }
 
       // Buscar informações do usuário
       const { data: userData, error: userError } = await supabase
@@ -82,29 +92,26 @@ export default function AdminLogin() {
         .eq('email', email)
         .single();
 
-      if (userError) {
-        console.error('Erro ao buscar dados do usuário:', userError);
-        throw userError;
-      }
-
-      if (!userData) {
+      if (userError || !userData) {
         throw new Error('Usuário não encontrado');
       }
 
-      console.log('Login bem sucedido, salvando dados e redirecionando...');
-
-      // Salvar no localStorage
-      localStorage.setItem('adminAuth', JSON.stringify({ 
+      // Salvar dados de autenticação no localStorage
+      const authData = {
         email,
         userId: userData.id,
-        timestamp: new Date().toISOString()
-      }));
+        timestamp: new Date().toISOString(),
+        session: session
+      };
+      
+      localStorage.setItem('adminAuth', JSON.stringify(authData));
       
       // Redirecionar para o dashboard
-      router.replace('/admin');
+      router.push('/admin');
+      router.refresh(); // Força atualização da página
 
     } catch (err) {
-      console.error('Erro detalhado no login:', err);
+      console.error('Erro no login:', err);
       setError(err.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);

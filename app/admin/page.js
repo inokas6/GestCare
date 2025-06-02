@@ -50,49 +50,56 @@ export default function AdminDashboard() {
   });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const authorizedEmails = ['ineslaramiranda6@gmail.com'];
 
   useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
       try {
-        // Verificar sessão do Supabase
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        // Verificar localStorage
+        // Verificar localStorage primeiro
         const adminAuth = localStorage.getItem('adminAuth');
         
-        if (!session || !adminAuth) {
+        if (!adminAuth) {
           if (isMounted) {
-            console.log('Não autenticado, redirecionando para login...');
             router.replace('/admin/login');
           }
           return;
         }
 
-        // Verificar se o token não expirou (24 horas)
         const authData = JSON.parse(adminAuth);
+        
+        // Verificar se o token não expirou (24 horas)
         const tokenTimestamp = new Date(authData.timestamp);
         const now = new Date();
         const hoursDiff = (now - tokenTimestamp) / (1000 * 60 * 60);
 
         if (hoursDiff > 24) {
           if (isMounted) {
-            console.log('Token expirado, redirecionando para login...');
             localStorage.removeItem('adminAuth');
             router.replace('/admin/login');
           }
           return;
         }
 
+        // Verificar se o email está autorizado
+        if (!authorizedEmails.includes(authData.email)) {
+          if (isMounted) {
+            localStorage.removeItem('adminAuth');
+            router.replace('/admin/login');
+          }
+          return;
+        }
+
+        // Se passou por todas as verificações, está autenticado
         if (isMounted) {
-          console.log('Autenticação válida');
           setIsAuthenticated(true);
           setIsChecking(false);
         }
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
         if (isMounted) {
+          localStorage.removeItem('adminAuth');
           router.replace('/admin/login');
         }
       }
