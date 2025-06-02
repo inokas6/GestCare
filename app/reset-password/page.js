@@ -13,15 +13,7 @@ export default function ResetPassword() {
   const router = useRouter();
   const supabase = createClientComponentClient();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      }
-    };
-    checkSession();
-  }, [router, supabase.auth]);
+  
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
@@ -58,18 +50,18 @@ export default function ResetPassword() {
       <div className="hero-content flex-col">
         <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
           <form className="card-body" onSubmit={handleResetPassword}>
-            <h2 className="text-2xl font-bold text-center mb-4">Redefinir Senha</h2>
+            <h2 className="text-2xl font-bold text-black text-center mb-4">Nova Password</h2>
             
             {error && <div className="alert alert-error mb-4">{error}</div>}
-            {success && <div className="alert alert-success mb-4">Senha redefinida com sucesso!</div>}
+            {success && <div className="alert alert-success mb-4">Password atualizada com sucesso!</div>}
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text text-black">Nova Senha</span>
+                <span className="label-text text-black">Nova Password</span>
               </label>
               <input 
                 type="password" 
-                placeholder="Digite sua nova senha" 
+                placeholder="Digite a sua nova password" 
                 className="input input-bordered text-black" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
@@ -80,11 +72,11 @@ export default function ResetPassword() {
 
             <div className="form-control">
               <label className="label">
-                <span className="label-text text-black">Confirmar Nova Senha</span>
+                <span className="label-text text-black">Confirmar Nova Password</span>
               </label>
               <input 
                 type="password" 
-                placeholder="Confirme sua nova senha" 
+                placeholder="Confirme a sua nova password" 
                 className="input input-bordered text-black" 
                 value={confirmPassword} 
                 onChange={(e) => setConfirmPassword(e.target.value)} 
@@ -95,7 +87,7 @@ export default function ResetPassword() {
 
             <div className="form-control mt-6">
               <button className="btn btn-primary" type="submit" disabled={loading}>
-                {loading ? 'Processando...' : 'Redefinir Senha'}
+                {loading ? '...' : 'Atualizar Password'}
               </button>
             </div>
           </form>

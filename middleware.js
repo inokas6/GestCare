@@ -14,9 +14,25 @@ export async function middleware(req) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
+  // Verificar se é uma rota de administração
+  if (req.nextUrl.pathname.startsWith('/admin')) {
+    // Ignorar a rota de login
+    if (req.nextUrl.pathname === '/admin/login') {
+      return res;
+    }
+
+    // Verificar se o usuário está autenticado
+    const adminAuth = req.cookies.get('adminAuth');
+    
+    if (!adminAuth) {
+      // Redirecionar para a página de login se não estiver autenticado
+      return NextResponse.redirect(new URL('/admin/login', req.url));
+    }
+  }
+
   return res;
 }
 
 export const config = {
-  matcher: ['/reset-password'],
+  matcher: ['/reset-password', '/admin/:path*'],
 }; 
