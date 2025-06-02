@@ -62,16 +62,6 @@ const Home = () => {
     script2.async = true;
     document.body.appendChild(script2);
 
-    return () => {
-      // Remove os scripts quando o componente é desmontado
-      if (document.body.contains(script1)) {
-        document.body.removeChild(script1);
-      }
-      if (document.body.contains(script2)) {
-        document.body.removeChild(script2);
-      }
-    };
-
     const fetchPregnancyData = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -103,6 +93,16 @@ const Home = () => {
     };
 
     fetchPregnancyData();
+
+    return () => {
+      // Remove os scripts quando o componente é desmontado
+      if (document.body.contains(script1)) {
+        document.body.removeChild(script1);
+      }
+      if (document.body.contains(script2)) {
+        document.body.removeChild(script2);
+      }
+    };
   }, []);
 
   return (

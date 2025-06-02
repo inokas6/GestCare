@@ -30,23 +30,7 @@ const SymptomTracker = () => {
   }, []);
 
   const fetchSymptoms = async () => {
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('diario_sintomas')
-        .select('*')
-        .eq('entrada_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) throw error;
-      setSymptoms(data || []);
-    } catch (error) {
-      console.error("Erro ao buscar sintomas:", error);
-    }
+   
   };
 
   const fetchMoodEntries = async () => {

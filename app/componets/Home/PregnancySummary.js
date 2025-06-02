@@ -7,7 +7,7 @@ import { ptBR } from "date-fns/locale";
 
 const PregnancySummary = ({ week }) => {
   const [infoSemanal, setInfoSemanal] = useState({
-    dicas_mae: "carregando dicas..."
+    dicas_mae: "a carregar dicas..."
   });
   const [tamanhoBebe, setTamanhoBebe] = useState("...");
   const [error, setError] = useState(null);

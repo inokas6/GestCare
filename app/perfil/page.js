@@ -13,6 +13,7 @@ const Perfil = () => {
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
   const [editMode, setEditMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     nome: '',
     email: '',
@@ -25,6 +26,25 @@ const Perfil = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [emailChangePending, setEmailChangePending] = useState(false);
   const [confirmEmailChange, setConfirmEmailChange] = useState(false);
+  const [showPregnancyForm, setShowPregnancyForm] = useState(false);
+  const [showPlanningForm, setShowPlanningForm] = useState(false);
+  const [pregnancyData, setPregnancyData] = useState(null);
+
+  const showNotification = (message, type = "success") => {
+    const notification = document.createElement("div");
+    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${
+      type === "success" ? "bg-green-500" : "bg-red-500"
+    } transition-opacity duration-500 z-50`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.style.opacity = "0";
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 500);
+    }, 3000);
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -96,6 +116,17 @@ const Perfil = () => {
         });
         setOriginalEmail(userData.email);
         setPreviewUrl(userData.foto_perfil || null);
+
+        // Buscar dados da gravidez
+        const { data: gravidezData, error: gravidezError } = await supabase
+          .from('gravidez_info')
+          .select('*')
+          .eq('user_id', authUser.id)
+          .single();
+
+        if (!gravidezError && gravidezData) {
+          setPregnancyData(gravidezData);
+        }
 
       } catch (error) {
         console.error('Erro inesperado:', error);
@@ -348,6 +379,44 @@ const Perfil = () => {
           {error && <div className="alert alert-error mb-4">{error}</div>}
           {warning && <div className="alert alert-warning mb-4">{warning}</div>}
 
+          {/* Status da Gravidez */}
+          <div className="mb-6 p-4 bg-pink-50 rounded-lg">
+            <h3 className="text-lg font-semibold text-pink-800 mb-2">Status da Gravidez</h3>
+            {pregnancyData ? (
+              <div className="space-y-2">
+                <p className="text-pink-700">
+                  {pregnancyData.tipo === 'gravida' ? (
+                    <>Você está grávida! {pregnancyData.data_provavel_parto && `Data provável do parto: ${formatDate(pregnancyData.data_provavel_parto)}`}</>
+                  ) : (
+                    <>Você está a planear. {pregnancyData.ciclo_menstrual && `Ciclo menstrual: ${pregnancyData.ciclo_menstrual} dias`}</>
+                  )}
+                </p>
+                <button
+                  onClick={() => {
+                    setShowPregnancyForm(true);
+                    setShowPlanningForm(false);
+                  }}
+                  className="text-sm bg-pink-100 hover:bg-pink-200 text-pink-800 px-4 py-2 rounded-full transition-colors"
+                >
+                  Alterar Configuração
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-pink-700">Nenhuma configuração definida</p>
+                <button
+                  onClick={() => {
+                    setShowPregnancyForm(true);
+                    setShowPlanningForm(false);
+                  }}
+                  className="text-sm bg-pink-100 hover:bg-pink-200 text-pink-800 px-4 py-2 rounded-full transition-colors"
+                >
+                  Configurar Status
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
               <div className={`w-32 h-32 rounded-full bg-base-200 flex items-center justify-center overflow-hidden`}>
@@ -529,6 +598,235 @@ const Perfil = () => {
               )}
             </div>
           </form>
+
+          {/* Modal para configuração da gravidez */}
+          {showPregnancyForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div 
+                className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-xl font-bold text-pink-800">
+                    {pregnancyData ? 'Alterar Status' : 'Configurar Status'}
+                  </h3>
+                </div>
+                
+                <p className="text-gray-600 mb-6">Selecione uma opção:</p>
+                
+                <div className="space-y-4 mb-6">
+                  <button
+                    onClick={() => {
+                      setShowPregnancyForm(false);
+                      setShowPlanningForm(true);
+                      setPregnancyData(prev => ({ ...prev, tipo: 'gravida' }));
+                    }}
+                    className="w-full bg-pink-600 hover:bg-pink-700 text-white px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
+                  >
+                    <span className="mr-2">🤰</span>
+                    Estou Grávida
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowPregnancyForm(false);
+                      setShowPlanningForm(true);
+                      setPregnancyData(prev => ({ ...prev, tipo: 'planejamento' }));
+                    }}
+                    className="w-full bg-pink-500 hover:bg-pink-600 text-white px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
+                  >
+                    <span className="mr-2">📅</span>
+                    Quero Engravidar
+                  </button>
+                  
+                  {pregnancyData && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { data: { user } } = await supabase.auth.getUser();
+                          if (!user) throw new Error("Usuário não autenticado");
+
+                          const { error } = await supabase
+                            .from("gravidez_info")
+                            .delete()
+                            .eq("user_id", user.id);
+
+                          if (error) throw error;
+
+                          setPregnancyData(null);
+                          setShowPregnancyForm(false);
+                          showNotification("Configuração removida com sucesso!");
+                        } catch (error) {
+                          console.error("Erro ao remover configuração:", error);
+                          showNotification("Erro ao remover configuração. Tente novamente.", "error");
+                        }
+                      }}
+                      className="w-full bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
+                    >
+                      <span className="mr-2">🗑️</span>
+                      Remover Configuração
+                    </button>
+                  )}
+                  
+                  <button
+                    onClick={() => setShowPregnancyForm(false)}
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                  >
+                    <span className="mr-2">⏰</span>
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal para configuração da gravidez/planejamento */}
+          {showPlanningForm && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div 
+                className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-xl font-bold text-pink-800">
+                    {pregnancyData?.tipo === 'gravida' ? 'Alterar Dados da Gravidez' : 'Configurar Planeamento'}
+                  </h3>
+                </div>
+                
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setIsLoading(true);
+                  
+                  const formData = new FormData(e.target);
+                  const data_ultima_menstruacao = formData.get('data_ultima_menstruacao');
+                  const data_provavel_parto = formData.get('data_provavel_parto');
+                  const ciclo_menstrual = formData.get('ciclo_menstrual');
+                  
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) throw new Error("Usuário não autenticado");
+                    
+                    if (!data_ultima_menstruacao) {
+                      throw new Error("A data da última menstruação é obrigatória");
+                    }
+
+                    const dados = {
+                      user_id: user.id,
+                      data_ultima_menstruacao: data_ultima_menstruacao,
+                      data_inicio: new Date().toISOString().split('T')[0],
+                      tipo: pregnancyData?.tipo || 'gravida',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString()
+                    };
+
+                    if (pregnancyData?.tipo === 'gravida') {
+                      if (data_provavel_parto) {
+                        dados.data_provavel_parto = data_provavel_parto;
+                      }
+                    } else {
+                      dados.ciclo_menstrual = ciclo_menstrual || 28;
+                    }
+
+                    if (pregnancyData) {
+                      // Atualizar dados existentes
+                      const { error } = await supabase
+                        .from("gravidez_info")
+                        .update({
+                          ...dados,
+                          updated_at: new Date().toISOString()
+                        })
+                        .eq("user_id", user.id);
+                      
+                      if (error) throw error;
+                    } else {
+                      // Inserir novos dados
+                      const { error } = await supabase
+                        .from("gravidez_info")
+                        .insert([dados]);
+                      
+                      if (error) throw error;
+                    }
+                    
+                    setPregnancyData(dados);
+                    showNotification("Configuração atualizada com sucesso!");
+                    setShowPlanningForm(false);
+                  } catch (error) {
+                    console.error("Erro ao configurar dados:", error);
+                    showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}>
+                  <div className="mb-5">
+                    <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="data_ultima_menstruacao">
+                      Data da última menstruação
+                    </label>
+                    <input
+                      id="data_ultima_menstruacao"
+                      type="date"
+                      name="data_ultima_menstruacao"
+                      defaultValue={pregnancyData?.data_ultima_menstruacao}
+                      className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
+                      required
+                    />
+                  </div>
+                  
+                  {pregnancyData?.tipo === 'gravida' ? (
+                    <div className="mb-6">
+                      <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="data_provavel_parto">
+                        Data provável do parto (opcional)
+                      </label>
+                      <input
+                        id="data_provavel_parto"
+                        type="date"
+                        name="data_provavel_parto"
+                        defaultValue={pregnancyData?.data_provavel_parto}
+                        className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-6">
+                      <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="ciclo_menstrual">
+                        Duração do ciclo menstrual (em dias)
+                      </label>
+                      <input
+                        id="ciclo_menstrual"
+                        type="number"
+                        name="ciclo_menstrual"
+                        min="21"
+                        max="35"
+                        defaultValue={pregnancyData?.ciclo_menstrual || "28"}
+                        className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">O ciclo padrão é de 28 dias. Ajuste conforme seu ciclo.</p>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowPlanningForm(false)}
+                      className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="bg-pink-600 hover:bg-pink-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:ring-offset-2"
+                    >
+                      {isLoading ? (
+                        <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                      ) : (
+                        <span className="mr-2">✨</span>
+                      )}
+                      {pregnancyData ? 'Atualizar' : 'Configurar'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
