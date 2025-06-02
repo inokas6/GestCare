@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import DevelopmentItem from './DevelopmentItem';
 import BabyModel3D from './BabyModel3D';
-import { differenceInWeeks, addWeeks } from "date-fns";
+import { differenceInWeeks, addWeeks, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const PregnancySummary = ({ week }) => {
   const [infoSemanal, setInfoSemanal] = useState({
-    dicas_mae: "carregando dicascarregando"
+    dicas_mae: "carregando dicas..."
   });
   const [tamanhoBebe, setTamanhoBebe] = useState("...");
   const [error, setError] = useState(null);
@@ -14,7 +15,12 @@ const PregnancySummary = ({ week }) => {
     dataInicio: null,
     semanaAtual: 0,
     diasNaSemana: 0,
-    progresso: 0
+    progresso: 0,
+    tipo: null,
+    ciclo_menstrual: 28,
+    proximaOvulacao: null,
+    inicioFertil: null,
+    fimFertil: null
   });
   const supabase = createClientComponentClient();
   
@@ -50,7 +56,41 @@ const PregnancySummary = ({ week }) => {
           return;
         }
 
-        // Calcular semanas de gravidez
+        // Se for planejamento, calcular período fértil
+        if (gravidezData.tipo === 'planejamento') {
+          const ciclo = gravidezData.ciclo_menstrual || 28;
+          const dataUltimaMenstruacao = new Date(gravidezData.data_ultima_menstruacao);
+          const hoje = new Date();
+          let proximaOvulacao = new Date(dataUltimaMenstruacao);
+          
+          // Encontrar a próxima ovulação
+          while (proximaOvulacao < hoje) {
+            proximaOvulacao.setDate(proximaOvulacao.getDate() + ciclo);
+          }
+          
+          // Calcular período fértil
+          const inicioFertil = new Date(proximaOvulacao);
+          inicioFertil.setDate(proximaOvulacao.getDate() - 2);
+          const fimFertil = new Date(proximaOvulacao);
+          fimFertil.setDate(proximaOvulacao.getDate() + 2);
+
+          setPregnancyData({
+            dataInicio: dataUltimaMenstruacao,
+            tipo: 'planejamento',
+            ciclo_menstrual: ciclo,
+            proximaOvulacao,
+            inicioFertil,
+            fimFertil
+          });
+
+          setInfoSemanal({
+            dicas_mae: "Para aumentar as chances de engravidar, mantenha relações durante todo o período fértil, especialmente no dia da ovulação e um dia antes."
+          });
+          
+          return;
+        }
+
+        // Caso seja gravidez, calcular semanas
         const dataInicio = new Date(gravidezData.data_ultima_menstruacao || gravidezData.data_inicio);
         const hoje = new Date();
         const semanasDesdeInicio = differenceInWeeks(hoje, dataInicio) + 2;
@@ -61,7 +101,8 @@ const PregnancySummary = ({ week }) => {
           dataInicio,
           semanaAtual: semanasDesdeInicio,
           diasNaSemana,
-          progresso
+          progresso,
+          tipo: 'gravida'
         });
 
         // Buscar informações da semana
@@ -150,54 +191,110 @@ const PregnancySummary = ({ week }) => {
       )}
       <div className="flex flex-col md:flex-row items-center">
         <div className="w-full md:w-1/2 flex flex-col justify-center p-4">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Semana {pregnancyData.semanaAtual}</h2>
-          <div className="flex items-center gap-2 mb-4">
-            <p className="text-purple-700 font-medium">
-              {trimester.number}º Trimestre
-            </p>
-            <span className="text-sm text-gray-500">
-              (Semana {trimester.start} a {trimester.end})
-            </span>
-          </div>
-          
-          {/* Barra de progresso */}
-          <div className="w-full bg-gray-200 rounded-full h-4 mb-4 relative">
-            <div 
-              className="bg-gradient-to-r from-pink-400 to-purple-500 h-4 rounded-full transition-all duration-500" 
-              style={{ width: `${pregnancyData.progresso}%` }}
-            ></div>
-          </div>
-          
-          <div className="flex justify-between text-sm text-gray-600 mb-6">
-            <span>Semana 1</span>
-            <span>1º Trimestre</span>
-            <span>2º Trimestre</span>
-            <span>3º Trimestre</span>
-            <span>Semana 40</span>
-          </div>
-          
-          {/* Tamanho do bebé */}
-          <div className="mb-4 p-3 bg-purple-50 rounded-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-purple-600">📏</span>
-              <p className="text-purple-800 font-medium">
-                O seu bebé tem agora o tamanho de {tamanhoBebe}
-              </p>
-            </div>
-          </div>
-          
-          {/* Dica da semana */}
-          <div className="space-y-3">
-            <DevelopmentItem 
-              icon="info" 
-              text={infoSemanal.dicas_mae} 
-              color="blue" 
-            />
-          </div>
+          {pregnancyData.tipo === 'planejamento' ? (
+            <>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Planear a Gravidez</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <p className="text-pink-700 font-medium">
+                  Próximo Período Fértil
+                </p>
+              </div>
+              
+              {/* Informações do período fértil */}
+              <div className="mb-6 p-4 bg-pink-50 rounded-lg">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-pink-600">📅</span>
+                    <p className="text-pink-800">
+                      <span className="font-medium">Período Fértil:</span> {format(pregnancyData.inicioFertil, "dd 'de' MMMM", { locale: ptBR })} até {format(pregnancyData.fimFertil, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-pink-600">⭐</span>
+                    <p className="text-pink-800">
+                      <span className="font-medium">Dia da Ovulação:</span> {format(pregnancyData.proximaOvulacao, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-pink-600">🔄</span>
+                    <p className="text-pink-800">
+                      <span className="font-medium">Ciclo Menstrual:</span> {pregnancyData.ciclo_menstrual} dias
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Dica da semana */}
+              <div className="space-y-3">
+                <DevelopmentItem 
+                  icon="info" 
+                  text={infoSemanal.dicas_mae} 
+                  color="pink" 
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">Semana {pregnancyData.semanaAtual}</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <p className="text-purple-700 font-medium">
+                  {trimester.number}º Trimestre
+                </p>
+                <span className="text-sm text-gray-500">
+                  (Semana {trimester.start} a {trimester.end})
+                </span>
+              </div>
+              
+              {/* Barra de progresso */}
+              <div className="w-full bg-gray-200 rounded-full h-4 mb-4 relative">
+                <div 
+                  className="bg-gradient-to-r from-pink-400 to-purple-500 h-4 rounded-full transition-all duration-500" 
+                  style={{ width: `${pregnancyData.progresso}%` }}
+                ></div>
+              </div>
+              
+              <div className="flex justify-between text-sm text-gray-600 mb-6">
+                <span>Semana 1</span>
+                <span>1º Trimestre</span>
+                <span>2º Trimestre</span>
+                <span>3º Trimestre</span>
+                <span>Semana 40</span>
+              </div>
+              
+              {/* Tamanho do bebé */}
+              <div className="mb-4 p-3 bg-purple-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-purple-600">📏</span>
+                  <p className="text-purple-800 font-medium">
+                    O seu bebé tem agora o tamanho de {tamanhoBebe}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Dica da semana */}
+              <div className="space-y-3">
+                <DevelopmentItem 
+                  icon="info" 
+                  text={infoSemanal.dicas_mae} 
+                  color="blue" 
+                />
+              </div>
+            </>
+          )}
         </div>
         
         <div className="w-full md:w-1/2 p-4 flex justify-center">
-          <BabyModel3D week={pregnancyData.semanaAtual} />
+          {pregnancyData.tipo === 'planejamento' ? (
+            <div className="text-center p-6 bg-pink-50 rounded-lg">
+              <span className="text-6xl mb-4 block">🌱</span>
+              <h3 className="text-xl font-semibold text-pink-800 mb-2">Planear a sua gravidez</h3>
+              <p className="text-pink-700">
+                Mantenha um registo do seu ciclo menstrual e aproveite o seu período fértil para aumentar as chances de engravidar.
+              </p>
+            </div>
+          ) : (
+            <BabyModel3D week={pregnancyData.semanaAtual} />
+          )}
         </div>
       </div>
     </div>

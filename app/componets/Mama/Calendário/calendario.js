@@ -199,45 +199,92 @@ export default function CalendarioGravidez() {
       
       // Adicionar eventos semanais da gravidez se temos os dados
       if (pregnancyData.dataInicio) {
-        const semanasGravidez = [];
-        for (let i = 1; i <= 40; i++) {
-          const dataInicio = addWeeks(pregnancyData.dataInicio, i - 2); // -2 pois a gravidez começa 2 semanas antes
-          semanasGravidez.push({
-            id: `semana-${i}`,
-            title: `Semana ${i}`,
-            start: dataInicio,
-            end: addWeeks(dataInicio, 1),
-            backgroundColor: "rgba(147, 51, 234, 0.2)",
-            borderColor: "rgba(147, 51, 234, 0.5)",
-            textColor: "#6B21A8",
-            classNames: ["evento-semana-gravidez"],
-            display: "background",
-            extendedProps: {
-              tipo_evento: "semana_gravidez",
-              semana: i
-            }
-          });
+        if (pregnancyData.tipo === 'planejamento') {
+          // Adicionar eventos do período fértil para os próximos 6 ciclos
+          const dataUltimaMenstruacao = new Date(pregnancyData.dataInicio);
+          const ciclo = pregnancyData.ciclo_menstrual || 28;
+          
+          for (let i = 0; i < 6; i++) {
+            const dataOvulacao = new Date(dataUltimaMenstruacao);
+            dataOvulacao.setDate(dataOvulacao.getDate() + (ciclo * i) + 14); // 14 dias após a menstruação
+            
+            // Período fértil: 2 dias antes e 2 dias depois da ovulação
+            const inicioFertil = new Date(dataOvulacao);
+            inicioFertil.setDate(dataOvulacao.getDate() - 2);
+            const fimFertil = new Date(dataOvulacao);
+            fimFertil.setDate(dataOvulacao.getDate() + 2);
+            
+            calendarEvents.push({
+              id: `periodo-fertil-${i}`,
+              title: `Período Fértil - Ciclo ${i + 1}`,
+              start: inicioFertil.toISOString().split('T')[0],
+              end: fimFertil.toISOString().split('T')[0],
+              backgroundColor: "rgba(255, 93, 143, 0.2)",
+              borderColor: "#FF5D8F",
+              textColor: "#FF5D8F",
+              display: "background",
+              extendedProps: {
+                tipo_evento: "ovulacao",
+                ciclo: i + 1
+              }
+            });
+            
+            // Adicionar o dia da ovulação como um evento específico
+            calendarEvents.push({
+              id: `ovulacao-${i}`,
+              title: `Ovulação - Ciclo ${i + 1}`,
+              start: dataOvulacao.toISOString().split('T')[0],
+              backgroundColor: "#FF5D8F",
+              borderColor: "#FF5D8F",
+              textColor: "#ffffff",
+              extendedProps: {
+                tipo_evento: "ovulacao",
+                ciclo: i + 1
+              }
+            });
+          }
+        } else {
+          // Adicionar eventos semanais da gravidez
+          const semanasGravidez = [];
+          for (let i = 1; i <= 40; i++) {
+            const dataInicio = addWeeks(pregnancyData.dataInicio, i - 2);
+            semanasGravidez.push({
+              id: `semana-${i}`,
+              title: `Semana ${i}`,
+              start: dataInicio,
+              end: addWeeks(dataInicio, 1),
+              backgroundColor: "rgba(147, 51, 234, 0.2)",
+              borderColor: "rgba(147, 51, 234, 0.5)",
+              textColor: "#6B21A8",
+              classNames: ["evento-semana-gravidez"],
+              display: "background",
+              extendedProps: {
+                tipo_evento: "semana_gravidez",
+                semana: i
+              }
+            });
+          }
+          
+          // Adicionar data provável do parto
+          if (pregnancyData.dataProvavel) {
+            semanasGravidez.push({
+              id: "data-parto",
+              title: "Data Provável do Parto",
+              start: pregnancyData.dataProvavel,
+              backgroundColor: "#EF4444",
+              borderColor: "#EF4444",
+              textColor: "#ffffff",
+              extendedProps: {
+                tipo_evento: "parto"
+              }
+            });
+          }
+          
+          calendarEvents.push(...semanasGravidez);
         }
-        
-        // Adicionar data provável do parto
-        if (pregnancyData.dataProvavel) {
-          semanasGravidez.push({
-            id: "data-parto",
-            title: "Data Provável do Parto",
-            start: pregnancyData.dataProvavel,
-            backgroundColor: "#EF4444",
-            borderColor: "#EF4444",
-            textColor: "#ffffff",
-            extendedProps: {
-              tipo_evento: "parto"
-            }
-          });
-        }
-        
-        setEvents([...calendarEvents, ...semanasGravidez]);
-      } else {
-        setEvents(calendarEvents);
       }
+      
+      setEvents(calendarEvents);
     } catch (error) {
       console.error("Erro ao buscar eventos:", error);
     }
@@ -1039,7 +1086,7 @@ export default function CalendarioGravidez() {
       )}
       
       {/* Modal para configuração da data inicial da gravidez (mostrado se não houver dados) */}
-      {!isLoading && !pregnancyData.dataInicio && (
+      {!isLoading && !pregnancyData.dataInicio && !showPregnancyForm && !showPlanningForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div 
             className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
@@ -1071,7 +1118,11 @@ export default function CalendarioGravidez() {
               </button>
               
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setShowPregnancyForm(false);
+                  setShowPlanningForm(false);
+                }}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
               >
                 <span className="mr-2">⏰</span>
@@ -1132,6 +1183,7 @@ export default function CalendarioGravidez() {
                 showNotification("Calendário configurado com sucesso!");
                 setShowPregnancyForm(false);
                 setShowModal(false);
+                setShowPlanningForm(false);
               } catch (error) {
                 console.error("Erro ao configurar dados da gravidez:", error);
                 showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
@@ -1264,6 +1316,7 @@ export default function CalendarioGravidez() {
                 showNotification("Calendário de planejamento configurado com sucesso!");
                 setShowPlanningForm(false);
                 setShowModal(false);
+                setShowPregnancyForm(false);
               } catch (error) {
                 console.error("Erro ao configurar planejamento:", error);
                 showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
