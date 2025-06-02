@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClientComponentClient();
+
+  const authorizedEmails = ['ineslaramiranda6@gmail.com']; // Lista de emails autorizados
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,25 +20,42 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Verificar credenciais no Supabase
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('username', username)
-        .eq('password', password)
-        .single();
-
-      if (error || !data) {
-        throw new Error('Credenciais inválidas');
+      // Verificar se o email está autorizado
+      if (!authorizedEmails.includes(email)) {
+        throw new Error('Email não autorizado para acesso administrativo');
       }
 
-      // Se as credenciais estiverem corretas, salvar no localStorage
-      localStorage.setItem('adminAuth', JSON.stringify({ username }));
+      // Tentar fazer login com o Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      // Buscar informações do usuário
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (userError) throw userError;
+
+      if (!userData) {
+        setError('Usuário não encontrado');
+        return;
+      }
+
+      // Salvar no localStorage
+      localStorage.setItem('adminAuth', JSON.stringify({ email }));
       
-      // Redirecionar para a página de administração
-      router.push('/admin');
+      // Forçar atualização e redirecionamento
+      window.location.href = '/admin';
+
     } catch (err) {
-      setError('Usuário ou senha inválidos');
+      console.error('Erro no login:', err);
+      setError(err.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
     }
@@ -56,18 +75,18 @@ export default function AdminLogin() {
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="username" className="sr-only">
-                Usuário
+              <label htmlFor="email" className="sr-only">
+                Email
               </label>
               <input
-                id="username"
-                name="username"
-                type="text"
+                id="email"
+                name="email"
+                type="email"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Usuário"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>

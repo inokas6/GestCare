@@ -21,10 +21,8 @@ export async function middleware(req) {
       return res;
     }
 
-    // Verificar se o usuário está autenticado
-    const adminAuth = req.cookies.get('adminAuth');
-    
-    if (!adminAuth) {
+    // Verificar se o usuário está autenticado no Supabase
+    if (!session) {
       // Redirecionar para a página de login se não estiver autenticado
       return NextResponse.redirect(new URL('/admin/login', req.url));
     }

@@ -145,10 +145,10 @@ export default function TopicosPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Gerenciamento de Tópicos</h1>
+        <h1 className="text-2xl font-semibold text-black">Gestão de Tópicos</h1>
         <button 
           onClick={() => setShowNewTopicoForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          className="bg-pink-700 text-white px-4 py-2 rounded-lg hover:bg-pink-800"
         >
           Novo Tópico
         </button>
@@ -164,7 +164,7 @@ export default function TopicosPage() {
                 type="text"
                 value={newTopico.titulo}
                 onChange={(e) => setNewTopico({...newTopico, titulo: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 required
               />
             </div>
@@ -173,7 +173,7 @@ export default function TopicosPage() {
               <textarea
                 value={newTopico.conteudo}
                 onChange={(e) => setNewTopico({...newTopico, conteudo: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 rows="4"
                 required
               />
@@ -183,7 +183,7 @@ export default function TopicosPage() {
               <select
                 value={newTopico.categoria_id}
                 onChange={(e) => setNewTopico({...newTopico, categoria_id: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 required
               >
                 <option value="">Selecione uma categoria</option>
@@ -199,7 +199,7 @@ export default function TopicosPage() {
               <select
                 value={newTopico.user_id}
                 onChange={(e) => setNewTopico({...newTopico, user_id: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 required
               >
                 <option value="">Selecione um usuário</option>
@@ -220,7 +220,7 @@ export default function TopicosPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-pink-700 text-white rounded-md hover:bg-pink-800"
               >
                 Criar Tópico
               </button>
@@ -322,7 +322,7 @@ export default function TopicosPage() {
                         <>
                           <button 
                             onClick={handleSave}
-                            className="text-green-600 hover:text-green-900 mr-3"
+                            className="text-pink-700 hover:text-pink-900 mr-3"
                           >
                             Salvar
                           </button>
@@ -337,7 +337,7 @@ export default function TopicosPage() {
                         <>
                           <button 
                             onClick={() => handleEdit(topico)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
+                            className="text-pink-700 hover:text-pink-900 mr-3"
                           >
                             Editar
                           </button>

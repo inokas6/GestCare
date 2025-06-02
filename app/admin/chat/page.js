@@ -49,7 +49,7 @@ export default function RespostasPage() {
       if (error) throw error;
       setUsuarios(data);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error('Erro ao buscar utilizadores:', error);
     }
   };
 
@@ -124,10 +124,10 @@ export default function RespostasPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Gerenciamento de Respostas</h1>
+        <h1 className="text-2xl text-black font-semibold">Gestão de Respostas</h1>
         <button 
           onClick={() => setShowNewRespostaForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          className="bg-pink-700 text-white px-4 py-2 rounded-lg hover:bg-rose-700"
         >
           Nova Resposta
         </button>
@@ -142,20 +142,20 @@ export default function RespostasPage() {
               <textarea
                 value={newResposta.conteudo}
                 onChange={(e) => setNewResposta({...newResposta, conteudo: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-rose-600 focus:ring-rose-600"
                 rows="4"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Usuário</label>
+              <label className="block text-sm font-medium text-gray-700">Utilizador</label>
               <select
                 value={newResposta.user_id}
                 onChange={(e) => setNewResposta({...newResposta, user_id: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-rose-600 focus:ring-rose-600"
                 required
               >
-                <option value="">Selecione um usuário</option>
+                <option value="">Selecione um Utilizador</option>
                 {usuarios.map(usuario => (
                   <option key={usuario.id} value={usuario.id}>
                     {usuario.nome}
@@ -173,7 +173,7 @@ export default function RespostasPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700"
               >
                 Criar Resposta
               </button>
@@ -240,7 +240,7 @@ export default function RespostasPage() {
                         <>
                           <button 
                             onClick={handleSave}
-                            className="text-green-600 hover:text-green-900 mr-3"
+                            className="text-rose-600 hover:text-rose-700 mr-3"
                           >
                             Salvar
                           </button>
@@ -255,7 +255,7 @@ export default function RespostasPage() {
                         <>
                           <button 
                             onClick={() => handleEdit(resposta)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
+                            className="text-rose-600 hover:text-rose-700 mr-3"
                           >
                             Editar
                           </button>

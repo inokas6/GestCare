@@ -122,10 +122,10 @@ export default function InfoGestacionalPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Gerenciamento de Informações Gestacionais</h1>
+        <h1 className="text-2xl font-semibold text-black">Gestão de Informações Gestacionais</h1>
         <button 
           onClick={() => setShowNewInfoForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          className="bg-pink-700 text-white px-4 py-2 rounded-lg hover:bg-pink-800"
         >
           Nova Informação
         </button>
@@ -143,7 +143,7 @@ export default function InfoGestacionalPage() {
                 max="40"
                 value={newInfo.semana}
                 onChange={(e) => setNewInfo({...newInfo, semana: parseInt(e.target.value)})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 required
               />
             </div>
@@ -152,7 +152,7 @@ export default function InfoGestacionalPage() {
               <textarea
                 value={newInfo.desenvolvimento_bebe}
                 onChange={(e) => setNewInfo({...newInfo, desenvolvimento_bebe: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 rows="4"
                 required
               />
@@ -162,7 +162,7 @@ export default function InfoGestacionalPage() {
               <textarea
                 value={newInfo.sintomas_comuns}
                 onChange={(e) => setNewInfo({...newInfo, sintomas_comuns: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 rows="4"
                 required
               />
@@ -172,7 +172,7 @@ export default function InfoGestacionalPage() {
               <textarea
                 value={newInfo.dicas_mae}
                 onChange={(e) => setNewInfo({...newInfo, dicas_mae: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 rows="4"
                 required
               />
@@ -182,7 +182,7 @@ export default function InfoGestacionalPage() {
               <textarea
                 value={newInfo.cuidados_especiais}
                 onChange={(e) => setNewInfo({...newInfo, cuidados_especiais: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 rows="4"
                 required
               />
@@ -197,7 +197,7 @@ export default function InfoGestacionalPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-pink-700 text-white rounded-md hover:bg-pink-800"
               >
                 Criar Informação
               </button>
@@ -329,7 +329,7 @@ export default function InfoGestacionalPage() {
                         <>
                           <button 
                             onClick={() => handleEdit(info)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
+                            className="text-pink-600 hover:text-pink-900 mr-3"
                           >
                             Editar
                           </button>

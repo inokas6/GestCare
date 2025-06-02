@@ -170,11 +170,11 @@ export default function CalendarioPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Gerenciamento de Calendário</h1>
+        <h1 className="text-2xl text-black font-semibold">Gestão de Calendário</h1>
         {selectedUser && (
           <button 
             onClick={() => setShowNewEventoForm(true)}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            className="bg-pink-700 text-white px-4 py-2 rounded-lg hover:bg-pink-800"
           >
             Novo Evento
           </button>
@@ -188,9 +188,9 @@ export default function CalendarioPage() {
         <select
           value={selectedUser || ''}
           onChange={(e) => setSelectedUser(e.target.value)}
-          className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          className="w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
         >
-          <option value="">Selecione um usuário</option>
+          <option value="">Selecione um Utilizador</option>
           {users.map(user => (
             <option key={user.id} value={user.id}>
               {user.nome} ({user.email})
@@ -209,7 +209,7 @@ export default function CalendarioPage() {
                 type="text"
                 value={newEvento.titulo}
                 onChange={(e) => setNewEvento({...newEvento, titulo: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 required
               />
             </div>
@@ -218,7 +218,7 @@ export default function CalendarioPage() {
               <textarea
                 value={newEvento.descricao}
                 onChange={(e) => setNewEvento({...newEvento, descricao: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 rows="3"
               />
             </div>
@@ -229,7 +229,7 @@ export default function CalendarioPage() {
                   type="date"
                   value={newEvento.inicio_data}
                   onChange={(e) => setNewEvento({...newEvento, inicio_data: e.target.value})}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                   required
                 />
               </div>
@@ -239,7 +239,7 @@ export default function CalendarioPage() {
                   type="date"
                   value={newEvento.fim_data}
                   onChange={(e) => setNewEvento({...newEvento, fim_data: e.target.value})}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 />
               </div>
             </div>
@@ -248,7 +248,7 @@ export default function CalendarioPage() {
               <select
                 value={newEvento.tipo_evento}
                 onChange={(e) => setNewEvento({...newEvento, tipo_evento: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 required
               >
                 {TIPOS_EVENTO.map(tipo => (
@@ -265,7 +265,7 @@ export default function CalendarioPage() {
                     type="checkbox"
                     checked={newEvento.lembrete}
                     onChange={(e) => setNewEvento({...newEvento, lembrete: e.target.checked})}
-                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-pink-700 focus:ring-pink-700"
                   />
                   <span className="text-sm font-medium text-gray-700">Lembrete</span>
                 </label>
@@ -277,7 +277,7 @@ export default function CalendarioPage() {
                     type="number"
                     value={newEvento.lembrete_antecedencia}
                     onChange={(e) => setNewEvento({...newEvento, lembrete_antecedencia: parseInt(e.target.value)})}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                     min="0"
                   />
                 </div>
@@ -293,7 +293,7 @@ export default function CalendarioPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-pink-700 text-white rounded-md hover:bg-pink-800"
               >
                 Criar Evento
               </button>
@@ -413,7 +413,7 @@ export default function CalendarioPage() {
                             ))}
                           </select>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
                             {evento.tipo_evento.charAt(0).toUpperCase() + evento.tipo_evento.slice(1)}
                           </span>
                         )}
@@ -426,7 +426,7 @@ export default function CalendarioPage() {
                                 type="checkbox"
                                 checked={editingEvento.lembrete}
                                 onChange={(e) => setEditingEvento({...editingEvento, lembrete: e.target.checked})}
-                                className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                                className="rounded border-gray-300 text-pink-700 focus:ring-pink-700"
                               />
                               <span className="text-sm text-gray-700">Lembrete</span>
                             </label>
@@ -461,7 +461,7 @@ export default function CalendarioPage() {
                           <>
                             <button 
                               onClick={handleSave}
-                              className="text-green-600 hover:text-green-900 mr-3"
+                              className="text-pink-700 hover:text-pink-900 mr-3"
                             >
                               Salvar
                             </button>
@@ -476,7 +476,7 @@ export default function CalendarioPage() {
                           <>
                             <button 
                               onClick={() => handleEdit(evento)}
-                              className="text-blue-600 hover:text-blue-900 mr-3"
+                              className="text-pink-700 hover:text-pink-900 mr-3"
                             >
                               Editar
                             </button>

@@ -25,13 +25,28 @@ export default function AdminLayout({ children }) {
                   Dashboard
                 </Link>
                 <Link href="/admin/users" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                  Usuários
+                  Utilizadores
                 </Link>
                 <Link href="/admin/topicos" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                   Tópicos
                 </Link>
                 <Link href="/admin/chat" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                   Chat
+                </Link>
+                <Link href="/admin/calendario" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                  Calendário
+                </Link>
+                <Link href="/admin/info-gestacional" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                  Informações Gestacionais
+                </Link>
+                <Link href="/admin/categorias" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                  Categorias
+                </Link>
+                <Link href="/admin/configuracoes" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                  Configurações
+                </Link>
+                <Link href="/admin/fotos-barriga" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                  Fotos Barriga
                 </Link>
               </div>
             </div>

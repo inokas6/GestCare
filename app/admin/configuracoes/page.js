@@ -31,7 +31,7 @@ export default function ConfiguracoesPage() {
               type="text"
               value={configs.nomeSistema}
               onChange={(e) => setConfigs({ ...configs, nomeSistema: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
             />
           </div>
 
@@ -43,7 +43,7 @@ export default function ConfiguracoesPage() {
               type="email"
               value={configs.emailContato}
               onChange={(e) => setConfigs({ ...configs, emailContato: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
             />
           </div>
 
@@ -55,7 +55,7 @@ export default function ConfiguracoesPage() {
               type="number"
               value={configs.limiteUsuarios}
               onChange={(e) => setConfigs({ ...configs, limiteUsuarios: parseInt(e.target.value) })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
             />
           </div>
 
@@ -66,7 +66,7 @@ export default function ConfiguracoesPage() {
             <select
               value={configs.tema}
               onChange={(e) => setConfigs({ ...configs, tema: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
             >
               <option value="claro">Claro</option>
               <option value="escuro">Escuro</option>
@@ -80,7 +80,7 @@ export default function ConfiguracoesPage() {
               id="manutencao"
               checked={configs.manutencao}
               onChange={(e) => setConfigs({ ...configs, manutencao: e.target.checked })}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-pink-700 focus:ring-pink-700 border-gray-300 rounded"
             />
             <label htmlFor="manutencao" className="ml-2 block text-sm text-gray-900">
               Modo de Manutenção
@@ -104,7 +104,7 @@ export default function ConfiguracoesPage() {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            className="px-4 py-2 bg-pink-700 text-white rounded-md hover:bg-pink-800"
           >
             Salvar Configurações
           </button>

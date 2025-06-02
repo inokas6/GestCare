@@ -123,10 +123,10 @@ export default function CategoriasPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Gerenciamento de Categorias</h1>
+        <h1 className="text-2xl text-black font-semibold">Gestão de Categorias</h1>
         <button 
           onClick={() => setShowNewCategoriaForm(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          className="bg-pink-700 text-white px-4 py-2 rounded-lg hover:bg-pink-800"
         >
           Nova Categoria
         </button>
@@ -142,7 +142,7 @@ export default function CategoriasPage() {
                 type="text"
                 value={newCategoria.nome}
                 onChange={(e) => setNewCategoria({...newCategoria, nome: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 required
               />
             </div>
@@ -151,7 +151,7 @@ export default function CategoriasPage() {
               <textarea
                 value={newCategoria.descricao}
                 onChange={(e) => setNewCategoria({...newCategoria, descricao: e.target.value})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 rows="3"
               />
             </div>
@@ -162,7 +162,7 @@ export default function CategoriasPage() {
                   type="color"
                   value={newCategoria.cor}
                   onChange={(e) => setNewCategoria({...newCategoria, cor: e.target.value})}
-                  className="mt-1 block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full h-10 rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                 />
               </div>
               <div>
@@ -171,7 +171,7 @@ export default function CategoriasPage() {
                   type="text"
                   value={newCategoria.icone}
                   onChange={(e) => setNewCategoria({...newCategoria, icone: e.target.value})}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                   maxLength="2"
                 />
               </div>
@@ -183,7 +183,7 @@ export default function CategoriasPage() {
                   type="number"
                   value={newCategoria.ordem}
                   onChange={(e) => setNewCategoria({...newCategoria, ordem: parseInt(e.target.value)})}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-700 focus:ring-pink-700"
                   min="0"
                 />
               </div>
@@ -193,7 +193,7 @@ export default function CategoriasPage() {
                     type="checkbox"
                     checked={newCategoria.ativa}
                     onChange={(e) => setNewCategoria({...newCategoria, ativa: e.target.checked})}
-                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-pink-700 focus:ring-pink-700"
                   />
                   <span className="text-sm font-medium text-gray-700">Ativa</span>
                 </label>
@@ -209,7 +209,7 @@ export default function CategoriasPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                className="px-4 py-2 bg-pink-700 text-white rounded-md hover:bg-pink-800"
               >
                 Criar Categoria
               </button>
@@ -337,7 +337,7 @@ export default function CategoriasPage() {
                             type="checkbox"
                             checked={editingCategoria.ativa}
                             onChange={(e) => setEditingCategoria({...editingCategoria, ativa: e.target.checked})}
-                            className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
+                            className="rounded border-gray-300 text-pink-700 focus:ring-pink-700"
                           />
                         </label>
                       ) : (
@@ -355,7 +355,7 @@ export default function CategoriasPage() {
                         <>
                           <button 
                             onClick={handleSave}
-                            className="text-green-600 hover:text-green-900 mr-3"
+                            className="text-pink-700 hover:text-pink-900 mr-3"
                           >
                             Salvar
                           </button>
@@ -370,7 +370,7 @@ export default function CategoriasPage() {
                         <>
                           <button 
                             onClick={() => handleEdit(categoria)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
+                            className="text-pink-700 hover:text-pink-900 mr-3"
                           >
                             Editar
                           </button>
