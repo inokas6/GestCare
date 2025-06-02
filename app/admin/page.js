@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 export default function AdminDashboard() {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 1247,
     totalTopicos: 89,
@@ -45,6 +51,60 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAuth = async () => {
+      try {
+        // Verificar sessão do Supabase
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Verificar localStorage
+        const adminAuth = localStorage.getItem('adminAuth');
+        
+        if (!session || !adminAuth) {
+          if (isMounted) {
+            console.log('Não autenticado, redirecionando para login...');
+            router.replace('/admin/login');
+          }
+          return;
+        }
+
+        // Verificar se o token não expirou (24 horas)
+        const authData = JSON.parse(adminAuth);
+        const tokenTimestamp = new Date(authData.timestamp);
+        const now = new Date();
+        const hoursDiff = (now - tokenTimestamp) / (1000 * 60 * 60);
+
+        if (hoursDiff > 24) {
+          if (isMounted) {
+            console.log('Token expirado, redirecionando para login...');
+            localStorage.removeItem('adminAuth');
+            router.replace('/admin/login');
+          }
+          return;
+        }
+
+        if (isMounted) {
+          console.log('Autenticação válida');
+          setIsAuthenticated(true);
+          setIsChecking(false);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar autenticação:', error);
+        if (isMounted) {
+          router.replace('/admin/login');
+        }
+      }
+    };
+
+    checkAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const StatCard = ({ title, value, change, icon: Icon, color, trend }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300">
       <div className="flex items-center justify-between">
@@ -84,6 +144,21 @@ export default function AdminDashboard() {
       {label}
     </button>
   );
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-pink-50 to-rose-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) {
     return (
