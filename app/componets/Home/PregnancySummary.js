@@ -8,7 +8,7 @@ const PregnancySummary = ({ week }) => {
   const [infoSemanal, setInfoSemanal] = useState({
     dicas_mae: "carregando dicascarregando"
   });
-  const [tamanhoBebe, setTamanhoBebe] = useState("carregandocarregando");
+  const [tamanhoBebe, setTamanhoBebe] = useState("...");
   const [error, setError] = useState(null);
   const [pregnancyData, setPregnancyData] = useState({
     dataInicio: null,

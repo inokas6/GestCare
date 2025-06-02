@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { differenceInWeeks } from "date-fns";
+import ConfigModal from './ConfigModal';
 
 const DailyTip = () => {
   const [dicaSemanal, setDicaSemanal] = useState("Carregando dicas...");
   const [semanaAtual, setSemanaAtual] = useState(0);
+  const [showModal, setShowModal] = useState(false);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -24,7 +26,20 @@ const DailyTip = () => {
           .eq("user_id", user.id)
           .single();
 
-        if (gravidezError) throw gravidezError;
+        if (gravidezError) {
+          if (gravidezError.code === 'PGRST116') {
+            setDicaSemanal("Clique aqui para configurar sua gravidez e receber dicas personalizadas.");
+            setShowModal(true);
+            return;
+          }
+          throw gravidezError;
+        }
+
+        if (!gravidezData) {
+          setDicaSemanal("Clique aqui para configurar sua gravidez e receber dicas personalizadas.");
+          setShowModal(true);
+          return;
+        }
 
         const dataInicio = new Date(gravidezData.data_ultima_menstruacao || gravidezData.data_inicio);
         const hoje = new Date();
@@ -44,7 +59,8 @@ const DailyTip = () => {
         }
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
-        setDicaSemanal("Erro ao carregar informações. Por favor, tente novamente mais tarde.");
+        setDicaSemanal("Clique aqui para configurar sua gravidez e receber dicas personalizadas.");
+        setShowModal(true);
       }
     };
 
@@ -58,30 +74,40 @@ const DailyTip = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">Dica do dia</h3>
-        <button className="text-purple-600 text-sm font-medium">Ver mais</button>
-      </div>
-      
-      <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-        <h4 className="font-medium text-purple-800 mb-2">Semana {semanaAtual}</h4>
-        <p className="text-gray-700 text-sm mb-3">
-          {dicaSemanal}
-        </p>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center text-purple-600">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-              <path d="M3 9c2-2 5.5-1.5 5.5 1 0 1.5-1 2-2 3l-.5 1h3"></path>
-              <circle cx="15" cy="12" r="3"></circle>
-              <path d="M18 22a5 5 0 0 0 0-10"></path>
-            </svg>
-            <span className="text-xs font-medium">Dicas para {getTrimester(semanaAtual)}° trimestre</span>
+    <>
+      <div className="bg-white rounded-2xl shadow-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Dica do dia</h3>
+          <button className="text-purple-600 text-sm font-medium">Ver mais</button>
+        </div>
+        
+        <div 
+          className="bg-purple-50 rounded-lg p-4 border border-purple-100 cursor-pointer hover:bg-purple-100 transition-colors"
+          onClick={() => setShowModal(true)}
+        >
+          <h4 className="font-medium text-purple-800 mb-2">Semana {semanaAtual}</h4>
+          <p className="text-gray-700 text-sm mb-3">
+            {dicaSemanal}
+          </p>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center text-purple-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M3 9c2-2 5.5-1.5 5.5 1 0 1.5-1 2-2 3l-.5 1h3"></path>
+                <circle cx="15" cy="12" r="3"></circle>
+                <path d="M18 22a5 5 0 0 0 0-10"></path>
+              </svg>
+              <span className="text-xs font-medium">Dicas para {getTrimester(semanaAtual)}° trimestre</span>
+            </div>
+            <span className="text-xs text-gray-500">Hoje</span>
           </div>
-          <span className="text-xs text-gray-500">Hoje</span>
         </div>
       </div>
-    </div>
+
+      <ConfigModal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)} 
+      />
+    </>
   );
 };
 
