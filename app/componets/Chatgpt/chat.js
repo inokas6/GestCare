@@ -1,3 +1,5 @@
+/*
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -69,4 +71,4 @@ function Chatbot() {
   );
 }
 
-export default Chatbot;
+export default Chatbot; */
