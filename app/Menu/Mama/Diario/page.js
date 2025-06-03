@@ -23,6 +23,12 @@ const PregnancyDiary = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   
+  // Novos estados para filtros
+  const [filtroHumor, setFiltroHumor] = useState('todos');
+  const [filtroSintoma, setFiltroSintoma] = useState('todos');
+  const [filtroPeriodo, setFiltroPeriodo] = useState('todos');
+  const [entradasFiltradas, setEntradasFiltradas] = useState([]);
+  
   const supabase = createClientComponentClient();
   
   // Lista de sintomas comuns na gravidez
@@ -377,6 +383,43 @@ const PregnancyDiary = () => {
     return entry ? entry.mood : false;
   };
   
+  // Função para filtrar as entradas
+  useEffect(() => {
+    let resultado = [...entries];
+
+    // Filtro por humor
+    if (filtroHumor !== 'todos') {
+      resultado = resultado.filter(entry => entry.mood === filtroHumor);
+    }
+
+    // Filtro por sintoma
+    if (filtroSintoma !== 'todos') {
+      resultado = resultado.filter(entry => entry.symptoms.includes(filtroSintoma));
+    }
+
+    // Filtro por período
+    const hoje = new Date();
+    if (filtroPeriodo !== 'todos') {
+      resultado = resultado.filter(entry => {
+        const dataEntrada = new Date(entry.date.split('/').reverse().join('-'));
+        const diffDias = Math.floor((hoje - dataEntrada) / (1000 * 60 * 60 * 24));
+        
+        switch (filtroPeriodo) {
+          case '7dias':
+            return diffDias <= 7;
+          case '30dias':
+            return diffDias <= 30;
+          case '90dias':
+            return diffDias <= 90;
+          default:
+            return true;
+        }
+      });
+    }
+
+    setEntradasFiltradas(resultado);
+  }, [entries, filtroHumor, filtroSintoma, filtroPeriodo]);
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white text-pink-900">
       <div className="mt-[80px]">
@@ -478,6 +521,61 @@ const PregnancyDiary = () => {
               </div>
             </div>
           )}
+          
+          {/* Filtros do Diário */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-pink-100 mb-10">
+            <h3 className="text-lg font-semibold text-pink-800 mb-4">Filtrar entradas:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Filtro por Humor */}
+              <div>
+                <label className="block text-sm font-medium text-pink-700 mb-2">Humor</label>
+                <select
+                  value={filtroHumor}
+                  onChange={(e) => setFiltroHumor(e.target.value)}
+                  className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-black"
+                >
+                  <option value="todos">Todos os humores</option>
+                  {moodOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.emoji} {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por Sintoma */}
+              <div>
+                <label className="block text-sm font-medium text-pink-700 mb-2">Sintoma</label>
+                <select
+                  value={filtroSintoma}
+                  onChange={(e) => setFiltroSintoma(e.target.value)}
+                  className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-black"
+                >
+                  <option value="todos">Todos os sintomas</option>
+                  {symptomsList.map((symptom) => (
+                    <option key={symptom} value={symptom}>
+                      {symptom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro por Período */}
+              <div>
+                <label className="block text-sm font-medium text-pink-700 mb-2">Período</label>
+                <select
+                  value={filtroPeriodo}
+                  onChange={(e) => setFiltroPeriodo(e.target.value)}
+                  className="w-full px-4 py-2 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-black"
+                >
+                  <option value="todos">Todo o período</option>
+                  <option value="7dias">Últimos 7 dias</option>
+                  <option value="30dias">Últimos 30 dias</option>
+                  <option value="90dias">Últimos 90 dias</option>
+                </select>
+              </div>
+            </div>
+          </div>
           
           {/* Add New Entry Button */}
           {!showForm && (
@@ -640,17 +738,17 @@ const PregnancyDiary = () => {
               Entradas anteriores
             </h2>
             
-            {entries.length === 0 ? (
+            {entradasFiltradas.length === 0 ? (
               <div className="text-center p-12 bg-white rounded-2xl shadow-md border border-pink-100">
                 <div className="w-20 h-20 mx-auto bg-pink-100 rounded-full flex items-center justify-center mb-4">
                   <span className="text-4xl">📝</span>
                 </div>
-                <h3 className="text-xl font-bold text-pink-800 mb-2">Sem entradas ainda</h3>
-                <p className="text-pink-600">Adicione o seu primeiro registo para começar a documentar a sua jornada!</p>
+                <h3 className="text-xl font-bold text-pink-800 mb-2">Nenhuma entrada encontrada</h3>
+                <p className="text-pink-600">Tente ajustar os filtros ou adicione uma nova entrada!</p>
               </div>
             ) : (
               <div className="space-y-6">
-                {entries.map(entry => (
+                {entradasFiltradas.map(entry => (
                   <div key={entry.id} className="bg-white p-6 rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-all">
                     <div className="flex flex-col md:flex-row justify-between mb-4">
                       <div className="mb-4 md:mb-0">

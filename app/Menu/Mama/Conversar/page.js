@@ -16,6 +16,7 @@ export default function ConversarPage() {
   const [showNewTopic, setShowNewTopic] = useState(false);
   const [comentariosAbertos, setComentariosAbertos] = useState({});
   const [topicosFiltrados, setTopicosFiltrados] = useState([]);
+  const [ordemAtual, setOrdemAtual] = useState('recente'); // 'recente', 'antigo', 'comentarios'
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -52,24 +53,40 @@ export default function ConversarPage() {
   }, []);
 
   useEffect(() => {
-    const filtrarTopicos = () => {
-      if (!searchQuery.trim()) {
-        setTopicosFiltrados(topicos);
-        return;
+    const filtrarEOrdenarTopicos = () => {
+      let resultado = [...topicos];
+
+      // Aplicar filtro de busca
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        resultado = resultado.filter(topico => 
+          topico.titulo.toLowerCase().includes(query) ||
+          topico.conteudo.toLowerCase().includes(query) ||
+          topico.users?.nome?.toLowerCase().includes(query) ||
+          topico.categorias?.nome?.toLowerCase().includes(query)
+        );
       }
 
-      const query = searchQuery.toLowerCase();
-      const filtrados = topicos.filter(topico => 
-        topico.titulo.toLowerCase().includes(query) ||
-        topico.conteudo.toLowerCase().includes(query) ||
-        topico.users?.nome?.toLowerCase().includes(query) ||
-        topico.categorias?.nome?.toLowerCase().includes(query)
-      );
-      setTopicosFiltrados(filtrados);
+      // Aplicar ordenação
+      switch (ordemAtual) {
+        case 'recente':
+          resultado.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          break;
+        case 'antigo':
+          resultado.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+          break;
+        case 'comentarios':
+          resultado.sort((a, b) => b.totalComentarios - a.totalComentarios);
+          break;
+        default:
+          break;
+      }
+
+      setTopicosFiltrados(resultado);
     };
 
-    filtrarTopicos();
-  }, [searchQuery, topicos]);
+    filtrarEOrdenarTopicos();
+  }, [searchQuery, topicos, ordemAtual]);
 
   const formatarData = (dataString) => {
     if (!dataString) return '';
@@ -90,48 +107,63 @@ export default function ConversarPage() {
       <div className="pl-0 sm:pl-48 lg:pl-64 mt-[80px]">
         <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
           {/* Barra de pesquisa e botão New Topic */}
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="Pesquise publicações"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <svg
-                className="absolute left-3 top-2.5 h-5 w-5 text-black"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Pesquise publicações"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 pl-10 border text-black border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
-              </svg>
+                <svg
+                  className="absolute left-3 top-2.5 h-5 w-5 text-black"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <button
+                onClick={() => setShowNewTopic(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Publicação
+              </button>
             </div>
-            <button
-              onClick={() => setShowNewTopic(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
+
+            {/* Ordenação */}
+            <div className="flex gap-4 items-center">
+              <select
+                value={ordemAtual}
+                onChange={(e) => setOrdemAtual(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-black"
               >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Publicação
-            </button>
+                <option value="recente">Mais recentes</option>
+                <option value="antigo">Mais antigos</option>
+                <option value="comentarios">Mais comentados</option>
+              </select>
+            </div>
           </div>
 
           {/* Modal do New Topic */}
