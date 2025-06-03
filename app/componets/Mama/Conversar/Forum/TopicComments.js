@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { verificarPalavrasProibidas } from './palavrasProibidas';
 
 export default function TopicComments({ topicoId }) {
     const [comentarios, setComentarios] = useState([]);
@@ -44,6 +45,13 @@ export default function TopicComments({ topicoId }) {
         if (!novoComentario.trim()) return;
 
         try {
+            // Verificar palavras proibidas no comentário
+            const verificarComentario = verificarPalavrasProibidas(novoComentario);
+
+            if (verificarComentario.contemPalavraProibida) {
+                throw new Error(`O comentário contém palavras inapropriadas: ${verificarComentario.palavraEncontrada}`);
+            }
+
             // Obter a sessão atual
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             

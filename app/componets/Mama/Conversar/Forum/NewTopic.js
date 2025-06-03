@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { forum } from '../../../../../server/api/forum';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { verificarPalavrasProibidas } from './palavrasProibidas';
 
 export default function NewTopic({ onClose }) {
     const router = useRouter();
@@ -35,6 +36,18 @@ export default function NewTopic({ onClose }) {
         setError(null);
 
         try {
+            // Verificar palavras proibidas no título e conteúdo
+            const verificarTitulo = verificarPalavrasProibidas(titulo);
+            const verificarConteudo = verificarPalavrasProibidas(conteudo);
+
+            if (verificarTitulo.contemPalavraProibida) {
+                throw new Error(`O título contém palavras inapropriadas: ${verificarTitulo.palavraEncontrada}`);
+            }
+
+            if (verificarConteudo.contemPalavraProibida) {
+                throw new Error(`O conteúdo contém palavras inapropriadas: ${verificarConteudo.palavraEncontrada}`);
+            }
+
             const { data: { user }, error: authError } = await supabase.auth.getUser();
             
             if (authError || !user) {
