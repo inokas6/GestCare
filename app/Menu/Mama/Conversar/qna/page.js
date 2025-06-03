@@ -14,6 +14,7 @@ export default function QnaPage() {
     const [error, setError] = useState(null);
     const [comentariosAbertos, setComentariosAbertos] = useState({});
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isDeletingComment, setIsDeletingComment] = useState(false);
     const supabase = createClientComponentClient();
     const router = useRouter();
 
@@ -86,6 +87,34 @@ export default function QnaPage() {
 
     const handleEdit = (topicoId) => {
         router.push(`/Menu/Mama/Conversar/forum/editar/${topicoId}`);
+    };
+
+    const handleDeleteComment = async (topicoId, commentId) => {
+        if (!confirm('Tem certeza que deseja eliminar este comentário?')) return;
+        
+        try {
+            setIsDeletingComment(true);
+            
+            // Deletar o comentário
+            const { error } = await supabase
+                .from('comentarios')
+                .delete()
+                .eq('id', commentId);
+
+            if (error) throw error;
+
+            // Atualizar o tópico para refletir a mudança no número de comentários
+            const topicoAtualizado = topicos.find(t => t.id === topicoId);
+            if (topicoAtualizado) {
+                topicoAtualizado.totalComentarios = Math.max(0, topicoAtualizado.totalComentarios - 1);
+                setTopicos([...topicos]);
+            }
+
+        } catch (err) {
+            setError('Erro ao eliminar o comentário: ' + err.message);
+        } finally {
+            setIsDeletingComment(false);
+        }
     };
 
     return (
@@ -178,10 +207,14 @@ export default function QnaPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Seção de comentários (somente visualização) */}
+                                            {/* Seção de comentários (com opção de deletar) */}
                                             {comentariosAbertos[topico.id] && (
                                                 <div className="mt-4">
-                                                    <ViewOnlyComments topicoId={topico.id} />
+                                                    <ViewOnlyComments 
+                                                        topicoId={topico.id} 
+                                                        onDeleteComment={(commentId) => handleDeleteComment(topico.id, commentId)}
+                                                        isDeleting={isDeletingComment}
+                                                    />
                                                 </div>
                                             )}
                                         </div>
