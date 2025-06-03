@@ -175,6 +175,7 @@ export default function CalendarioGravidez() {
         .from("calendario")
         .select("*")
         .eq("user_id", userId)
+        .gte("inicio_data", new Date().toISOString().split('T')[0])
         .order("inicio_data", { ascending: true });
         
       if (error) throw error;
