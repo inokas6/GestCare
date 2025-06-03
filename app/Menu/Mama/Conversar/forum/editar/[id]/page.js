@@ -83,7 +83,7 @@ export default function EditarTopico({ params }) {
             return;
         }
 
-        if (!confirm('Tem certeza que deseja salvar as alterações?')) return;
+        if (!confirm('Tem certeza que deseja guardar as alterações?')) return;
 
         setIsSaving(true);
         setError(null);
@@ -107,7 +107,7 @@ export default function EditarTopico({ params }) {
                 router.push('/Menu/Mama/Conversar/qna');
             }, 2000);
         } catch (err) {
-            setError('Erro ao salvar as alterações: ' + err.message);
+            setError('Erro ao guardar as alterações: ' + err.message);
         } finally {
             setIsSaving(false);
         }

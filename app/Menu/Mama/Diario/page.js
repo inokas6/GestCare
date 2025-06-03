@@ -124,7 +124,8 @@ const PregnancyDiary = () => {
   };
 
   const handleDeleteEntry = async (entryId) => {
-    if (!confirm('Tem certeza que deseja eliminar esta entrada?')) return;
+    const confirmar = window.confirm('Tem certeza que deseja eliminar esta entrada? Esta ação não pode ser desfeita.');
+    if (!confirmar) return;
 
     try {
       // Primeiro, eliminar os sintomas relacionados
@@ -145,6 +146,9 @@ const PregnancyDiary = () => {
 
       // Atualizar a lista de entradas
       await fetchDiaryEntries(userId);
+      
+      // Mostrar mensagem de sucesso
+      alert('Entrada eliminada com sucesso!');
     } catch (error) {
       console.error('Erro ao eliminar entrada:', error);
       alert('Erro ao eliminar entrada. Por favor, tente novamente.');
@@ -164,6 +168,16 @@ const PregnancyDiary = () => {
   const handleSaveEntry = async () => {
     if (!userId) {
       alert('Por favor, faça login para guardar entradas no diário');
+      return;
+    }
+
+    // Adicionar confirmação se estiver editando ou adicionando nova entrada
+    const mensagemConfirmacao = editingEntry 
+      ? 'Tem certeza que deseja guardar as alterações?' 
+      : 'Tem certeza que deseja adicionar uma nova entrada?';
+    
+    const confirmar = window.confirm(mensagemConfirmacao);
+    if (!confirmar) {
       return;
     }
 
@@ -204,6 +218,9 @@ const PregnancyDiary = () => {
 
           if (sintomasError) throw sintomasError;
         }
+
+        // Mostrar mensagem de sucesso
+        alert('Entrada atualizada com sucesso!');
       } else {
         // Inserir nova entrada
         const { data: entryData, error: entryError } = await supabase
@@ -235,6 +252,9 @@ const PregnancyDiary = () => {
 
           if (sintomasError) throw sintomasError;
         }
+
+        // Mostrar mensagem de sucesso
+        alert('Nova entrada adicionada com sucesso!');
       }
 
       // Atualizar lista de entradas
