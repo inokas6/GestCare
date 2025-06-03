@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Componente do rodapé da página
-const footer = () => {
+const Footer = () => {
     return (
         // Contentor principal do rodapé
         <footer className="footer bg-base-200 text-base-content p-10">
@@ -45,4 +45,4 @@ const footer = () => {
 };
 
 // Exporta o componente do rodapé
-export default footer;
+export default Footer;

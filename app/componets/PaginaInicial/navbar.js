@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 
 // Componente da barra de navegação
-const navbar = () => {
+const Navbar = () => {
   return (
     // Contentor principal da barra de navegação
     <div className="navbar bg-neutral">
@@ -54,4 +54,4 @@ const navbar = () => {
 };
 
 // Exporta o componente
-export default navbar;
+export default Navbar;

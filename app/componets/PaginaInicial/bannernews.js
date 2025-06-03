@@ -2,7 +2,7 @@
 import React from 'react';
 
 // Componente do banner de notícias e boas-vindas
-const not = () => {
+const Not = () => {
     return (
         // Contentor principal com largura ajustada
         <div className="w-[calc(100%-60px)] ">
@@ -32,4 +32,4 @@ const not = () => {
 };
 
 // Exporta o componente do banner
-export default not;
+export default Not;

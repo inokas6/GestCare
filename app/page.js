@@ -4,7 +4,8 @@ import Navbarbaby from "./componets/PaginaInicial/navbar";
 import Circulos from "./componets/PaginaInicial/circulos";
 import Not from "./componets/PaginaInicial/bannernews";
 import Contagem from "./componets/PaginaInicial/contagem";
-import Chatbot from "./componets/Chatgpt/chat";
+import TabelaNoticias from "./componets/PaginaInicial/tabelaNoticias";
+//import Chatbot from "./componets/Chatgpt/chat";
 
 const BabyCarePage = () => {
   return (
@@ -13,7 +14,8 @@ const BabyCarePage = () => {
       <Not />
       <Circulos/>
       <Contagem/>
-      <Chatbot />
+      <TabelaNoticias />
+      {/* <Chatbot /> */}
       <Footerbaby />
     </div> 
   );

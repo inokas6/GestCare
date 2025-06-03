@@ -1,4 +1,4 @@
-/*
+
 
 'use client';
 
@@ -71,4 +71,4 @@ function Chatbot() {
   );
 }
 
-export default Chatbot; */
+export default Chatbot; 
