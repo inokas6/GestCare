@@ -8,6 +8,8 @@ export default function TopicComments({ topicoId }) {
     const [novoComentario, setNovoComentario] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [showInappropriateModal, setShowInappropriateModal] = useState(false);
+    const [inappropriateWord, setInappropriateWord] = useState('');
     const supabase = createClientComponentClient();
 
     useEffect(() => {
@@ -49,7 +51,9 @@ export default function TopicComments({ topicoId }) {
             const verificarComentario = verificarPalavrasProibidas(novoComentario);
 
             if (verificarComentario.contemPalavraProibida) {
-                throw new Error(`O comentário contém palavras inapropriadas: ${verificarComentario.palavraEncontrada}`);
+                setInappropriateWord(verificarComentario.palavraEncontrada);
+                setShowInappropriateModal(true);
+                return;
             }
 
             // Obter a sessão atual
@@ -83,6 +87,26 @@ export default function TopicComments({ topicoId }) {
 
     return (
         <div className="mt-4 space-y-4">
+            {showInappropriateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4 text-red-600">Aviso</h3>
+                        <p className="mb-6">Não é possível publicar este comentário pois contém palavras inapropriadas.</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => {
+                                    setShowInappropriateModal(false);
+                                    setInappropriateWord('');
+                                }}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            >
+                                Entendi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <form onSubmit={handleSubmit} className="flex gap-2">
                 <input
                     type="text"

@@ -4,6 +4,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../../../../componets/Home/navbar_home';
 import Sidebar from '../../../../../../componets/Mama/Conversar/Forum/Sidebar';
+import { verificarPalavrasProibidas } from '../../../../../../componets/Mama/Conversar/Forum/palavrasProibidas';
 
 export default function EditarTopico({ params }) {
     const [topico, setTopico] = useState(null);
@@ -14,6 +15,9 @@ export default function EditarTopico({ params }) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [showInappropriateModal, setShowInappropriateModal] = useState(false);
+    const [inappropriateWord, setInappropriateWord] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
     
     const router = useRouter();
     const supabase = createClientComponentClient();
@@ -61,6 +65,25 @@ export default function EditarTopico({ params }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Verificar palavras proibidas no título e conteúdo
+        const verificarTitulo = verificarPalavrasProibidas(titulo);
+        const verificarConteudo = verificarPalavrasProibidas(conteudo);
+
+        if (verificarTitulo.contemPalavraProibida) {
+            setInappropriateWord(verificarTitulo.palavraEncontrada);
+            setShowInappropriateModal(true);
+            return;
+        }
+
+        if (verificarConteudo.contemPalavraProibida) {
+            setInappropriateWord(verificarConteudo.palavraEncontrada);
+            setShowInappropriateModal(true);
+            return;
+        }
+
+        if (!confirm('Tem certeza que deseja salvar as alterações?')) return;
+
         setIsSaving(true);
         setError(null);
 
@@ -77,7 +100,11 @@ export default function EditarTopico({ params }) {
 
             if (error) throw error;
 
-            router.push('/Menu/Mama/Conversar/qna');
+            setSuccessMessage('Publicação atualizada com sucesso!');
+            setTimeout(() => {
+                setSuccessMessage('');
+                router.push('/Menu/Mama/Conversar/qna');
+            }, 2000);
         } catch (err) {
             setError('Erro ao salvar as alterações: ' + err.message);
         } finally {
@@ -121,6 +148,30 @@ export default function EditarTopico({ params }) {
         <div className="min-h-screen bg-gray-50">
             <Navbar />
             <Sidebar />
+            {successMessage && (
+                <div className="fixed top-20 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg z-50">
+                    {successMessage}
+                </div>
+            )}
+            {showInappropriateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4 text-red-600">Aviso</h3>
+                        <p className="mb-6 text-black">Não é possível publicar este conteúdo pois contém palavras inapropriadas.</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => {
+                                    setShowInappropriateModal(false);
+                                    setInappropriateWord('');
+                                }}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            >
+                                Entendi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="pl-0 sm:pl-48 lg:pl-64 mt-[80px]">
                 <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
                     <h1 className="text-2xl font-bold text-gray-800 mb-6">Editar Publicação</h1>

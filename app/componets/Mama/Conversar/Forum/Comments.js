@@ -9,6 +9,9 @@ export default function Comments({ topicId }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showInappropriateModal, setShowInappropriateModal] = useState(false);
+    const [inappropriateWord, setInappropriateWord] = useState('');
 
     useEffect(() => {
         async function fetchRespostas() {
@@ -30,8 +33,27 @@ export default function Comments({ topicId }) {
         e.preventDefault();
         if (!novaResposta.trim()) return;
 
+        try {
+            // Verificar palavras proibidas no comentário
+            const verificarComentario = verificarPalavrasProibidas(novaResposta);
+
+            if (verificarComentario.contemPalavraProibida) {
+                setInappropriateWord(verificarComentario.palavraEncontrada);
+                setShowInappropriateModal(true);
+                return;
+            }
+
+            setShowConfirmModal(true);
+        } catch (err) {
+            console.error('Erro ao verificar comentário:', err);
+            setError(err.message);
+        }
+    };
+
+    const handleConfirmSubmit = async () => {
         setSubmitting(true);
         setError(null);
+        setShowConfirmModal(false);
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -45,9 +67,15 @@ export default function Comments({ topicId }) {
                 user.id
             );
 
-            if (error) throw error;
+            if (error) {
+                if (error.message.includes('palavras inapropriadas')) {
+                    setError('Não é possível publicar este comentário pois contém palavras inapropriadas.');
+                } else {
+                    throw error;
+                }
+                return;
+            }
 
-            // Atualizar a lista de respostas
             const { data: updatedRespostas } = await forum.getRespostas(topicId);
             setRespostas(updatedRespostas || []);
             setNovaResposta('');
@@ -63,6 +91,49 @@ export default function Comments({ topicId }) {
 
     return (
         <div className="space-y-4 sm:space-y-6">
+            {showConfirmModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4">Confirmar publicação</h3>
+                        <p className="mb-6">Tem certeza que deseja publicar este comentário?</p>
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={() => setShowConfirmModal(false)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmSubmit}
+                                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                            >
+                                Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showInappropriateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4 text-red-600">Aviso</h3>
+                        <p className="mb-6">Não é possível publicar este comentário pois contém palavras inapropriadas.</p>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => {
+                                    setShowInappropriateModal(false);
+                                    setInappropriateWord('');
+                                }}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            >
+                                Entendi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <form onSubmit={handleSubmit} className="mb-4 sm:mb-6">
                 <textarea
                     value={novaResposta}

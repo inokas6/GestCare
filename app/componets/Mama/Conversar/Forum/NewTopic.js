@@ -14,6 +14,8 @@ export default function NewTopic({ onClose }) {
     const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [showInappropriateModal, setShowInappropriateModal] = useState(false);
+    const [inappropriateWord, setInappropriateWord] = useState('');
 
     useEffect(() => {
         async function fetchCategorias() {
@@ -32,6 +34,7 @@ export default function NewTopic({ onClose }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         setLoading(true);
         setError(null);
 
@@ -41,11 +44,17 @@ export default function NewTopic({ onClose }) {
             const verificarConteudo = verificarPalavrasProibidas(conteudo);
 
             if (verificarTitulo.contemPalavraProibida) {
-                throw new Error(`O título contém palavras inapropriadas: ${verificarTitulo.palavraEncontrada}`);
+                setInappropriateWord(verificarTitulo.palavraEncontrada);
+                setShowInappropriateModal(true);
+                setLoading(false);
+                return;
             }
 
             if (verificarConteudo.contemPalavraProibida) {
-                throw new Error(`O conteúdo contém palavras inapropriadas: ${verificarConteudo.palavraEncontrada}`);
+                setInappropriateWord(verificarConteudo.palavraEncontrada);
+                setShowInappropriateModal(true);
+                setLoading(false);
+                return;
             }
 
             const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -89,6 +98,26 @@ export default function NewTopic({ onClose }) {
                     </div>
                 )}
 
+                {showInappropriateModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                            <h3 className="text-lg font-semibold mb-4 text-red-600">Aviso</h3>
+                            <p className="mb-6">Não é possível publicar este conteúdo pois contém palavras inapropriadas.</p>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => {
+                                        setShowInappropriateModal(false);
+                                        setInappropriateWord('');
+                                    }}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                >
+                                    Entendi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -115,8 +144,7 @@ export default function NewTopic({ onClose }) {
                         >
                             {categorias.map((categoria) => (
                                 <option key={categoria.id} value={categoria.id}>
-                                    <span className="mr-2">{categoria.icone}</span>
-                                    {categoria.nome}
+                                    {categoria.icone} {categoria.nome}
                                 </option>
                             ))}
                         </select>

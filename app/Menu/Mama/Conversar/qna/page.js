@@ -15,6 +15,7 @@ export default function QnaPage() {
     const [comentariosAbertos, setComentariosAbertos] = useState({});
     const [isDeleting, setIsDeleting] = useState(false);
     const [isDeletingComment, setIsDeletingComment] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
     const supabase = createClientComponentClient();
     const router = useRouter();
 
@@ -78,6 +79,8 @@ export default function QnaPage() {
             if (error) throw error;
 
             setTopicos(topicos.filter(t => t.id !== topicoId));
+            setSuccessMessage('Publicação eliminada com sucesso!');
+            setTimeout(() => setSuccessMessage(''), 3000);
         } catch (err) {
             setError('Erro ao eliminar a publicação: ' + err.message);
         } finally {
@@ -90,12 +93,11 @@ export default function QnaPage() {
     };
 
     const handleDeleteComment = async (topicoId, commentId) => {
-        if (!confirm('Tem certeza que deseja eliminar este comentário?')) return;
+        if (!confirm('Tem a certeza que deseja eliminar este comentário? Esta ação não pode ser desfeita.')) return;
         
         try {
             setIsDeletingComment(true);
             
-            // Deletar o comentário
             const { error } = await supabase
                 .from('comentarios')
                 .delete()
@@ -103,12 +105,14 @@ export default function QnaPage() {
 
             if (error) throw error;
 
-            // Atualizar o tópico para refletir a mudança no número de comentários
             const topicoAtualizado = topicos.find(t => t.id === topicoId);
             if (topicoAtualizado) {
                 topicoAtualizado.totalComentarios = Math.max(0, topicoAtualizado.totalComentarios - 1);
                 setTopicos([...topicos]);
             }
+
+            setSuccessMessage('Comentário eliminado com sucesso!');
+            setTimeout(() => setSuccessMessage(''), 3000);
 
         } catch (err) {
             setError('Erro ao eliminar o comentário: ' + err.message);
@@ -121,6 +125,11 @@ export default function QnaPage() {
         <div className="min-h-screen bg-gray-50">
             <Navbar />
             <Sidebar />
+            {successMessage && (
+                <div className="fixed top-20 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg z-50">
+                    {successMessage}
+                </div>
+            )}
             <div className="pl-0 sm:pl-48 lg:pl-64 mt-[80px]">
                 <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
                     <h1 className="text-2xl font-bold text-gray-800 mb-6">Meus Posts</h1>
