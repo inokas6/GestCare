@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../../../../componets/Home/navbar_home';
@@ -7,6 +7,7 @@ import Sidebar from '../../../../../../componets/Mama/Conversar/Forum/Sidebar';
 import { verificarPalavrasProibidas } from '../../../../../../componets/Mama/Conversar/Forum/palavrasProibidas';
 
 export default function EditarTopico({ params }) {
+    const id = use(params).id;
     const [topico, setTopico] = useState(null);
     const [titulo, setTitulo] = useState('');
     const [conteudo, setConteudo] = useState('');
@@ -32,7 +33,7 @@ export default function EditarTopico({ params }) {
                 const { data: topicoData, error: topicoError } = await supabase
                     .from('topicos')
                     .select('*')
-                    .eq('id', params.id)
+                    .eq('id', id)
                     .single();
 
                 if (topicoError) throw topicoError;
@@ -61,7 +62,7 @@ export default function EditarTopico({ params }) {
         };
 
         fetchData();
-    }, [params.id]);
+    }, [id]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -96,7 +97,7 @@ export default function EditarTopico({ params }) {
                     categoria_id: categoriaId,
                     updated_at: new Date().toISOString()
                 })
-                .eq('id', params.id);
+                .eq('id', id);
 
             if (error) throw error;
 
@@ -187,7 +188,7 @@ export default function EditarTopico({ params }) {
                                 value={titulo}
                                 onChange={(e) => setTitulo(e.target.value)}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-black"
                             />
                         </div>
 
@@ -200,11 +201,11 @@ export default function EditarTopico({ params }) {
                                 value={categoriaId}
                                 onChange={(e) => setCategoriaId(e.target.value)}
                                 required
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-black"
                             >
-                                <option value="">Selecione uma categoria</option>
+                                <option value="" className="text-black">Selecione uma categoria</option>
                                 {categorias.map((categoria) => (
-                                    <option key={categoria.id} value={categoria.id}>
+                                    <option key={categoria.id} value={categoria.id} className="text-black">
                                         {categoria.nome}
                                     </option>
                                 ))}
@@ -221,7 +222,7 @@ export default function EditarTopico({ params }) {
                                 onChange={(e) => setConteudo(e.target.value)}
                                 required
                                 rows={6}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-black"
                             />
                         </div>
 
