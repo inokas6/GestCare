@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import StatCard from './estatisticas/StatCard';
+import TopicosPorSemana from './estatisticas/TopicosPorSemana';
+import TopicosPorCategoria from './estatisticas/TopicosPorCategoria';
+import DistribuicaoUtilizadoras from './estatisticas/DistribuicaoUtilizadoras';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -15,30 +18,10 @@ export default function AdminDashboard() {
     totalTopicos: 0,
     totalMensagens: 0,
     activeUsers: 234,
-    topicosPorMes: [
-      { mes: '1/2024', quantidade: 12 },
-      { mes: '2/2024', quantidade: 18 },
-      { mes: '3/2024', quantidade: 25 },
-      { mes: '4/2024', quantidade: 32 },
-      { mes: '5/2024', quantidade: 28 },
-      { mes: '6/2024', quantidade: 35 }
-    ],
-    mensagensPorMes: [
-      { mes: '1/2024', quantidade: 245 },
-      { mes: '2/2024', quantidade: 389 },
-      { mes: '3/2024', quantidade: 512 },
-      { mes: '4/2024', quantidade: 678 },
-      { mes: '5/2024', quantidade: 734 },
-      { mes: '6/2024', quantidade: 898 }
-    ],
+    topicosPorMes: [],
+    mensagensPorMes: [],
     userActivity: [],
-    categorias: [
-      { name: 'Tecnologia', value: 35, color: '#BE185D' },
-      { name: 'Educação', value: 25, color: '#DB2777' },
-      { name: 'Saúde', value: 20, color: '#EC4899' },
-      { name: 'Entretenimento', value: 15, color: '#F472B6' },
-      { name: 'Outros', value: 5, color: '#FBCFE8' }
-    ],
+    categorias: [],
     gravidezStats: []
   });
   const [loading, setLoading] = useState(false);
@@ -128,60 +111,6 @@ export default function AdminDashboard() {
             setStats(prevStats => ({
               ...prevStats,
               totalMensagens: respostasCount || 0
-            }));
-          }
-
-          // Buscar dados de usuários por mês
-          const { data: usersData, error: usersDataError } = await supabase
-            .from('users')
-            .select('created_at')
-            .order('created_at', { ascending: true });
-
-          if (usersDataError) {
-            console.error('Erro ao buscar dados de usuários:', usersDataError);
-          } else if (isMounted && usersData) {
-            // Função para obter o número da semana do ano
-            const getWeekNumber = (date) => {
-              const d = new Date(date);
-              d.setHours(0, 0, 0, 0);
-              d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-              const yearStart = new Date(d.getFullYear(), 0, 1);
-              const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-              return weekNo;
-            };
-
-            // Agrupar usuários por semana
-            const usersByWeek = usersData.reduce((acc, user) => {
-              const date = new Date(user.created_at);
-              const year = date.getFullYear();
-              const week = getWeekNumber(date);
-              const weekKey = `Semana ${week}/${year}`;
-              
-              if (!acc[weekKey]) {
-                acc[weekKey] = 0;
-              }
-              acc[weekKey]++;
-              return acc;
-            }, {});
-
-            // Converter para o formato esperado pelo gráfico
-            const userActivityData = Object.entries(usersByWeek)
-              .map(([weekYear, count]) => ({
-                mes: weekYear,
-                quantidade: count
-              }))
-              .sort((a, b) => {
-                // Extrair semana e ano para ordenação
-                const [weekA, yearA] = a.mes.split('/').map(n => parseInt(n.replace('Semana ', '')));
-                const [weekB, yearB] = b.mes.split('/').map(n => parseInt(n.replace('Semana ', '')));
-                
-                if (yearA !== yearB) return yearA - yearB;
-                return weekA - weekB;
-              });
-
-            setStats(prevStats => ({
-              ...prevStats,
-              userActivity: userActivityData
             }));
           }
 
@@ -276,7 +205,7 @@ export default function AdminDashboard() {
                 value: data.count,
                 color: data.cor
               }))
-              .sort((a, b) => b.value - a.value); // Ordenar por quantidade decrescente
+              .sort((a, b) => b.value - a.value);
 
             setStats(prevStats => ({
               ...prevStats,
@@ -331,33 +260,6 @@ export default function AdminDashboard() {
       isMounted = false;
     };
   }, []);
-
-  const StatCard = ({ title, value, change, icon: Icon, color, trend }) => (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all duration-300">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{value.toLocaleString()}</p>
-          {change && (
-            <div className={`flex items-center mt-2 text-sm ${trend === 'up' ? 'text-emerald-600' : 'text-red-500'}`}>
-              <span className="mr-1">{trend === 'up' ? '↑' : '↓'}</span>
-              <span>{change}% vs mês anterior</span>
-            </div>
-          )}
-        </div>
-        <div className={`p-3 rounded-xl ${color}`}>
-          <span className="text-white text-xl">•</span>
-        </div>
-      </div>
-    </div>
-  );
-
-  const ChartCard = ({ title, children, className = "" }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 ${className}`}>
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">{title}</h3>
-      {children}
-    </div>
-  );
 
   const TabButton = ({ id, label, isActive, onClick }) => (
     <button
@@ -451,192 +353,11 @@ export default function AdminDashboard() {
               />
             </div>
 
-            {/* Main Charts */}
+            {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ChartCard title="Criação de Contas">
-                <div className="h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={stats.userActivity}>
-                      <defs>
-                        <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#DB2777" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#DB2777" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="mes" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }} 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="quantidade" 
-                        stroke="#DB2777" 
-                        strokeWidth={2}
-                        fillOpacity={1} 
-                        fill="url(#colorUsers)" 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </ChartCard>
-
-              <ChartCard title="Tópicos Criados por Semana">
-                <div className="h-[320px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={stats.topicosPorMes}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis 
-                        dataKey="mes" 
-                        stroke="#64748b" 
-                        fontSize={12}
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                      />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }} 
-                        formatter={(value) => [`${value} tópicos`, 'Quantidade']}
-                      />
-                      <Bar 
-                        dataKey="quantidade" 
-                        fill="url(#gradientBar)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                      <defs>
-                        <linearGradient id="gradientBar" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#BE185D"/>
-                          <stop offset="100%" stopColor="#EC4899"/>
-                        </linearGradient>
-                      </defs>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </ChartCard>
-            </div>
-
-            {/* Secondary Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <ChartCard title="Distribuição de Utilizadoras" className="lg:col-span-2">
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={stats.gravidezStats}
-                      layout="vertical"
-                      margin={{ top: 20, right: 30, left: 40, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis type="number" stroke="#64748b" fontSize={12} />
-                      <YAxis 
-                        type="category" 
-                        dataKey="name" 
-                        stroke="#64748b" 
-                        fontSize={12}
-                        width={150}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                        formatter={(value) => [`${value} usuárias`, 'Quantidade']}
-                      />
-                      <Bar 
-                        dataKey="value" 
-                        fill="url(#gradientBar)"
-                        radius={[0, 4, 4, 0]}
-                      >
-                        {stats.gravidezStats.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Bar>
-                      <defs>
-                        <linearGradient id="gradientBar" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#BE185D"/>
-                          <stop offset="100%" stopColor="#EC4899"/>
-                        </linearGradient>
-                      </defs>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 space-y-2">
-                  {stats.gravidezStats?.map((stat, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2" 
-                          style={{ backgroundColor: stat.color }}
-                        ></div>
-                        <span className="text-gray-600">{stat.name}</span>
-                      </div>
-                      <span className="font-medium text-gray-900">{stat.value} utilizadoras</span>
-                    </div>
-                  ))}
-                </div>
-              </ChartCard>
-
-              <ChartCard title="Tópicos por Categoria">
-                <div className="h-[280px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={stats.categorias}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={({ name, value }) => `${name} (${value})`}
-                        labelLine={false}
-                      >
-                        {stats.categorias.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'white', 
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                        }}
-                        formatter={(value, name) => [`${value} tópicos`, name]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 space-y-2">
-                  {stats.categorias.map((cat, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-2" 
-                          style={{ backgroundColor: cat.color }}
-                        ></div>
-                        <span className="text-gray-600">{cat.name}</span>
-                      </div>
-                      <span className="font-medium text-gray-900">{cat.value} tópicos</span>
-                    </div>
-                  ))}
-                </div>
-              </ChartCard>
-
-              
+              <TopicosPorSemana data={stats.topicosPorMes} />
+              <DistribuicaoUtilizadoras data={stats.gravidezStats} />
+              <TopicosPorCategoria data={stats.categorias} />
             </div>
           </div>
         )}
