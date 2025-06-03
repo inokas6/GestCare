@@ -13,6 +13,9 @@ const MinhaBarriga = () => {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [session, setSession] = useState(null);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   // Verificar sessão do usuário
   useEffect(() => {
@@ -134,21 +137,19 @@ const MinhaBarriga = () => {
     if (!files.length) return;
 
     if (!session?.user) {
-      alert('Você precisa estar logado para enviar fotos');
+      setMessage({ text: 'Você precisa estar logado para enviar fotos', type: 'error' });
       return;
     }
 
     try {
       for (const file of files) {
-        // Verificar o tipo do arquivo
         if (!file.type.startsWith('image/')) {
-          alert('Por favor, selecione apenas arquivos de imagem.');
+          setMessage({ text: 'Por favor, selecione apenas arquivos de imagem.', type: 'error' });
           continue;
         }
 
-        // Verificar o tamanho do arquivo (máximo 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          alert('O arquivo é muito grande. O tamanho máximo é 5MB.');
+          setMessage({ text: 'O arquivo é muito grande. O tamanho máximo é 5MB.', type: 'error' });
           continue;
         }
 
@@ -170,7 +171,7 @@ const MinhaBarriga = () => {
 
         if (uploadError) {
           console.error('Erro no upload:', uploadError);
-          alert(`Erro ao fazer upload da imagem: ${uploadError.message}`);
+          setMessage({ text: `Erro ao fazer upload da imagem: ${uploadError.message}`, type: 'error' });
           continue;
         }
 
@@ -196,7 +197,7 @@ const MinhaBarriga = () => {
           await supabase.storage
             .from('fotos-barriga')
             .remove([filePath]);
-          alert(`Erro ao salvar a foto: ${saveError.message}`);
+          setMessage({ text: `Erro ao salvar a foto: ${saveError.message}`, type: 'error' });
           continue;
         }
 
@@ -211,11 +212,26 @@ const MinhaBarriga = () => {
           }
         ];
         setUserPhotos(newPhotos);
+
+        setMessage({ text: 'Foto adicionada com sucesso!', type: 'success' });
       }
     } catch (error) {
       console.error('Erro ao fazer upload da foto:', error);
-      alert(`Erro ao fazer upload da foto: ${error.message}`);
+      setMessage({ text: `Erro ao fazer upload da foto: ${error.message}`, type: 'error' });
     }
+  };
+
+  const confirmDeletePhoto = (monthIndex, photoIndex) => {
+    setPendingAction({ type: 'delete', monthIndex, photoIndex });
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmAction = async () => {
+    if (pendingAction?.type === 'delete') {
+      await deletePhoto(pendingAction.monthIndex, pendingAction.photoIndex);
+    }
+    setShowConfirmDialog(false);
+    setPendingAction(null);
   };
 
   const deletePhoto = async (monthIndex, photoIndex) => {
@@ -250,11 +266,23 @@ const MinhaBarriga = () => {
       }
       
       setUserPhotos(newPhotos);
+
+      setMessage({ text: 'Foto excluída com sucesso!', type: 'success' });
     } catch (error) {
       console.error('Erro ao deletar foto:', error);
-      alert('Erro ao deletar foto. Tente novamente.');
+      setMessage({ text: 'Erro ao deletar foto. Tente novamente.', type: 'error' });
     }
   };
+
+  // Adicionar useEffect para limpar mensagens após 5 segundos
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const shareAlbum = () => {
     alert("Compartilhar álbum de fotos");
@@ -293,6 +321,39 @@ const MinhaBarriga = () => {
 
   return (
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto p-4 bg-gray-50 rounded-3xl shadow-lg">
+      {/* Mensagem de feedback */}
+      {message.text && (
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+          message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+        } text-black`}>
+          {message.text}
+        </div>
+      )}
+
+      {/* Diálogo de confirmação */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+            <p className="mb-6 text-black">Tem certeza que deseja excluir esta foto?</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmAction}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full bg-pink-800 text-white p-4 rounded-t-2xl shadow-md mb-6">
         <h1 className="text-2xl font-bold text-center">Minha Barriga</h1>
         <p className="text-center text-pink-100">Acompanhe a sua gestação mês a mês</p>
@@ -336,13 +397,13 @@ const MinhaBarriga = () => {
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-64 md:h-80 w-full bg-gray-100 rounded-xl">
-                <p className="text-gray-500 mb-2">Sem fotos para o mês {currentMonth}</p>
+                <p className="text-black mb-2">Sem fotos para o mês {currentMonth}</p>
                 {session?.user ? (
                   <label htmlFor="photo-upload" className="bg-pink-800 hover:bg-pink-900 text-white px-4 py-2 rounded-lg cursor-pointer transition-colors flex items-center">
                     <IconUpload className="mr-2" /> Adicionar Foto
                   </label>
                 ) : (
-                  <p className="text-gray-500">Faça login para adicionar fotos</p>
+                  <p className="text-black">Faça login para adicionar fotos</p>
                 )}
               </div>
             )
@@ -354,7 +415,7 @@ const MinhaBarriga = () => {
         {activeTab === "photos" && currentMonthPhotos.length > 0 && (
           <div className="absolute bottom-4 right-4 flex space-x-2">
             <button 
-              onClick={() => deletePhoto(currentMonth - 1, selectedPhotoIndex)} 
+              onClick={() => confirmDeletePhoto(currentMonth - 1, selectedPhotoIndex)} 
               className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full cursor-pointer shadow-md transition-colors"
             >
               <TrashIcon />
@@ -420,7 +481,7 @@ const MinhaBarriga = () => {
           {/* Mini gallery for current month with thumbnails */}
           {currentMonthPhotos.length > 0 && (
             <div className="mb-4">
-              <h3 className="text-lg font-medium text-gray-700 mb-2">Fotos do Mês {currentMonth}</h3>
+              <h3 className="text-lg font-medium text-black mb-2">Fotos do Mês {currentMonth}</h3>
               <div className="flex flex-wrap gap-2">
                 {currentMonthPhotos.map((photo, idx) => (
                   <div 
@@ -435,7 +496,7 @@ const MinhaBarriga = () => {
             </div>
           )}
 
-          <h3 className="text-lg font-medium text-gray-700 mb-2">Todos os Meses</h3>
+          <h3 className="text-lg font-medium text-black mb-2">Todos os Meses</h3>
           <div className="grid grid-cols-3 gap-3">
             {userPhotos.map((photos, idx) => (
               <div 

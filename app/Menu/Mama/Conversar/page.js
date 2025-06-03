@@ -17,6 +17,9 @@ export default function ConversarPage() {
   const [comentariosAbertos, setComentariosAbertos] = useState({});
   const [topicosFiltrados, setTopicosFiltrados] = useState([]);
   const [ordemAtual, setOrdemAtual] = useState('recente'); // 'recente', 'antigo', 'comentarios'
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -100,12 +103,61 @@ export default function ConversarPage() {
     }));
   };
 
+  // Adicionar useEffect para limpar mensagens após 5 segundos
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <Sidebar />
       <div className="pl-0 sm:pl-48 lg:pl-64 mt-[80px]">
         <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+          {/* Mensagem de feedback */}
+          {message.text && (
+            <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+              message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+            } text-black`}>
+              {message.text}
+            </div>
+          )}
+
+          {/* Diálogo de confirmação */}
+          {showConfirmDialog && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+                <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+                <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => setShowConfirmDialog(false)}
+                    className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (pendingAction?.callback) {
+                        pendingAction.callback();
+                      }
+                      setShowConfirmDialog(false);
+                      setPendingAction(null);
+                    }}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  >
+                    Confirmar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Barra de pesquisa e botão New Topic */}
           <div className="flex flex-col gap-4 mb-6">
             <div className="flex gap-4">
@@ -192,7 +244,7 @@ export default function ConversarPage() {
                     </svg>
                   </button>
                 </div>
-                <NewTopic onClose={() => setShowNewTopic(false)} />
+                <NewTopic onClose={() => setShowNewTopic(false)} setMessage={setMessage} />
               </div>
             </div>
           )}
@@ -226,7 +278,7 @@ export default function ConversarPage() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                      <h2 className="text-xl font-semibold text-black mb-2">
                         {topico.titulo}
                       </h2>
                       <div className="flex items-center text-sm text-black mb-4">
@@ -244,22 +296,18 @@ export default function ConversarPage() {
                       <div className="mt-4 border-t pt-4">
                         <button
                           onClick={() => toggleComentarios(topico.id)}
-                          className="flex items-center text-gray-500 hover:text-purple-600 transition-colors"
+                          className="flex items-center text-black hover:text-purple-600 transition-colors"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                           </svg>
-                          <span>
-                            {topico.totalComentarios} {topico.totalComentarios === 1 ? 'comentário' : 'comentários'}
-                          </span>
+                          {topico.totalComentarios} comentários
                         </button>
                       </div>
 
-                      {/* Seção de comentários */}
+                      {/* Comentários */}
                       {comentariosAbertos[topico.id] && (
-                        <div className="mt-4">
-                          <TopicComments topicoId={topico.id} />
-                        </div>
+                        <TopicComments topicoId={topico.id} setMessage={setMessage} />
                       )}
                     </div>
                   </div>

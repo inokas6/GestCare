@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { verificarPalavrasProibidas } from './palavrasProibidas';
 
-export default function TopicComments({ topicoId }) {
+export default function TopicComments({ topicoId, setMessage }) {
     const [comentarios, setComentarios] = useState([]);
     const [novoComentario, setNovoComentario] = useState('');
     const [loading, setLoading] = useState(false);
@@ -36,7 +36,7 @@ export default function TopicComments({ topicoId }) {
             setComentarios(data || []);
         } catch (err) {
             console.error('Erro ao carregar comentários:', err);
-            setError(err.message);
+            setMessage({ text: err.message, type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -75,30 +75,31 @@ export default function TopicComments({ topicoId }) {
             if (insertError) throw insertError;
 
             setNovoComentario('');
+            setMessage({ text: 'Comentário adicionado com sucesso!', type: 'success' });
             fetchComentarios(); // Recarregar comentários após adicionar um novo
         } catch (err) {
             console.error('Erro ao adicionar comentário:', err);
-            setError(err.message);
+            setMessage({ text: err.message, type: 'error' });
         }
     };
 
-    if (loading) return <div className="text-center py-2 text-sm text-gray-500">...</div>;
-    if (error) return <div className="text-center py-2 text-sm text-red-500">Erro: {error}</div>;
+    if (loading) return <div className="text-center py-2 text-sm text-black">...</div>;
+    if (error) return <div className="text-center py-2 text-sm text-black">Erro: {error}</div>;
 
     return (
         <div className="mt-4 space-y-4">
             {showInappropriateModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4 text-red-600">Aviso</h3>
-                        <p className="mb-6">Não é possível publicar este comentário pois contém palavras inapropriadas.</p>
+                        <h3 className="text-lg font-semibold mb-4 text-black">Aviso</h3>
+                        <p className="mb-6 text-black">Não é possível publicar este comentário pois contém palavras inapropriadas.</p>
                         <div className="flex justify-end">
                             <button
                                 onClick={() => {
                                     setShowInappropriateModal(false);
                                     setInappropriateWord('');
                                 }}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                             >
                                 Entendi
                             </button>
@@ -113,7 +114,7 @@ export default function TopicComments({ topicoId }) {
                     value={novoComentario}
                     onChange={(e) => setNovoComentario(e.target.value)}
                     placeholder="Escreva um comentário..."
-                    className="flex-1 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="flex-1 px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600 text-black"
                 />
                 <button
                     type="submit"
@@ -142,12 +143,12 @@ export default function TopicComments({ topicoId }) {
                         </div>
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
-                                <span className="font-medium text-sm">{comentario.users?.nome}</span>
-                                <span className="text-xs text-gray-500">
+                                <span className="font-medium text-sm text-black">{comentario.users?.nome}</span>
+                                <span className="text-xs text-black">
                                     {new Date(comentario.created_at).toLocaleDateString()}
                                 </span>
                             </div>
-                            <p className="text-sm text-gray-700 mt-1">{comentario.conteudo}</p>
+                            <p className="text-sm text-black mt-1">{comentario.conteudo}</p>
                         </div>
                     </div>
                 ))}
