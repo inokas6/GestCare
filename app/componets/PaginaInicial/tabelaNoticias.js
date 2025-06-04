@@ -9,13 +9,18 @@ const TabelaNoticias = () => {
     const fetchNoticias = async () => {
       const { data, error } = await supabase
         .from('noticias')
-        .select('*')
+        .select('id, titulo, imagem, data')
         .order('data', { ascending: false });
 
       if (error) {
         console.error("Erro ao buscar notícias:", error);
       } else {
-        setNoticias(data);
+        // Formatar as datas para exibição
+        const noticiasFormatadas = data.map(noticia => ({
+          ...noticia,
+          data: new Date(noticia.data).toLocaleDateString('pt-BR')
+        }));
+        setNoticias(noticiasFormatadas);
       }
     };
 
