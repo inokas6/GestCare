@@ -8,10 +8,12 @@ const NoticiasAdmin = () => {
   const [noticias, setNoticias] = useState([]);
   const [titulo, setTitulo] = useState('');
   const [data, setData] = useState('');
+  const [conteudo, setConteudo] = useState('');
   const [imagem, setImagem] = useState(null);
   const [editandoId, setEditandoId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showNewNoticiaForm, setShowNewNoticiaForm] = useState(false);
+  const [editandoNoticia, setEditandoNoticia] = useState(null);
   const supabase = createClientComponentClient();
   const router = useRouter();
 
@@ -71,6 +73,7 @@ const NoticiasAdmin = () => {
       const noticiaData = {
         titulo,
         data,
+        conteudo,
         imagem: imagemUrl,
       };
 
@@ -91,6 +94,7 @@ const NoticiasAdmin = () => {
 
       setTitulo('');
       setData('');
+      setConteudo('');
       setImagem(null);
       setEditandoId(null);
       setShowNewNoticiaForm(false);
@@ -104,9 +108,39 @@ const NoticiasAdmin = () => {
   };
 
   const handleEditar = (noticia) => {
-    setTitulo(noticia.titulo);
-    setData(noticia.data);
-    setEditandoId(noticia.id);
+    setEditandoNoticia({
+      id: noticia.id,
+      titulo: noticia.titulo,
+      data: noticia.data,
+      conteudo: noticia.conteudo,
+      imagem: noticia.imagem
+    });
+  };
+
+  const handleSalvarEdicao = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('noticias')
+        .update({
+          titulo: editandoNoticia.titulo,
+          data: editandoNoticia.data,
+          conteudo: editandoNoticia.conteudo
+        })
+        .eq('id', editandoNoticia.id);
+
+      if (error) throw error;
+
+      setNoticias(noticias.map(noticia => 
+        noticia.id === editandoNoticia.id ? editandoNoticia : noticia
+      ));
+      setEditandoNoticia(null);
+    } catch (error) {
+      console.error('Erro ao atualizar notícia:', error);
+      alert('Erro ao atualizar notícia');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExcluir = async (id) => {
@@ -163,6 +197,16 @@ const NoticiasAdmin = () => {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-black">Conteúdo</label>
+              <textarea
+                value={conteudo}
+                onChange={(e) => setConteudo(e.target.value)}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring-pink-500 text-black"
+                rows="6"
+                required
+              />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-black">Imagem</label>
               <input
                 type="file"
@@ -179,6 +223,7 @@ const NoticiasAdmin = () => {
                   setShowNewNoticiaForm(false);
                   setTitulo('');
                   setData('');
+                  setConteudo('');
                   setImagem(null);
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50"
@@ -209,6 +254,9 @@ const NoticiasAdmin = () => {
                   Data
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
+                  Conteúdo
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                   Imagem
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
@@ -220,10 +268,40 @@ const NoticiasAdmin = () => {
               {noticias.map((noticia) => (
                 <tr key={noticia.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-black">
-                    {noticia.titulo}
+                    {editandoNoticia?.id === noticia.id ? (
+                      <input
+                        type="text"
+                        value={editandoNoticia.titulo}
+                        onChange={(e) => setEditandoNoticia({...editandoNoticia, titulo: e.target.value})}
+                        className="border rounded px-2 py-1 w-full"
+                      />
+                    ) : (
+                      noticia.titulo
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-black">
-                    {new Date(noticia.data).toLocaleDateString('pt-BR')}
+                    {editandoNoticia?.id === noticia.id ? (
+                      <input
+                        type="date"
+                        value={editandoNoticia.data}
+                        onChange={(e) => setEditandoNoticia({...editandoNoticia, data: e.target.value})}
+                        className="border rounded px-2 py-1"
+                      />
+                    ) : (
+                      new Date(noticia.data).toLocaleDateString('pt-BR')
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-black">
+                    {editandoNoticia?.id === noticia.id ? (
+                      <textarea
+                        value={editandoNoticia.conteudo || ''}
+                        onChange={(e) => setEditandoNoticia({...editandoNoticia, conteudo: e.target.value})}
+                        className="border rounded px-2 py-1 w-full"
+                        rows="3"
+                      />
+                    ) : (
+                      (noticia.conteudo || '').substring(0, 100) + '...'
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {noticia.imagem ? (
@@ -237,18 +315,38 @@ const NoticiasAdmin = () => {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEditar(noticia)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleExcluir(noticia.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Excluir
-                    </button>
+                    {editandoNoticia?.id === noticia.id ? (
+                      <>
+                        <button
+                          onClick={handleSalvarEdicao}
+                          disabled={loading}
+                          className="text-green-600 hover:text-green-900 mr-3"
+                        >
+                          {loading ? 'Salvando...' : 'Salvar'}
+                        </button>
+                        <button
+                          onClick={() => setEditandoNoticia(null)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleEditar(noticia)}
+                          className="text-blue-600 hover:text-blue-900 mr-3"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleExcluir(noticia.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Excluir
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
