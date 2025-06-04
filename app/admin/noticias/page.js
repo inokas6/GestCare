@@ -14,12 +14,24 @@ const NoticiasAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [showNewNoticiaForm, setShowNewNoticiaForm] = useState(false);
   const [editandoNoticia, setEditandoNoticia] = useState(null);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const supabase = createClientComponentClient();
   const router = useRouter();
 
   useEffect(() => {
     carregarNoticias();
   }, []);
+
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const carregarNoticias = async () => {
     const { data, error } = await supabase
@@ -84,12 +96,14 @@ const NoticiasAdmin = () => {
           .eq('id', editandoId);
 
         if (error) throw error;
+        setMessage({ text: 'Notícia atualizada com sucesso!', type: 'success' });
       } else {
         const { error } = await supabase
           .from('noticias')
           .insert([noticiaData]);
 
         if (error) throw error;
+        setMessage({ text: 'Notícia criada com sucesso!', type: 'success' });
       }
 
       setTitulo('');
@@ -101,7 +115,7 @@ const NoticiasAdmin = () => {
       await carregarNoticias();
     } catch (error) {
       console.error('Erro ao salvar notícia:', error);
-      alert('Erro ao salvar notícia. Por favor, tente novamente.');
+      setMessage({ text: 'Erro ao salvar notícia: ' + error.message, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -118,50 +132,101 @@ const NoticiasAdmin = () => {
   };
 
   const handleSalvarEdicao = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase
-        .from('noticias')
-        .update({
-          titulo: editandoNoticia.titulo,
-          data: editandoNoticia.data,
-          conteudo: editandoNoticia.conteudo
-        })
-        .eq('id', editandoNoticia.id);
+    setPendingAction({
+      type: 'save',
+      message: 'Deseja salvar as alterações desta notícia?',
+      callback: async () => {
+        try {
+          setLoading(true);
+          const { error } = await supabase
+            .from('noticias')
+            .update({
+              titulo: editandoNoticia.titulo,
+              data: editandoNoticia.data,
+              conteudo: editandoNoticia.conteudo
+            })
+            .eq('id', editandoNoticia.id);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      setNoticias(noticias.map(noticia => 
-        noticia.id === editandoNoticia.id ? editandoNoticia : noticia
-      ));
-      setEditandoNoticia(null);
-    } catch (error) {
-      console.error('Erro ao atualizar notícia:', error);
-      alert('Erro ao atualizar notícia');
-    } finally {
-      setLoading(false);
-    }
+          setNoticias(noticias.map(noticia => 
+            noticia.id === editandoNoticia.id ? editandoNoticia : noticia
+          ));
+          setEditandoNoticia(null);
+          setMessage({ text: 'Notícia atualizada com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao atualizar notícia:', error);
+          setMessage({ text: 'Erro ao atualizar notícia: ' + error.message, type: 'error' });
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleExcluir = async (id) => {
-    if (window.confirm('Tem certeza que deseja excluir esta notícia?')) {
-      try {
-        const { error } = await supabase
-          .from('noticias')
-          .delete()
-          .eq('id', id);
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar esta notícia? Esta ação não poderá ser revertida!',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('noticias')
+            .delete()
+            .eq('id', id);
 
-        if (error) throw error;
-        await carregarNoticias();
-      } catch (error) {
-        console.error('Erro ao excluir notícia:', error);
-        alert('Erro ao excluir notícia. Por favor, tente novamente.');
+          if (error) throw error;
+          await carregarNoticias();
+          setMessage({ text: 'Notícia eliminada com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao excluir notícia:', error);
+          setMessage({ text: 'Erro ao eliminar notícia: ' + error.message, type: 'error' });
+        }
       }
-    }
+    });
+    setShowConfirmDialog(true);
   };
 
   return (
     <div className="space-y-6">
+      {message.text && (
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+          message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+        } text-black`}>
+          {message.text}
+        </div>
+      )}
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction?.callback) {
+                    pendingAction.callback();
+                  }
+                  setShowConfirmDialog(false);
+                  setPendingAction(null);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h1 className="text-2xl text-black font-semibold">Gestão de Notícias</h1>
         <button 

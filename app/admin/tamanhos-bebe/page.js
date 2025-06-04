@@ -10,11 +10,23 @@ export default function TamanhosBebePage() {
   const [editingTamanho, setEditingTamanho] = useState(null);
   const [showNewForm, setShowNewForm] = useState(false);
   const [newTamanho, setNewTamanho] = useState({ semana: '', fruta: '' });
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     fetchTamanhos();
   }, []);
+
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const fetchTamanhos = async () => {
     try {
@@ -37,44 +49,58 @@ export default function TamanhosBebePage() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Tem certeza que deseja excluir este tamanho?')) return;
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar este tamanho? Esta ação não poderá ser revertida!',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('tamanhos_bebe')
+            .delete()
+            .eq('id', id);
 
-    try {
-      const { error } = await supabase
-        .from('tamanhos_bebe')
-        .delete()
-        .eq('id', id);
+          if (error) throw error;
 
-      if (error) throw error;
-
-      setTamanhos(tamanhos.filter(t => t.id !== id));
-    } catch (error) {
-      console.error('Erro ao excluir tamanho:', error);
-      alert('Erro ao excluir tamanho');
-    }
+          setTamanhos(tamanhos.filter(t => t.id !== id));
+          setMessage({ text: 'Tamanho eliminado com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao excluir tamanho:', error);
+          setMessage({ text: 'Erro ao eliminar tamanho: ' + error.message, type: 'error' });
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    try {
-      const { error } = await supabase
-        .from('tamanhos_bebe')
-        .update({
-          semana: parseInt(editingTamanho.semana),
-          fruta: editingTamanho.fruta
-        })
-        .eq('id', editingTamanho.id);
+    setPendingAction({
+      type: 'save',
+      message: 'Deseja salvar as alterações deste tamanho?',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('tamanhos_bebe')
+            .update({
+              semana: parseInt(editingTamanho.semana),
+              fruta: editingTamanho.fruta
+            })
+            .eq('id', editingTamanho.id);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      setTamanhos(tamanhos.map(t => 
-        t.id === editingTamanho.id ? editingTamanho : t
-      ));
-      setEditingTamanho(null);
-    } catch (error) {
-      console.error('Erro ao atualizar tamanho:', error);
-      alert('Erro ao atualizar tamanho');
-    }
+          setTamanhos(tamanhos.map(t => 
+            t.id === editingTamanho.id ? editingTamanho : t
+          ));
+          setEditingTamanho(null);
+          setMessage({ text: 'Tamanho atualizado com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao atualizar tamanho:', error);
+          setMessage({ text: 'Erro ao atualizar tamanho: ' + error.message, type: 'error' });
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleCreate = async (e) => {
@@ -93,9 +119,10 @@ export default function TamanhosBebePage() {
       setTamanhos([...tamanhos, data[0]]);
       setNewTamanho({ semana: '', fruta: '' });
       setShowNewForm(false);
+      setMessage({ text: 'Tamanho criado com sucesso!', type: 'success' });
     } catch (error) {
       console.error('Erro ao criar tamanho:', error);
-      alert('Erro ao criar tamanho');
+      setMessage({ text: 'Erro ao criar tamanho: ' + error.message, type: 'error' });
     }
   };
 
@@ -106,6 +133,43 @@ export default function TamanhosBebePage() {
 
   return (
     <div className="space-y-6">
+      {message.text && (
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+          message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+        } text-black`}>
+          {message.text}
+        </div>
+      )}
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction?.callback) {
+                    pendingAction.callback();
+                  }
+                  setShowConfirmDialog(false);
+                  setPendingAction(null);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Tamanhos do Bebê por Semana</h1>
         <button 

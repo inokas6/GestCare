@@ -9,12 +9,24 @@ export default function UsuariosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [showNewUserForm, setShowNewUserForm] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const [newUser, setNewUser] = useState({ nome: '', email: '' });
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const fetchUsers = async () => {
     try {
@@ -34,44 +46,58 @@ export default function UsuariosPage() {
   };
 
   const handleDelete = async (userId) => {
-    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar este usuário? Esta ação não poderá ser revertida!',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', userId);
 
-    try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', userId);
+          if (error) throw error;
 
-      if (error) throw error;
-
-      setUsers(users.filter(user => user.id !== userId));
-    } catch (error) {
-      console.error('Erro ao excluir usuário:', error);
-      alert('Erro ao excluir usuário');
-    }
+          setUsers(users.filter(user => user.id !== userId));
+          setMessage({ text: 'Usuário eliminado com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao excluir usuário:', error);
+          setMessage({ text: 'Erro ao eliminar usuário: ' + error.message, type: 'error' });
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({
-          nome: editingUser.nome,
-          email: editingUser.email
-        })
-        .eq('id', editingUser.id);
+    setPendingAction({
+      type: 'save',
+      message: 'Deseja salvar as alterações deste usuário?',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('users')
+            .update({
+              nome: editingUser.nome,
+              email: editingUser.email
+            })
+            .eq('id', editingUser.id);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      setUsers(users.map(user => 
-        user.id === editingUser.id ? editingUser : user
-      ));
-      setEditingUser(null);
-    } catch (error) {
-      console.error('Erro ao atualizar usuário:', error);
-      alert('Erro ao atualizar usuário');
-    }
+          setUsers(users.map(user => 
+            user.id === editingUser.id ? editingUser : user
+          ));
+          setEditingUser(null);
+          setMessage({ text: 'Usuário atualizado com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao atualizar usuário:', error);
+          setMessage({ text: 'Erro ao atualizar usuário: ' + error.message, type: 'error' });
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleCreateUser = async (e) => {
@@ -91,9 +117,10 @@ export default function UsuariosPage() {
       setUsers([user, ...users]);
       setNewUser({ nome: '', email: '' });
       setShowNewUserForm(false);
+      setMessage({ text: 'Usuário criado com sucesso!', type: 'success' });
     } catch (error) {
       console.error('Erro ao criar usuário:', error);
-      alert('Erro ao criar usuário');
+      setMessage({ text: 'Erro ao criar usuário: ' + error.message, type: 'error' });
     }
   };
 
@@ -104,6 +131,43 @@ export default function UsuariosPage() {
 
   return (
     <div className="space-y-6">
+      {message.text && (
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+          message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+        } text-black`}>
+          {message.text}
+        </div>
+      )}
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction?.callback) {
+                    pendingAction.callback();
+                  }
+                  setShowConfirmDialog(false);
+                  setPendingAction(null);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Gerenciamento de Usuários</h1>
         <button 

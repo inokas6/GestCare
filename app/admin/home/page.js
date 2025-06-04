@@ -326,11 +326,7 @@ export default function AdminHome() {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Navigation Tabs */}
-        <div className="flex space-x-2 mb-8 bg-white p-2 rounded-xl shadow-sm border border-gray-100">
-          <TabButton id="overview" label="Visão Geral" isActive={activeTab === 'overview'} onClick={setActiveTab} />
-          <TabButton id="analytics" label="Análise Detalhada" isActive={activeTab === 'analytics'} onClick={setActiveTab} />
-          <TabButton id="reports" label="Relatórios" isActive={activeTab === 'reports'} onClick={setActiveTab} />
-        </div>
+       
 
         {activeTab === 'overview' && (
           <div className="space-y-8">

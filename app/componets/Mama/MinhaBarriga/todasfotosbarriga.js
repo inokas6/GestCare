@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-const TodasFotosBarriga = () => {
+const TodasFotosBarriga = ({ onMessage, onConfirmAction }) => {
   const supabase = createClientComponentClient();
   const [allUserPhotos, setAllUserPhotos] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [editingPhoto, setEditingPhoto] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  // Carregar todas as fotos e usuários
   useEffect(() => {
     const fetchAllPhotos = async () => {
       try {
@@ -72,54 +70,65 @@ const TodasFotosBarriga = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    try {
-      const { error } = await supabase
-        .from('user_fotos_barriga')
-        .update({
-          mes: editingPhoto.mes,
-          descricao: editingPhoto.descricao
-        })
-        .eq('id', editingPhoto.id);
+    onConfirmAction({
+      type: 'save',
+      message: 'Deseja salvar as alterações desta foto?',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('user_fotos_barriga')
+            .update({
+              mes: editingPhoto.mes,
+              descricao: editingPhoto.descricao
+            })
+            .eq('id', editingPhoto.id);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      // Atualizar o estado local
-      setAllUserPhotos(prevPhotos => 
-        prevPhotos.map(userData => ({
-          ...userData,
-          photos: userData.photos.map(photo => 
-            photo.id === editingPhoto.id ? editingPhoto : photo
-          )
-        }))
-      );
-      setEditingPhoto(null);
-    } catch (error) {
-      console.error('Erro ao atualizar foto:', error);
-      alert('Erro ao atualizar foto');
-    }
+          setAllUserPhotos(prevPhotos => 
+            prevPhotos.map(userData => ({
+              ...userData,
+              photos: userData.photos.map(photo => 
+                photo.id === editingPhoto.id ? editingPhoto : photo
+              )
+            }))
+          );
+          setEditingPhoto(null);
+          onMessage('Foto atualizada com sucesso!', 'success');
+        } catch (error) {
+          console.error('Erro ao atualizar foto:', error);
+          onMessage('Erro ao atualizar foto: ' + error.message, 'error');
+        }
+      }
+    });
   };
 
   const handleDelete = async (photoId) => {
-    try {
-      const { error } = await supabase
-        .from('user_fotos_barriga')
-        .delete()
-        .eq('id', photoId);
+    onConfirmAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar esta foto? Esta ação não poderá ser revertida!',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('user_fotos_barriga')
+            .delete()
+            .eq('id', photoId);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      // Atualizar o estado local
-      setAllUserPhotos(prevPhotos => 
-        prevPhotos.map(userData => ({
-          ...userData,
-          photos: userData.photos.filter(photo => photo.id !== photoId)
-        }))
-      );
-      setShowDeleteConfirm(null);
-    } catch (error) {
-      console.error('Erro ao excluir foto:', error);
-      alert('Erro ao excluir foto');
-    }
+          setAllUserPhotos(prevPhotos => 
+            prevPhotos.map(userData => ({
+              ...userData,
+              photos: userData.photos.filter(photo => photo.id !== photoId)
+            }))
+          );
+          onMessage('Foto eliminada com sucesso!', 'success');
+        } catch (error) {
+          console.error('Erro ao excluir foto:', error);
+          onMessage('Erro ao eliminar foto: ' + error.message, 'error');
+        }
+      }
+    });
   };
 
   if (isLoading) {
@@ -185,7 +194,7 @@ const TodasFotosBarriga = () => {
                             ✏️
                           </button>
                           <button
-                            onClick={() => setShowDeleteConfirm(photo.id)}
+                            onClick={() => handleDelete(photo.id)}
                             className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
                           >
                             🗑️
@@ -245,30 +254,6 @@ const TodasFotosBarriga = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Confirmação de Exclusão */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold mb-4">Confirmar Exclusão</h2>
-            <p className="mb-4">Tem certeza que deseja excluir esta foto?</p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => handleDelete(showDeleteConfirm)}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-              >
-                Excluir
-              </button>
-            </div>
           </div>
         </div>
       )}

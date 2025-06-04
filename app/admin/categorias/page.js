@@ -9,6 +9,9 @@ export default function CategoriasPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [editingCategoria, setEditingCategoria] = useState(null);
   const [showNewCategoriaForm, setShowNewCategoriaForm] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const [newCategoria, setNewCategoria] = useState({ 
     nome: '',
     descricao: '',
@@ -18,6 +21,15 @@ export default function CategoriasPage() {
     ativa: true
   });
   const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   useEffect(() => {
     fetchCategorias();
@@ -34,6 +46,7 @@ export default function CategoriasPage() {
       setCategorias(data);
     } catch (error) {
       console.error('Erro:', error);
+      setMessage({ text: 'Erro ao carregar categorias: ' + error.message, type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -44,48 +57,62 @@ export default function CategoriasPage() {
   };
 
   const handleDelete = async (categoriaId) => {
-    if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar esta categoria? Esta ação não poderá ser revertida!',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('categorias')
+            .delete()
+            .eq('id', categoriaId);
 
-    try {
-      const { error } = await supabase
-        .from('categorias')
-        .delete()
-        .eq('id', categoriaId);
+          if (error) throw error;
 
-      if (error) throw error;
-
-      setCategorias(categorias.filter(categoria => categoria.id !== categoriaId));
-    } catch (error) {
-      console.error('Erro ao excluir categoria:', error);
-      alert('Erro ao excluir categoria');
-    }
+          setCategorias(categorias.filter(categoria => categoria.id !== categoriaId));
+          setMessage({ text: 'Categoria eliminada com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao excluir categoria:', error);
+          setMessage({ text: 'Erro ao eliminar categoria: ' + error.message, type: 'error' });
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    try {
-      const { error } = await supabase
-        .from('categorias')
-        .update({
-          nome: editingCategoria.nome,
-          descricao: editingCategoria.descricao,
-          cor: editingCategoria.cor,
-          icone: editingCategoria.icone,
-          ordem: editingCategoria.ordem,
-          ativa: editingCategoria.ativa
-        })
-        .eq('id', editingCategoria.id);
+    setPendingAction({
+      type: 'save',
+      message: 'Deseja salvar as alterações desta categoria?',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('categorias')
+            .update({
+              nome: editingCategoria.nome,
+              descricao: editingCategoria.descricao,
+              cor: editingCategoria.cor,
+              icone: editingCategoria.icone,
+              ordem: editingCategoria.ordem,
+              ativa: editingCategoria.ativa
+            })
+            .eq('id', editingCategoria.id);
 
-      if (error) throw error;
+          if (error) throw error;
 
-      setCategorias(categorias.map(categoria => 
-        categoria.id === editingCategoria.id ? editingCategoria : categoria
-      ));
-      setEditingCategoria(null);
-    } catch (error) {
-      console.error('Erro ao atualizar categoria:', error);
-      alert('Erro ao atualizar categoria');
-    }
+          setCategorias(categorias.map(categoria => 
+            categoria.id === editingCategoria.id ? editingCategoria : categoria
+          ));
+          setEditingCategoria(null);
+          setMessage({ text: 'Categoria atualizada com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao atualizar categoria:', error);
+          setMessage({ text: 'Erro ao atualizar categoria: ' + error.message, type: 'error' });
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleCreateCategoria = async (e) => {
@@ -109,9 +136,10 @@ export default function CategoriasPage() {
         ativa: true
       });
       setShowNewCategoriaForm(false);
+      setMessage({ text: 'Categoria criada com sucesso!', type: 'success' });
     } catch (error) {
       console.error('Erro ao criar categoria:', error);
-      alert('Erro ao criar categoria');
+      setMessage({ text: 'Erro ao criar categoria: ' + error.message, type: 'error' });
     }
   };
 
@@ -122,6 +150,43 @@ export default function CategoriasPage() {
 
   return (
     <div className="space-y-6">
+      {message.text && (
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+          message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+        } text-black`}>
+          {message.text}
+        </div>
+      )}
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction?.callback) {
+                    pendingAction.callback();
+                  }
+                  setShowConfirmDialog(false);
+                  setPendingAction(null);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h1 className="text-2xl text-black font-semibold">Gestão de Categorias</h1>
         <button 
