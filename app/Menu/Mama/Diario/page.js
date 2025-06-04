@@ -29,6 +29,10 @@ const PregnancyDiary = () => {
   const [filtroPeriodo, setFiltroPeriodo] = useState('todos');
   const [entradasFiltradas, setEntradasFiltradas] = useState([]);
   
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  
   const supabase = createClientComponentClient();
   
   // Lista de sintomas comuns na gravidez
@@ -124,35 +128,37 @@ const PregnancyDiary = () => {
   };
 
   const handleDeleteEntry = async (entryId) => {
-    const confirmar = window.confirm('Tem certeza que deseja eliminar esta entrada? Esta ação não pode ser desfeita.');
-    if (!confirmar) return;
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar esta entrada? Esta ação não pode ser desfeita.',
+      callback: async () => {
+        try {
+          // Primeiro, eliminar os sintomas relacionados
+          const { error: sintomasError } = await supabase
+            .from('diario_sintomas')
+            .delete()
+            .eq('entrada_id', entryId);
 
-    try {
-      // Primeiro, eliminar os sintomas relacionados
-      const { error: sintomasError } = await supabase
-        .from('diario_sintomas')
-        .delete()
-        .eq('entrada_id', entryId);
+          if (sintomasError) throw sintomasError;
 
-      if (sintomasError) throw sintomasError;
+          // Depois, eliminar a entrada principal
+          const { error: entryError } = await supabase
+            .from('diario_entradas')
+            .delete()
+            .eq('id', entryId);
 
-      // Depois, eliminar a entrada principal
-      const { error: entryError } = await supabase
-        .from('diario_entradas')
-        .delete()
-        .eq('id', entryId);
+          if (entryError) throw entryError;
 
-      if (entryError) throw entryError;
-
-      // Atualizar a lista de entradas
-      await fetchDiaryEntries(userId);
-      
-      // Mostrar mensagem de sucesso
-      alert('Entrada eliminada com sucesso!');
-    } catch (error) {
-      console.error('Erro ao eliminar entrada:', error);
-      alert('Erro ao eliminar entrada. Por favor, tente novamente.');
-    }
+          // Atualizar a lista de entradas
+          await fetchDiaryEntries(userId);
+          setMessage({ text: 'Entrada eliminada com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao eliminar entrada:', error);
+          setMessage({ text: 'Erro ao eliminar entrada. Por favor, tente novamente.', type: 'error' });
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleEditEntry = (entry) => {
@@ -167,111 +173,108 @@ const PregnancyDiary = () => {
 
   const handleSaveEntry = async () => {
     if (!userId) {
-      alert('Por favor, faça login para guardar entradas no diário');
+      setMessage({ text: 'Por favor, faça login para guardar entradas no diário', type: 'error' });
       return;
     }
 
-    // Adicionar confirmação se estiver editando ou adicionando nova entrada
-    const mensagemConfirmacao = editingEntry 
-      ? 'Tem certeza que deseja guardar as alterações?' 
-      : 'Tem certeza que deseja adicionar uma nova entrada?';
-    
-    const confirmar = window.confirm(mensagemConfirmacao);
-    if (!confirmar) {
-      return;
-    }
+    setPendingAction({
+      type: 'save',
+      message: editingEntry 
+        ? 'Tem certeza que deseja guardar as alterações?' 
+        : 'Tem certeza que deseja adicionar uma nova entrada?',
+      callback: async () => {
+        try {
+          if (editingEntry) {
+            // Atualizar entrada existente
+            const { error: entryError } = await supabase
+              .from('diario_entradas')
+              .update({
+                humor: mood,
+                chutes: kicks,
+                bem_estar: wellbeing,
+                notas: notes,
+                tamanho_bebe: babySize.name
+              })
+              .eq('id', editingEntry.id);
 
-    try {
-      if (editingEntry) {
-        // Atualizar entrada existente
-        const { error: entryError } = await supabase
-          .from('diario_entradas')
-          .update({
-            humor: mood,
-            chutes: kicks,
-            bem_estar: wellbeing,
-            notas: notes,
-            tamanho_bebe: babySize.name
-          })
-          .eq('id', editingEntry.id);
+            if (entryError) throw entryError;
 
-        if (entryError) throw entryError;
+            // Eliminar sintomas antigos
+            const { error: deleteSintomasError } = await supabase
+              .from('diario_sintomas')
+              .delete()
+              .eq('entrada_id', editingEntry.id);
 
-        // Eliminar sintomas antigos
-        const { error: deleteSintomasError } = await supabase
-          .from('diario_sintomas')
-          .delete()
-          .eq('entrada_id', editingEntry.id);
+            if (deleteSintomasError) throw deleteSintomasError;
 
-        if (deleteSintomasError) throw deleteSintomasError;
+            // Inserir novos sintomas
+            if (symptoms.length > 0) {
+              const sintomasData = symptoms.map(sintoma => ({
+                entrada_id: editingEntry.id,
+                sintoma: sintoma
+              }));
 
-        // Inserir novos sintomas
-        if (symptoms.length > 0) {
-          const sintomasData = symptoms.map(sintoma => ({
-            entrada_id: editingEntry.id,
-            sintoma: sintoma
-          }));
+              const { error: sintomasError } = await supabase
+                .from('diario_sintomas')
+                .insert(sintomasData);
 
-          const { error: sintomasError } = await supabase
-            .from('diario_sintomas')
-            .insert(sintomasData);
+              if (sintomasError) throw sintomasError;
+            }
 
-          if (sintomasError) throw sintomasError;
+            setMessage({ text: 'Entrada atualizada com sucesso!', type: 'success' });
+          } else {
+            // Inserir nova entrada
+            const { data: entryData, error: entryError } = await supabase
+              .from('diario_entradas')
+              .insert([{
+                user_id: userId,
+                data: new Date().toISOString(),
+                semana_gestacao: currentWeek,
+                humor: mood,
+                chutes: kicks,
+                bem_estar: wellbeing,
+                notas: notes,
+                tamanho_bebe: babySize.name
+              }])
+              .select()
+              .single();
+
+            if (entryError) throw entryError;
+
+            if (symptoms.length > 0) {
+              const sintomasData = symptoms.map(sintoma => ({
+                entrada_id: entryData.id,
+                sintoma: sintoma
+              }));
+
+              const { error: sintomasError } = await supabase
+                .from('diario_sintomas')
+                .insert(sintomasData);
+
+              if (sintomasError) throw sintomasError;
+            }
+
+            setMessage({ text: 'Nova entrada adicionada com sucesso!', type: 'success' });
+          }
+
+          // Atualizar lista de entradas
+          await fetchDiaryEntries(userId);
+
+          // Limpar formulário
+          setNotes('');
+          setKicks(0);
+          setWellbeing(8);
+          setSymptoms([]);
+          setShowForm(false);
+          setEditingEntry(null);
+
+        } catch (error) {
+          console.error('Erro ao guardar entrada:', error);
+          setMessage({ text: 'Erro ao guardar entrada no diário. Por favor, tente novamente.', type: 'error' });
         }
-
-        // Mostrar mensagem de sucesso
-        alert('Entrada atualizada com sucesso!');
-      } else {
-        // Inserir nova entrada
-        const { data: entryData, error: entryError } = await supabase
-          .from('diario_entradas')
-          .insert([{
-            user_id: userId,
-            data: new Date().toISOString(),
-            semana_gestacao: currentWeek,
-            humor: mood,
-            chutes: kicks,
-            bem_estar: wellbeing,
-            notas: notes,
-            tamanho_bebe: babySize.name
-          }])
-          .select()
-          .single();
-
-        if (entryError) throw entryError;
-
-        if (symptoms.length > 0) {
-          const sintomasData = symptoms.map(sintoma => ({
-            entrada_id: entryData.id,
-            sintoma: sintoma
-          }));
-
-          const { error: sintomasError } = await supabase
-            .from('diario_sintomas')
-            .insert(sintomasData);
-
-          if (sintomasError) throw sintomasError;
-        }
-
-        // Mostrar mensagem de sucesso
-        alert('Nova entrada adicionada com sucesso!');
       }
-
-      // Atualizar lista de entradas
-      await fetchDiaryEntries(userId);
-
-      // Limpar formulário
-      setNotes('');
-      setKicks(0);
-      setWellbeing(8);
-      setSymptoms([]);
-      setShowForm(false);
-      setEditingEntry(null);
-
-    } catch (error) {
-      console.error('Erro ao guardar entrada:', error);
-      alert('Erro ao guardar entrada no diário. Por favor, tente novamente.');
-    }
+    });
+    setShowConfirmDialog(true);
   };
   
   // Regista o tempo entre os Pontapés
@@ -440,11 +443,57 @@ const PregnancyDiary = () => {
     setEntradasFiltradas(resultado);
   }, [entries, filtroHumor, filtroSintoma, filtroPeriodo]);
   
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white text-pink-900">
       <div className="mt-[80px]">
         <Navbar />
       </div>
+      
+      {message.text && (
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] ${
+          message.type === 'success' ? 'bg-green-200' : message.type === 'error' ? 'bg-red-200' : 'bg-blue-200'
+        } text-black`}>
+          {message.text}
+        </div>
+      )}
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction?.callback) {
+                    pendingAction.callback();
+                  }
+                  setShowConfirmDialog(false);
+                  setPendingAction(null);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {isLoading ? (
         <div className="flex justify-center items-center h-64">

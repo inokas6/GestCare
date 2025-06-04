@@ -16,6 +16,8 @@ export default function NewTopic({ onClose, setMessage }) {
     const [error, setError] = useState(null);
     const [showInappropriateModal, setShowInappropriateModal] = useState(false);
     const [inappropriateWord, setInappropriateWord] = useState('');
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null);
 
     useEffect(() => {
         async function fetchCategorias() {
@@ -57,35 +59,47 @@ export default function NewTopic({ onClose, setMessage }) {
                 return;
             }
 
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
-            
-            if (authError || !user) {
-                throw new Error('Utilizador não autenticado');
-            }
+            setPendingAction({
+                type: 'create',
+                message: 'Deseja criar esta publicação?',
+                callback: async () => {
+                    try {
+                        const { data: { user }, error: authError } = await supabase.auth.getUser();
+                        
+                        if (authError || !user) {
+                            throw new Error('Utilizador não autenticado');
+                        }
 
-            const { error } = await forum.createTopico(
-                titulo,
-                conteudo,
-                categoriaId,
-                user.id
-            );
+                        const { error } = await forum.createTopico(
+                            titulo,
+                            conteudo,
+                            categoriaId,
+                            user.id
+                        );
 
-            if (error) throw error;
+                        if (error) throw error;
 
-            // Limpar o formulário
-            setTitulo('');
-            setConteudo('');
-            setCategoriaId(categorias[0]?.id || '');
+                        // Limpar o formulário
+                        setTitulo('');
+                        setConteudo('');
+                        setCategoriaId(categorias[0]?.id || '');
 
-            // Mostrar mensagem de sucesso
-            setMessage({ text: 'Publicação criada com sucesso!', type: 'success' });
+                        // Mostrar mensagem de sucesso
+                        setMessage({ text: 'Publicação criada com sucesso!', type: 'success' });
 
-            // Atualizar a lista de tópicos
-            router.refresh();
-            onClose();
+                        // Atualizar a lista de tópicos
+                        router.refresh();
+                        onClose();
+                    } catch (err) {
+                        setMessage({ text: err.message, type: 'error' });
+                    } finally {
+                        setLoading(false);
+                    }
+                }
+            });
+            setShowConfirmDialog(true);
         } catch (err) {
             setMessage({ text: err.message, type: 'error' });
-        } finally {
             setLoading(false);
         }
     };
@@ -101,10 +115,39 @@ export default function NewTopic({ onClose, setMessage }) {
                     </div>
                 )}
 
-                {showInappropriateModal && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                {showConfirmDialog && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
                         <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-                            <h3 className="text-lg font-semibold mb-4 text-black">Aviso</h3>
+                            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+                            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    onClick={() => setShowConfirmDialog(false)}
+                                    className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (pendingAction?.callback) {
+                                            pendingAction.callback();
+                                        }
+                                        setShowConfirmDialog(false);
+                                        setPendingAction(null);
+                                    }}
+                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showInappropriateModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+                        <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
+                            <h3 className="text-lg font-semibold mb-4 text-red-600">Aviso</h3>
                             <p className="mb-6 text-black">Não é possível publicar este conteúdo pois contém palavras inapropriadas.</p>
                             <div className="flex justify-end">
                                 <button
@@ -170,14 +213,14 @@ export default function NewTopic({ onClose, setMessage }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="w-full sm:w-auto px-4 py-2 text-black hover:text-gray-800 text-sm sm:text-base"
+                            className="w-full sm:w-auto px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 text-sm sm:text-base"
+                            className="w-full sm:w-auto px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 text-sm sm:text-base"
                         >
                             {loading ? '...' : 'Criar Tópico'}
                         </button>

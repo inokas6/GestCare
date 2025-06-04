@@ -146,15 +146,15 @@ export default function QnaPage() {
             <div className="pl-0 sm:pl-48 lg:pl-64 mt-[80px]">
                 <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
                     {message.text && (
-                        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-                            message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+                        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] ${
+                            message.type === 'success' ? 'bg-green-200' : message.type === 'error' ? 'bg-red-200' : 'bg-blue-200'
                         } text-black`}>
                             {message.text}
                         </div>
                     )}
 
                     {showConfirmDialog && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
                             <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
                                 <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
                                 <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>

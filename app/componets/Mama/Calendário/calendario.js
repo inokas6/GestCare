@@ -39,6 +39,9 @@ export default function CalendarioGravidez() {
   });
   
   const supabase = createClientComponentClient();
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     const fetchCurrentUserAndData = async () => {
@@ -54,6 +57,15 @@ export default function CalendarioGravidez() {
     
     fetchCurrentUserAndData();
   }, []);
+
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const fetchPregnancyData = async (userId) => {
     try {
@@ -348,55 +360,59 @@ export default function CalendarioGravidez() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    try {
-      setIsLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.error("Usuário não autenticado");
-        setIsLoading(false);
-        return;
+    setPendingAction({
+      type: 'save',
+      message: 'Deseja salvar este evento?',
+      callback: async () => {
+        try {
+          setIsLoading(true);
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (!user) {
+            throw new Error("Usuário não autenticado");
+          }
+          
+          const eventData = {
+            user_id: user.id,
+            titulo: newEvent.titulo,
+            descricao: newEvent.descricao,
+            inicio_data: newEvent.inicio_data,
+            fim_data: newEvent.fim_data || newEvent.inicio_data,
+            tipo_evento: newEvent.tipo_evento,
+            lembrete: newEvent.lembrete,
+            lembrete_antecedencia: newEvent.lembrete ? newEvent.lembrete_antecedencia : null
+          };
+          
+          const { data, error } = await supabase
+            .from("calendario")
+            .insert([eventData]);
+            
+          if (error) throw error;
+          
+          setShowModal(false);
+          await fetchEvents(user.id);
+          
+          setMessage({ text: 'Evento criado com sucesso!', type: 'success' });
+          
+          setNewEvent({
+            titulo: "",
+            descricao: "",
+            inicio_data: "",
+            fim_data: "",
+            tipo_evento: "consulta",
+            lembrete: false,
+            lembrete_antecedencia: 1,
+            user_id: user.id
+          });
+        } catch (error) {
+          console.error("Erro ao adicionar evento:", error);
+          setMessage({ text: 'Erro ao criar evento: ' + error.message, type: 'error' });
+        } finally {
+          setIsLoading(false);
+        }
       }
-      
-      const eventData = {
-        user_id: user.id,
-        titulo: newEvent.titulo,
-        descricao: newEvent.descricao,
-        inicio_data: newEvent.inicio_data,
-        fim_data: newEvent.fim_data || newEvent.inicio_data,
-        tipo_evento: newEvent.tipo_evento,
-        lembrete: newEvent.lembrete,
-        lembrete_antecedencia: newEvent.lembrete ? newEvent.lembrete_antecedencia : null
-      };
-      
-      const { data, error } = await supabase
-        .from("calendario")
-        .insert([eventData]);
-        
-      if (error) throw error;
-      
-      setShowModal(false);
-      await fetchEvents(user.id);
-      
-      // Notificação de sucesso
-      showNotification("Evento criado com sucesso!");
-      
-      setNewEvent({
-        titulo: "",
-        descricao: "",
-        inicio_data: "",
-        fim_data: "",
-        tipo_evento: "consulta",
-        lembrete: false,
-        lembrete_antecedencia: 1,
-        user_id: user.id
-      });
-    } catch (error) {
-      console.error("Erro ao adicionar evento:", error);
-      showNotification("Erro ao criar evento. Tente novamente.", "error");
-    } finally {
-      setIsLoading(false);
-    }
+    });
+    setShowConfirmDialog(true);
   };
 
   const handleEventClick = (info) => {
@@ -426,40 +442,31 @@ export default function CalendarioGravidez() {
   const handleDeleteEvent = async () => {
     if (!selectedEvent || !selectedEvent.id) return;
     
-    try {
-      setIsLoading(true);
-      const { error } = await supabase
-        .from("calendario")
-        .delete()
-        .eq("id", selectedEvent.id);
-        
-      if (error) throw error;
-      
-      await fetchEvents();
-      setShowEventDetails(false);
-      showNotification("Evento excluído com sucesso!");
-    } catch (error) {
-      console.error("Erro ao eliminar evento:", error);
-      showNotification("Erro ao eliminar evento. Tente novamente.", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const showNotification = (message, type = "success") => {
-    const notification = document.createElement("div");
-    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${
-      type === "success" ? "bg-green-500" : "bg-red-500"
-    } transition-opacity duration-500 z-50`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.opacity = "0";
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 500);
-    }, 3000);
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar este evento? Esta ação não poderá ser revertida!',
+      callback: async () => {
+        try {
+          setIsLoading(true);
+          const { error } = await supabase
+            .from("calendario")
+            .delete()
+            .eq("id", selectedEvent.id);
+            
+          if (error) throw error;
+          
+          await fetchEvents();
+          setShowEventDetails(false);
+          setMessage({ text: 'Evento eliminado com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error("Erro ao eliminar evento:", error);
+          setMessage({ text: 'Erro ao eliminar evento: ' + error.message, type: 'error' });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const formatEventDate = (date) => {
@@ -469,6 +476,43 @@ export default function CalendarioGravidez() {
 
   return (
     <div className="bg-pink-50 min-h-screen pt-20">
+      {message.text && (
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+          message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+        } text-black`}>
+          {message.text}
+        </div>
+      )}
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction?.callback) {
+                    pendingAction.callback();
+                  }
+                  setShowConfirmDialog(false);
+                  setPendingAction(null);
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Barra de progresso da gravidez */}
       {pregnancyData.tipo === 'gravida' && pregnancyData.semanaAtual > 0 && (
         <div className="bg-white shadow-md p-4 mb-6 rounded-lg mx-4 md:mx-6 mt-4">

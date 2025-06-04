@@ -29,22 +29,9 @@ const Perfil = () => {
   const [showPregnancyForm, setShowPregnancyForm] = useState(false);
   const [showPlanningForm, setShowPlanningForm] = useState(false);
   const [pregnancyData, setPregnancyData] = useState(null);
-
-  const showNotification = (message, type = "success") => {
-    const notification = document.createElement("div");
-    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${
-      type === "success" ? "bg-green-500" : "bg-red-500"
-    } transition-opacity duration-500 z-50`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.opacity = "0";
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 500);
-    }, 3000);
-  };
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -138,6 +125,15 @@ const Perfil = () => {
 
     fetchUser();
   }, [router]);
+
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -269,22 +265,27 @@ const Perfil = () => {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Tem certeza que deseja eliminar a sua conta? Esta ação não pode ser desfeita.')) return;
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja eliminar a sua conta? Esta ação não pode ser desfeita.',
+      callback: async () => {
+        try {
+          const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', user.id);
 
-    try {
-      const { error } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', user.id);
+          if (error) throw error;
 
-      if (error) throw error;
-
-      await supabase.auth.signOut();
-      router.push('/login');
-    } catch (error) {
-      setError('Erro ao excluir conta');
-      console.error('Erro:', error);
-    }
+          await supabase.auth.signOut();
+          router.push('/login');
+        } catch (error) {
+          setMessage({ text: 'Erro ao excluir conta: ' + error.message, type: 'error' });
+          console.error('Erro:', error);
+        }
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const formatDate = (dateString) => {
@@ -335,13 +336,16 @@ const Perfil = () => {
       if (data) {
         console.log('Dados retornados:', data);
         setEmailChangePending(true);
-        alert('Um link de confirmação foi enviado para seu novo e-mail. Por favor, verifique sua caixa de entrada.');
+        setMessage({ 
+          text: 'Um link de confirmação foi enviado para seu novo e-mail. Por favor, verifique sua caixa de entrada.', 
+          type: 'info' 
+        });
       } else {
         throw new Error('Nenhuma resposta do servidor');
       }
     } catch (error) {
       console.error('Erro completo ao atualizar e-mail:', error);
-      setError('Erro ao atualizar e-mail: ' + (error.message || 'Erro desconhecido'));
+      setMessage({ text: 'Erro ao atualizar e-mail: ' + (error.message || 'Erro desconhecido'), type: 'error' });
       setPendingEmail('');
     } finally {
       setLoading(false);
@@ -366,6 +370,45 @@ const Perfil = () => {
     <div className="min-h-screen py-8" style={{ backgroundColor: '#F4E7FA' }}>
       <Navbar />
       <div className="max-w-2xl mx-auto px-4 mt-20">
+        {message.text && (
+          <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] ${
+            message.type === 'success' ? 'bg-green-200' : 
+            message.type === 'error' ? 'bg-red-200' : 
+            message.type === 'info' ? 'bg-blue-200' : 'bg-yellow-200'
+          } text-black`}>
+            {message.text}
+          </div>
+        )}
+
+        {showConfirmDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+              <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+              <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setShowConfirmDialog(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    if (pendingAction?.callback) {
+                      pendingAction.callback();
+                    }
+                    setShowConfirmDialog(false);
+                    setPendingAction(null);
+                  }}
+                  className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-primary">Meu Perfil</h1>
@@ -393,8 +436,15 @@ const Perfil = () => {
                 </p>
                 <button
                   onClick={() => {
-                    setShowPregnancyForm(true);
-                    setShowPlanningForm(false);
+                    setPendingAction({
+                      type: 'change_config',
+                      message: 'Tem certeza que deseja alterar a configuração atual?',
+                      callback: () => {
+                        setShowPregnancyForm(true);
+                        setShowPlanningForm(false);
+                      }
+                    });
+                    setShowConfirmDialog(true);
                   }}
                   className="text-sm bg-pink-100 hover:bg-pink-200 text-pink-800 px-4 py-2 rounded-full transition-colors"
                 >
@@ -641,25 +691,32 @@ const Perfil = () => {
                   
                   {pregnancyData && (
                     <button
-                      onClick={async () => {
-                        try {
-                          const { data: { user } } = await supabase.auth.getUser();
-                          if (!user) throw new Error("Usuário não autenticado");
+                      onClick={() => {
+                        setPendingAction({
+                          type: 'remove_config',
+                          message: 'Tem certeza que deseja remover a configuração atual? Esta ação não pode ser desfeita.',
+                          callback: async () => {
+                            try {
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (!user) throw new Error("Usuário não autenticado");
 
-                          const { error } = await supabase
-                            .from("gravidez_info")
-                            .delete()
-                            .eq("user_id", user.id);
+                              const { error } = await supabase
+                                .from("gravidez_info")
+                                .delete()
+                                .eq("user_id", user.id);
 
-                          if (error) throw error;
+                              if (error) throw error;
 
-                          setPregnancyData(null);
-                          setShowPregnancyForm(false);
-                          showNotification("Configuração removida com sucesso!");
-                        } catch (error) {
-                          console.error("Erro ao remover configuração:", error);
-                          showNotification("Erro ao remover configuração. Tente novamente.", "error");
-                        }
+                              setPregnancyData(null);
+                              setShowPregnancyForm(false);
+                              setMessage({ text: 'Configuração removida com sucesso!', type: 'success' });
+                            } catch (error) {
+                              console.error("Erro ao remover configuração:", error);
+                              setMessage({ text: 'Erro ao remover configuração. Tente novamente.', type: 'error' });
+                            }
+                          }
+                        });
+                        setShowConfirmDialog(true);
                       }}
                       className="w-full bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
                     >
@@ -748,11 +805,11 @@ const Perfil = () => {
                     }
                     
                     setPregnancyData(dados);
-                    showNotification("Configuração atualizada com sucesso!");
+                    setMessage({ text: 'Configuração atualizada com sucesso!', type: 'success' });
                     setShowPlanningForm(false);
                   } catch (error) {
                     console.error("Erro ao configurar dados:", error);
-                    showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
+                    setMessage({ text: error.message || "Erro ao configurar dados. Tente novamente.", type: 'error' });
                   } finally {
                     setIsLoading(false);
                   }

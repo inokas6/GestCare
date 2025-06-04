@@ -82,6 +82,7 @@ const MinhaBarriga = () => {
         }
       } catch (error) {
         console.error('Erro ao carregar fotos:', error);
+        setMessage({ text: 'Erro ao carregar fotos: ' + error.message, type: 'error' });
       } finally {
         setIsLoading(false);
       }
@@ -141,97 +142,102 @@ const MinhaBarriga = () => {
       return;
     }
 
-    try {
-      for (const file of files) {
-        if (!file.type.startsWith('image/')) {
-          setMessage({ text: 'Por favor, selecione apenas arquivos de imagem.', type: 'error' });
-          continue;
-        }
+    setPendingAction({
+      type: 'upload',
+      message: 'Deseja fazer upload destas fotos?',
+      callback: async () => {
+        try {
+          for (const file of files) {
+            if (!file.type.startsWith('image/')) {
+              setMessage({ text: 'Por favor, selecione apenas arquivos de imagem.', type: 'error' });
+              continue;
+            }
 
-        if (file.size > 5 * 1024 * 1024) {
-          setMessage({ text: 'O arquivo é muito grande. O tamanho máximo é 5MB.', type: 'error' });
-          continue;
-        }
+            if (file.size > 5 * 1024 * 1024) {
+              setMessage({ text: 'O arquivo é muito grande. O tamanho máximo é 5MB.', type: 'error' });
+              continue;
+            }
 
-        // Criar um nome único para o arquivo
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `fotos-barriga/${fileName}`;
+            // Criar um nome único para o arquivo
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `fotos-barriga/${fileName}`;
 
-        // Converter a imagem para Blob
-        const blob = new Blob([file], { type: file.type });
+            // Converter a imagem para Blob
+            const blob = new Blob([file], { type: file.type });
 
-        // Upload do arquivo para o Supabase Storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('fotos-barriga')
-          .upload(filePath, blob, {
-            cacheControl: '3600',
-            upsert: false
-          });
+            // Upload do arquivo para o Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('fotos-barriga')
+              .upload(filePath, blob, {
+                cacheControl: '3600',
+                upsert: false
+              });
 
-        if (uploadError) {
-          console.error('Erro no upload:', uploadError);
-          setMessage({ text: `Erro ao fazer upload da imagem: ${uploadError.message}`, type: 'error' });
-          continue;
-        }
+            if (uploadError) {
+              console.error('Erro no upload:', uploadError);
+              setMessage({ text: `Erro ao fazer upload da imagem: ${uploadError.message}`, type: 'error' });
+              continue;
+            }
 
-        // Obter URL pública do arquivo
-        const { data: { publicUrl } } = supabase.storage
-          .from('fotos-barriga')
-          .getPublicUrl(filePath);
+            // Obter URL pública do arquivo
+            const { data: { publicUrl } } = supabase.storage
+              .from('fotos-barriga')
+              .getPublicUrl(filePath);
 
-        // Salvar no banco de dados
-        const { data: savedPhoto, error: saveError } = await supabase
-          .from('user_fotos_barriga')
-          .insert([{
-            user_id: session.user.id,
-            mes: currentMonth,
-            url: publicUrl,
-            descricao: ''
-          }])
-          .select()
-          .single();
+            // Salvar no banco de dados
+            const { data: savedPhoto, error: saveError } = await supabase
+              .from('user_fotos_barriga')
+              .insert([{
+                user_id: session.user.id,
+                mes: currentMonth,
+                url: publicUrl,
+                descricao: ''
+              }])
+              .select()
+              .single();
 
-        if (saveError) {
-          console.error('Erro ao salvar no banco:', saveError);
-          await supabase.storage
-            .from('fotos-barriga')
-            .remove([filePath]);
-          setMessage({ text: `Erro ao salvar a foto: ${saveError.message}`, type: 'error' });
-          continue;
-        }
+            if (saveError) {
+              console.error('Erro ao salvar no banco:', saveError);
+              await supabase.storage
+                .from('fotos')
+                .remove([`fotos-barriga/${session.user.id}/${filePath}`]);
+              setMessage({ text: `Erro ao salvar a foto: ${saveError.message}`, type: 'error' });
+              continue;
+            }
 
-        // Atualizar estado local apenas para o mês atual
-        const newPhotos = [...userPhotos];
-        newPhotos[currentMonth - 1] = [
-          ...newPhotos[currentMonth - 1],
-          {
-            id: savedPhoto.id,
-            url: savedPhoto.url,
-            descricao: savedPhoto.descricao
+            // Atualizar estado local apenas para o mês atual
+            const newPhotos = [...userPhotos];
+            newPhotos[currentMonth - 1] = [
+              ...newPhotos[currentMonth - 1],
+              {
+                id: savedPhoto.id,
+                url: savedPhoto.url,
+                descricao: savedPhoto.descricao
+              }
+            ];
+            setUserPhotos(newPhotos);
+
+            setMessage({ text: 'Foto adicionada com sucesso!', type: 'success' });
           }
-        ];
-        setUserPhotos(newPhotos);
-
-        setMessage({ text: 'Foto adicionada com sucesso!', type: 'success' });
+        } catch (error) {
+          console.error('Erro ao fazer upload da foto:', error);
+          setMessage({ text: `Erro ao fazer upload da foto: ${error.message}`, type: 'error' });
+        }
       }
-    } catch (error) {
-      console.error('Erro ao fazer upload da foto:', error);
-      setMessage({ text: `Erro ao fazer upload da foto: ${error.message}`, type: 'error' });
-    }
-  };
-
-  const confirmDeletePhoto = (monthIndex, photoIndex) => {
-    setPendingAction({ type: 'delete', monthIndex, photoIndex });
+    });
     setShowConfirmDialog(true);
   };
 
-  const handleConfirmAction = async () => {
-    if (pendingAction?.type === 'delete') {
-      await deletePhoto(pendingAction.monthIndex, pendingAction.photoIndex);
-    }
-    setShowConfirmDialog(false);
-    setPendingAction(null);
+  const confirmDeletePhoto = (monthIndex, photoIndex) => {
+    setPendingAction({
+      type: 'delete',
+      message: 'Tem certeza que deseja excluir esta foto? Esta ação não poderá ser revertida.',
+      callback: async () => {
+        await deletePhoto(monthIndex, photoIndex);
+      }
+    });
+    setShowConfirmDialog(true);
   };
 
   const deletePhoto = async (monthIndex, photoIndex) => {
@@ -285,7 +291,7 @@ const MinhaBarriga = () => {
   }, [message]);
 
   const shareAlbum = () => {
-    alert("Compartilhar álbum de fotos");
+    setMessage({ text: 'Funcionalidade de compartilhamento em desenvolvimento!', type: 'info' });
   };
 
   const currentMonthPhotos = userPhotos[currentMonth - 1] || [];
@@ -323,8 +329,8 @@ const MinhaBarriga = () => {
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto p-4 bg-gray-50 rounded-3xl shadow-lg">
       {/* Mensagem de feedback */}
       {message.text && (
-        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
-          message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+        <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] ${
+          message.type === 'success' ? 'bg-green-200' : message.type === 'error' ? 'bg-red-200' : 'bg-blue-200'
         } text-black`}>
           {message.text}
         </div>
@@ -332,10 +338,10 @@ const MinhaBarriga = () => {
 
       {/* Diálogo de confirmação */}
       {showConfirmDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
             <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
-            <p className="mb-6 text-black">Tem certeza que deseja excluir esta foto?</p>
+            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setShowConfirmDialog(false)}
@@ -344,7 +350,13 @@ const MinhaBarriga = () => {
                 Cancelar
               </button>
               <button
-                onClick={handleConfirmAction}
+                onClick={() => {
+                  if (pendingAction?.callback) {
+                    pendingAction.callback();
+                  }
+                  setShowConfirmDialog(false);
+                  setPendingAction(null);
+                }}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
                 Confirmar

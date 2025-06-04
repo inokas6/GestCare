@@ -12,6 +12,16 @@ export default function Comments({ topicId }) {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [showInappropriateModal, setShowInappropriateModal] = useState(false);
     const [inappropriateWord, setInappropriateWord] = useState('');
+    const [message, setMessage] = useState({ text: '', type: '' });
+
+    useEffect(() => {
+        if (message.text) {
+            const timer = setTimeout(() => {
+                setMessage({ text: '', type: '' });
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
 
     useEffect(() => {
         async function fetchRespostas() {
@@ -21,6 +31,7 @@ export default function Comments({ topicId }) {
                 setRespostas(data || []);
             } catch (err) {
                 setError(err.message);
+                setMessage({ text: 'Erro ao carregar comentários: ' + err.message, type: 'error' });
             } finally {
                 setLoading(false);
             }
@@ -47,6 +58,7 @@ export default function Comments({ topicId }) {
         } catch (err) {
             console.error('Erro ao verificar comentário:', err);
             setError(err.message);
+            setMessage({ text: 'Erro ao verificar comentário: ' + err.message, type: 'error' });
         }
     };
 
@@ -69,7 +81,7 @@ export default function Comments({ topicId }) {
 
             if (error) {
                 if (error.message.includes('palavras inapropriadas')) {
-                    setError('Não é possível publicar este comentário pois contém palavras inapropriadas.');
+                    setMessage({ text: 'Não é possível publicar este comentário pois contém palavras inapropriadas.', type: 'error' });
                 } else {
                     throw error;
                 }
@@ -79,8 +91,10 @@ export default function Comments({ topicId }) {
             const { data: updatedRespostas } = await forum.getRespostas(topicId);
             setRespostas(updatedRespostas || []);
             setNovaResposta('');
+            setMessage({ text: 'Comentário publicado com sucesso!', type: 'success' });
         } catch (err) {
             setError(err.message);
+            setMessage({ text: 'Erro ao publicar comentário: ' + err.message, type: 'error' });
         } finally {
             setSubmitting(false);
         }
@@ -91,21 +105,29 @@ export default function Comments({ topicId }) {
 
     return (
         <div className="space-y-4 sm:space-y-6">
+            {message.text && (
+                <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] ${
+                    message.type === 'success' ? 'bg-green-200' : 'bg-red-200'
+                } text-black`}>
+                    {message.text}
+                </div>
+            )}
+
             {showConfirmModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
                     <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-                        <h3 className="text-lg font-semibold mb-4">Confirmar publicação</h3>
-                        <p className="mb-6">Tem certeza que deseja publicar este comentário?</p>
+                        <h3 className="text-lg font-semibold mb-4 text-black">Confirmar publicação</h3>
+                        <p className="mb-6 text-black">Tem certeza que deseja publicar este comentário?</p>
                         <div className="flex justify-end space-x-4">
                             <button
                                 onClick={() => setShowConfirmModal(false)}
-                                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                                className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleConfirmSubmit}
-                                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                             >
                                 Confirmar
                             </button>
@@ -115,17 +137,17 @@ export default function Comments({ topicId }) {
             )}
 
             {showInappropriateModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
                     <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
                         <h3 className="text-lg font-semibold mb-4 text-red-600">Aviso</h3>
-                        <p className="mb-6">Não é possível publicar este comentário pois contém palavras inapropriadas.</p>
+                        <p className="mb-6 text-black">Não é possível publicar este comentário pois contém palavras inapropriadas.</p>
                         <div className="flex justify-end">
                             <button
                                 onClick={() => {
                                     setShowInappropriateModal(false);
                                     setInappropriateWord('');
                                 }}
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                             >
                                 Entendi
                             </button>

@@ -11,6 +11,18 @@ export default function TopicoPage() {
     const [topico, setTopico] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [message, setMessage] = useState({ text: '', type: '' });
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null);
+
+    useEffect(() => {
+        if (message.text) {
+            const timer = setTimeout(() => {
+                setMessage({ text: '', type: '' });
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
 
     useEffect(() => {
         async function fetchTopico() {
@@ -20,6 +32,7 @@ export default function TopicoPage() {
                 setTopico(data[0]);
             } catch (err) {
                 setError(err.message);
+                setMessage({ text: err.message, type: 'error' });
             } finally {
                 setLoading(false);
             }
@@ -27,6 +40,23 @@ export default function TopicoPage() {
 
         fetchTopico();
     }, [params.id]);
+
+    const handleReacao = async (tipo) => {
+        try {
+            const { error } = await forum.addReacao(tipo, topico.id);
+            if (error) throw error;
+
+            // Atualizar o número de reações localmente
+            setTopico(prev => ({
+                ...prev,
+                reacoes: prev.reacoes + 1
+            }));
+
+            setMessage({ text: 'Reação adicionada com sucesso!', type: 'success' });
+        } catch (err) {
+            setMessage({ text: 'Erro ao adicionar reação: ' + err.message, type: 'error' });
+        }
+    };
 
     if (loading) return <div className="text-center py-4 sm:py-8 text-sm sm:text-base">...</div>;
     if (error) return <div className="text-red-500 text-center py-4 sm:py-8 text-sm sm:text-base">Erro: {error}</div>;
@@ -36,6 +66,43 @@ export default function TopicoPage() {
         <div className="min-h-screen bg-gray-50">
             <Sidebar />
             <div className="pl-0 sm:pl-48 lg:pl-64">
+                {message.text && (
+                    <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[100] ${
+                        message.type === 'success' ? 'bg-green-200' : message.type === 'error' ? 'bg-red-200' : 'bg-blue-200'
+                    } text-black`}>
+                        {message.text}
+                    </div>
+                )}
+
+                {showConfirmDialog && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+                        <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+                            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+                            <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    onClick={() => setShowConfirmDialog(false)}
+                                    className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 text-black"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (pendingAction?.callback) {
+                                            pendingAction.callback();
+                                        }
+                                        setShowConfirmDialog(false);
+                                        setPendingAction(null);
+                                    }}
+                                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
                     <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-4 sm:mb-8">
                         <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0 mb-4">
@@ -57,7 +124,14 @@ export default function TopicoPage() {
                             </div>
                             <div className="flex items-center space-x-2">
                                 <button
-                                    onClick={() => forum.addReacao('like', topico.id)}
+                                    onClick={() => {
+                                        setPendingAction({
+                                            type: 'reacao',
+                                            message: 'Deseja adicionar uma reação a esta publicação?',
+                                            callback: () => handleReacao('like')
+                                        });
+                                        setShowConfirmDialog(true);
+                                    }}
                                     className="text-gray-400 hover:text-purple-600"
                                 >
                                     <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
