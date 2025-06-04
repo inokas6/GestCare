@@ -1,59 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const TabelaNoticias = () => {
-  // Dados de exemplo - você pode substituir por dados reais posteriormente
-  const noticias = [
-    {
-      id: 1,
-      titulo: "Cuidados com o bebê no verão",
-      imagem: "https://via.placeholder.com/300",
-      data: "2024-03-20"
-    },
-    {
-      id: 2,
-      titulo: "Alimentação saudável para crianças",
-      imagem: "https://via.placeholder.com/300",
-      data: "2024-03-19"
-    },
-    {
-      id: 3,
-      titulo: "Desenvolvimento infantil",
-      imagem: "https://via.placeholder.com/300",
-      data: "2024-03-18"
-    },
-    {
-      id: 4,
-      titulo: "Dicas para amamentação",
-      imagem: "https://via.placeholder.com/300",
-      data: "2024-03-17"
-    },
-    {
-      id: 5,
-      titulo: "Sono do bebê",
-      imagem: "https://via.placeholder.com/300",
-      data: "2024-03-16"
-    },
-    {
-      id: 6,
-      titulo: "Primeiros passos",
-      imagem: "https://via.placeholder.com/300",
-      data: "2024-03-15"
-    }
-  ];
+  const [noticias, setNoticias] = useState([]);
+  const supabase = createClientComponentClient();
+
+  useEffect(() => {
+    const fetchNoticias = async () => {
+      const { data, error } = await supabase
+        .from('noticias')
+        .select('*')
+        .order('data', { ascending: false });
+
+      if (error) {
+        console.error("Erro ao buscar notícias:", error);
+      } else {
+        setNoticias(data);
+      }
+    };
+
+    fetchNoticias();
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Últimas Notícias</h2>
-      
+
       <div className="columns-3 gap-4 mt-6">
         {noticias.map((noticia, index) => (
-          <div 
-            key={noticia.id} 
+          <div
+            key={noticia.id}
             className={`bg-white shadow-md rounded-lg overflow-hidden p-4 break-inside-avoid mb-4 ${index % 2 === 0 ? 'h-80' : 'h-60'}`}
           >
-            <img 
-              src={noticia.imagem} 
-              alt={noticia.titulo} 
+            <img
+              src={noticia.imagem}
+              alt={noticia.titulo}
               className="w-full object-cover rounded-lg h-40"
             />
             <h3 className="text-lg font-semibold mt-2">{noticia.titulo}</h3>
@@ -72,4 +53,4 @@ const TabelaNoticias = () => {
   );
 };
 
-export default TabelaNoticias; 
+export default TabelaNoticias;

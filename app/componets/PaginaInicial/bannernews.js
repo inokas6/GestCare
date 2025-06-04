@@ -21,8 +21,8 @@ const Not = () => {
                 <div className="bg-amber-50 md:w-2/3">
                     <div className="h-full w-full flex items-center justify-center overflow-hidden">
                         <img
-                            src="/api/placeholder/800/500"
-                            alt=""
+                            src="/imagens/pregnant-6189040_1920.jpg"
+                            alt="Gravidez"
                             className="w-full h-full object-cover"
                         />
                     </div>

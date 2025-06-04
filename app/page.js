@@ -12,8 +12,7 @@ const BabyCarePage = () => {
     <div className="bg-gray-200 min-h-screen">
       <Navbarbaby />
       <Not />
-      <Circulos/>
-      <Contagem/>
+      
       <TabelaNoticias />
       {/* <Chatbot /> */}
       <Footerbaby />

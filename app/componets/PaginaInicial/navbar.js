@@ -40,15 +40,10 @@ const Navbar = () => {
         <a className="btn btn-ghost text-xl">GestCare</a>
       </div>
       <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1">
-          <li><a>Início</a></li>
-          <li><a>Serviços</a></li>
-          <li><a>Contactos</a></li>
-        </ul>
+       
       </div>
       <div className="navbar-end space-x-1 flex">
-      <Link href="/login" className="btn">Iniciar Sessão</Link>
-      <Link href="/home" className="btn">Página Inicial</Link>
+      <Link href="/login" className="btn">Login</Link>
       </div>
     </div>);
 };
