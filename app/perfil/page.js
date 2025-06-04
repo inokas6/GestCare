@@ -33,6 +33,37 @@ const Perfil = () => {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
 
+  const validarData = (data) => {
+    const dataAtual = new Date();
+    dataAtual.setHours(0, 0, 0, 0);
+    
+    const dataEscolhida = new Date(data);
+    dataEscolhida.setHours(0, 0, 0, 0);
+    
+    // Data limite de 41 semanas atrás
+    const dataLimite = new Date(dataAtual);
+    dataLimite.setDate(dataLimite.getDate() - (41 * 7));
+    
+    if (dataEscolhida > dataAtual) {
+      return {
+        valido: false,
+        mensagem: "A data não pode ser posterior ao dia atual"
+      };
+    }
+    
+    if (dataEscolhida < dataLimite) {
+      return {
+        valido: false,
+        mensagem: "A data não pode ser anterior a 41 semanas do dia atual"
+      };
+    }
+    
+    return {
+      valido: true,
+      mensagem: ""
+    };
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -767,6 +798,23 @@ const Perfil = () => {
                       throw new Error("A data da última menstruação é obrigatória");
                     }
 
+                    // Validar data da última menstruação
+                    const validacaoInicio = validarData(data_ultima_menstruacao);
+                    if (!validacaoInicio.valido) {
+                      throw new Error(validacaoInicio.mensagem);
+                    }
+
+                    // Validar data provável do parto se for gravidez
+                    if (pregnancyData?.tipo === 'gravida' && data_provavel_parto) {
+                      const dataParto = new Date(data_provavel_parto);
+                      const dataAtual = new Date();
+                      dataAtual.setHours(0, 0, 0, 0);
+                      
+                      if (dataParto < dataAtual) {
+                        throw new Error("A data provável do parto deve ser posterior a hoje");
+                      }
+                    }
+
                     const dados = {
                       user_id: user.id,
                       data_ultima_menstruacao: data_ultima_menstruacao,
@@ -825,7 +873,14 @@ const Perfil = () => {
                       defaultValue={pregnancyData?.data_ultima_menstruacao}
                       className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                       required
+                      max={new Date().toISOString().split('T')[0]}
+                      min={(() => {
+                        const dataLimite = new Date();
+                        dataLimite.setDate(dataLimite.getDate() - (41 * 7));
+                        return dataLimite.toISOString().split('T')[0];
+                      })()}
                     />
+                    <p className="text-xs text-gray-500 mt-1">A data deve estar entre 41 semanas atrás e hoje</p>
                   </div>
                   
                   {pregnancyData?.tipo === 'gravida' ? (
@@ -839,7 +894,9 @@ const Perfil = () => {
                         name="data_provavel_parto"
                         defaultValue={pregnancyData?.data_provavel_parto}
                         className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
+                        min={new Date().toISOString().split('T')[0]}
                       />
+                      <p className="text-xs text-gray-500 mt-1">A data deve ser posterior a hoje</p>
                     </div>
                   ) : (
                     <div className="mb-6">

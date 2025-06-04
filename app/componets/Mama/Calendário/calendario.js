@@ -357,8 +357,55 @@ export default function CalendarioGravidez() {
     }));
   };
 
+  const validarData = (data) => {
+    const dataAtual = new Date();
+    dataAtual.setHours(0, 0, 0, 0);
+    
+    const dataEscolhida = new Date(data);
+    dataEscolhida.setHours(0, 0, 0, 0);
+    
+    // Data limite de 41 semanas atrás
+    const dataLimite = new Date(dataAtual);
+    dataLimite.setDate(dataLimite.getDate() - (41 * 7));
+    
+    if (dataEscolhida > dataAtual) {
+      return {
+        valido: false,
+        mensagem: "A data não pode ser posterior ao dia atual"
+      };
+    }
+    
+    if (dataEscolhida < dataLimite) {
+      return {
+        valido: false,
+        mensagem: "A data não pode ser anterior a 41 semanas do dia atual"
+      };
+    }
+    
+    return {
+      valido: true,
+      mensagem: ""
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validar data de início
+    const validacaoInicio = validarData(newEvent.inicio_data);
+    if (!validacaoInicio.valido) {
+      setMessage({ text: validacaoInicio.mensagem, type: 'error' });
+      return;
+    }
+    
+    // Validar data de fim se existir
+    if (newEvent.fim_data) {
+      const validacaoFim = validarData(newEvent.fim_data);
+      if (!validacaoFim.valido) {
+        setMessage({ text: validacaoFim.mensagem, type: 'error' });
+        return;
+      }
+    }
     
     setPendingAction({
       type: 'save',
@@ -840,6 +887,12 @@ export default function CalendarioGravidez() {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                     required
+                    min={(() => {
+                      const dataLimite = new Date();
+                      dataLimite.setDate(dataLimite.getDate() - (41 * 7));
+                      return dataLimite.toISOString().split('T')[0];
+                    })()}
+                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
                 <div>
@@ -852,7 +905,12 @@ export default function CalendarioGravidez() {
                     name="fim_data"
                     value={newEvent.fim_data}
                     onChange={handleInputChange}
-                    min={newEvent.inicio_data}
+                    min={newEvent.inicio_data || (() => {
+                      const dataLimite = new Date();
+                      dataLimite.setDate(dataLimite.getDate() - (41 * 7));
+                      return dataLimite.toISOString().split('T')[0];
+                    })()}
+                    max={new Date().toISOString().split('T')[0]}
                     className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   />
                 </div>
