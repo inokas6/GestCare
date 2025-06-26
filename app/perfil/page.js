@@ -455,7 +455,7 @@ const Perfil = () => {
 
           {/* Status da Gravidez */}
           <div className="mb-6 p-4 bg-pink-50 rounded-lg">
-            <h3 className="text-lg font-semibold text-pink-800 mb-2">Status da Gravidez</h3>
+            <h3 className="text-lg font-semibold text-pink-800 mb-2">Configuração da Gravidez</h3>
             {pregnancyData ? (
               <div className="space-y-2">
                 <p className="text-pink-700">
@@ -492,7 +492,7 @@ const Perfil = () => {
                   }}
                   className="text-sm bg-pink-100 hover:bg-pink-200 text-pink-800 px-4 py-2 rounded-full transition-colors"
                 >
-                  Configurar Status
+                  Alterar Configuração
                 </button>
               </div>
             )}

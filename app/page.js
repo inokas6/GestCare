@@ -3,7 +3,7 @@ import Footerbaby from "./componets/PaginaInicial/footer";
 import Navbarbaby from "./componets/PaginaInicial/navbar";
 import Not from "./componets/PaginaInicial/bannernews";
 import TabelaNoticias from "./componets/PaginaInicial/tabelaNoticias";
-//import Chatbot from "./componets/Chatgpt/chat";
+import Chatbot from "./componets/Chatgpt/chat";
 
 const BabyCarePage = () => {
   return (
@@ -12,7 +12,8 @@ const BabyCarePage = () => {
       <Not />
       
       <TabelaNoticias />
-      {/* <Chatbot /> */}
+      <Chatbot />
+      {/*  */}
       <Footerbaby />
     </div> 
   );
