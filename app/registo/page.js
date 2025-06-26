@@ -25,6 +25,7 @@ const SignUp = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -149,8 +150,7 @@ const SignUp = () => {
       });
       setPreviewUrl(null);
 
-      alert("Conta criada com sucesso! Por favor, verifique o seu email para confirmar a sua conta.");
-      router.push('/login');
+      setShowSuccessModal(true);
       
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -261,6 +261,33 @@ const SignUp = () => {
           </Link>
         </div>
       </div>
+
+      {showSuccessModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <h3 className="font-bold text-lg text-center mb-2 text-black">Conta criada com sucesso!</h3>
+            <p className="py-4 text-center text-black">Por favor, verifique o seu email para confirmar a sua conta.</p>
+            <div className="modal-action">
+              <button 
+                className="btn btn-ghost text-black" 
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Fechar
+              </button>
+              <a href="/login" className="btn btn-primary">
+                Ir para Login
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

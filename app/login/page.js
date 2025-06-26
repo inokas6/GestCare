@@ -12,6 +12,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [userName, setUserName] = useState('');
   const router = useRouter();
   const supabase = createClientComponentClient();
 
@@ -32,7 +34,7 @@ export default function Login() {
       setError('');
     } catch (error) {
       console.error('Erro ao enviar email de recuperação:', error);
-      setError(error.message || 'Erro ao enviar email de recuperação');
+      setError('Erro ao enviar email de recuperação. Tente novamente.');
     }
   };
 
@@ -65,14 +67,20 @@ export default function Login() {
         return;
       }
 
-      alert(`Bem-vindo, ${userData.nome}!`);
-      router.push('/home');
+      setUserName(userData.nome);
+      setShowWelcomeModal(true);
     } catch (error) {
       console.error('Erro no login:', error);
       if (error.message.includes('Email not confirmed')) {
         setError('Email não confirmado, por favor confirmar');
+      } else if (error.message.includes('Invalid login credentials')) {
+        setError('Credenciais inválidas. Verifique seu email e password.');
+      } else if (error.message.includes('Too many requests')) {
+        setError('Muitas tentativas. Aguarde um momento antes de tentar novamente.');
+      } else if (error.message.includes('User not found')) {
+        setError('Utilizador não encontrado. Verifique seu email.');
       } else {
-        setError(error.message || 'Erro ao fazer login.');
+        setError('Erro ao fazer login. Tente novamente.');
       }
     } finally {
       setLoading(false);
@@ -83,7 +91,6 @@ export default function Login() {
     <div className="hero bg-base-200 min-h-screen">
       <div className="hero-content flex-col lg:flex-row-reverse">
         <div className="text-center lg:text-left">
-          {error && <div className="mb-4 rounded bg-red-100 p-3 text-red-700">{error}</div>}
         </div>
 
         <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
@@ -139,6 +146,12 @@ export default function Login() {
               </label>
             </div>
 
+            {error && (
+              <div className="alert alert-error mt-4">
+                <span>{error}</span>
+              </div>
+            )}
+
             {resetEmailSent && (
               <div className="alert alert-success mt-4">
                 <span>Email de recuperação enviado! Verifique sua caixa de entrada.</span>
@@ -159,6 +172,35 @@ export default function Login() {
           </form>
         </div>
       </div>
+
+      {showWelcomeModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </div>
+            </div>
+            <h3 className="font-bold text-lg text-center mb-2 text-black">Bem-vindo, {userName}!</h3>
+            <p className="py-4 text-center text-black">
+              Login realizado com sucesso!
+            </p>
+            <div className="modal-action">
+              <button 
+                className="btn btn-ghost text-black" 
+                onClick={() => setShowWelcomeModal(false)}
+              >
+                Fechar
+              </button>
+              <a href="/home" className="btn btn-primary">
+                Ir para a página inicial
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
