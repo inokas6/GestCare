@@ -47,7 +47,6 @@ const Navbar = () => {
                 .from("notificacoes")
                 .select("*")
                 .eq("user_id", user.id)
-                .gte("data_criacao", dataAtual)
                 .order("data_criacao", { ascending: false })
                 .limit(10);
 
@@ -149,9 +148,9 @@ const Navbar = () => {
                                                 </p>
                                                 <p className="text-xs text-gray-300 mt-1">
                                                     {notification.mensagem}
-                                                </p>
-                                                <p className="text-xs text-gray-400 mt-1">
-                                                    {formatNotificationDate(notification.data_criacao)}
+                                                    {notification.data_evento && (
+                                                      <span> em {format(new Date(notification.data_evento), "dd/MM/yyyy")}</span>
+                                                    )}
                                                 </p>
                                             </div>
                                             {!notification.lida && (

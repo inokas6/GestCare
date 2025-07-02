@@ -48,6 +48,155 @@ export default function CalendarioGravidez() {
     setMessage({ text, type });
   };
 
+  // Função para limpar notificações duplicadas
+  const limparNotificacoesDuplicadas = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const hoje = new Date();
+      const dataAtual = hoje.toISOString().split('T')[0];
+
+      // Buscar todas as notificações de hoje
+      const { data: notificacoesHoje, error } = await supabase
+        .from("notificacoes")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("tipo", "lembrete")
+        .gte("data_criacao", dataAtual + "T00:00:00Z")
+        .lt("data_criacao", dataAtual + "T23:59:59Z");
+
+      if (error) throw error;
+
+      // Agrupar por evento_id e manter apenas a primeira notificação de cada evento
+      const eventosProcessados = new Set();
+      const notificacoesParaEliminar = [];
+
+      for (const notificacao of notificacoesHoje || []) {
+        if (notificacao.evento_id && eventosProcessados.has(notificacao.evento_id)) {
+          notificacoesParaEliminar.push(notificacao.id);
+        } else if (notificacao.evento_id) {
+          eventosProcessados.add(notificacao.evento_id);
+        }
+      }
+
+      // Eliminar notificações duplicadas
+      if (notificacoesParaEliminar.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("notificacoes")
+          .delete()
+          .in("id", notificacoesParaEliminar);
+
+        if (deleteError) {
+          console.error("Erro ao eliminar notificações duplicadas:", deleteError);
+        } else {
+          console.log(`Eliminadas ${notificacoesParaEliminar.length} notificações duplicadas`);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao limpar notificações duplicadas:", error);
+    }
+  };
+
+  // Função para verificar lembretes e criar notificações
+  const checkReminders = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Primeiro, limpar notificações duplicadas existentes
+      await limparNotificacoesDuplicadas();
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0); // Reset para início do dia
+      const dataAtual = hoje.toISOString().split('T')[0];
+
+      // Buscar eventos com lembretes ativos
+      const { data: eventsWithReminders, error } = await supabase
+        .from("calendario")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("lembrete", true)
+        .not("lembrete_antecedencia", "is", null);
+
+      if (error) throw error;
+
+      for (const event of eventsWithReminders || []) {
+        const eventDate = new Date(event.inicio_data);
+        eventDate.setHours(0, 0, 0, 0);
+        
+        // Calcular a data exata quando o lembrete deve aparecer
+        const reminderDate = new Date(eventDate);
+        
+        // Subtrair os dias de antecedência configurados pelo utilizador
+        switch (event.lembrete_antecedencia) {
+          case 0: // No dia do evento
+            // Não subtrair nada - lembrete no próprio dia
+            break;
+          case 1: // 1 dia antes
+            reminderDate.setDate(eventDate.getDate() - 1);
+            break;
+          case 2: // 2 dias antes
+            reminderDate.setDate(eventDate.getDate() - 2);
+            break;
+          case 3: // 3 dias antes
+            reminderDate.setDate(eventDate.getDate() - 3);
+            break;
+          case 7: // 1 semana antes
+            reminderDate.setDate(eventDate.getDate() - 7);
+            break;
+          default:
+            continue; // Ignorar valores inválidos
+        }
+
+        const reminderDateStr = reminderDate.toISOString().split('T')[0];
+
+        // Verificar se hoje é exatamente o dia do lembrete
+        if (reminderDateStr === dataAtual) {
+          // Verificar se já existe uma notificação para este evento hoje
+          const { data: existingNotifications, error: checkError } = await supabase
+            .from("notificacoes")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("evento_id", event.id)
+            .gte("data_criacao", dataAtual + "T00:00:00Z")
+            .lt("data_criacao", dataAtual + "T23:59:59Z");
+
+          if (checkError) {
+            console.error("Erro ao verificar notificações existentes:", checkError);
+            continue;
+          }
+
+          // Só criar notificação se não existir nenhuma para este evento hoje
+          if (!existingNotifications || existingNotifications.length === 0) {
+            // Criar notificação apenas com o título do evento e a data
+            const dataEventoFormatada = format(new Date(event.inicio_data), "dd/MM/yyyy");
+            const notificationTitle = "Lembrete do Calendário";
+            const notificationMessage = `${event.titulo} em ${dataEventoFormatada}`;
+
+            const { error: insertError } = await supabase
+              .from("notificacoes")
+              .insert([{
+                user_id: user.id,
+                titulo: notificationTitle,
+                mensagem: notificationMessage,
+                evento_id: event.id,
+                tipo: "lembrete",
+                lida: false,
+                data_evento: event.inicio_data
+              }]);
+
+            if (insertError) {
+              console.error("Erro ao criar notificação:", insertError);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao verificar lembretes:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchCurrentUserAndData = async () => {
       setIsLoading(true);
@@ -56,11 +205,18 @@ export default function CalendarioGravidez() {
         setNewEvent(prev => ({ ...prev, user_id: user.id }));
         await fetchEvents(user.id);
         await fetchPregnancyData(user.id);
+        await checkReminders(); // Verificar lembretes ao carregar
       }
       setIsLoading(false);
     };
     
     fetchCurrentUserAndData();
+  }, []);
+
+  // Verificar lembretes a cada 15 minutos para ser mais responsivo
+  useEffect(() => {
+    const interval = setInterval(checkReminders, 15 * 60 * 1000); // 15 minutos
+    return () => clearInterval(interval);
   }, []);
 
   // Mostrar modal inicial se não houver dados de gravidez
@@ -225,11 +381,18 @@ export default function CalendarioGravidez() {
       // Adicionar eventos semanais da gravidez se temos os dados
       if (pregnancyData.dataInicio) {
         if (pregnancyData.tipo === 'planejamento') {
-          // Adicionar eventos do período fértil para os próximos 6 ciclos
+          // Adicionar apenas o próximo período fértil
           const dataUltimaMenstruacao = new Date(pregnancyData.dataInicio);
           const ciclo = pregnancyData.ciclo_menstrual || 28;
+          const hoje = new Date();
+          hoje.setHours(0, 0, 0, 0);
           
-          for (let i = 0; i < 6; i++) {
+          // Encontrar o próximo período fértil
+          let proximoPeriodoFertil = null;
+          let proximaOvulacao = null;
+          let cicloNumero = 1;
+          
+          for (let i = 0; i < 12; i++) { // Verificar até 12 ciclos para encontrar o próximo
             const dataOvulacao = new Date(dataUltimaMenstruacao);
             dataOvulacao.setDate(dataOvulacao.getDate() + (ciclo * i) + 14); // 14 dias após a menstruação
             
@@ -239,32 +402,43 @@ export default function CalendarioGravidez() {
             const fimFertil = new Date(dataOvulacao);
             fimFertil.setDate(dataOvulacao.getDate() + 2);
             
+            // Se o período fértil ainda não passou, é o próximo
+            if (fimFertil >= hoje) {
+              proximoPeriodoFertil = { inicio: inicioFertil, fim: fimFertil };
+              proximaOvulacao = dataOvulacao;
+              cicloNumero = i + 1;
+              break;
+            }
+          }
+          
+          // Adicionar apenas o próximo período fértil se encontrado
+          if (proximoPeriodoFertil) {
             calendarEvents.push({
-              id: `periodo-fertil-${i}`,
-              title: `Período Fértil - Ciclo ${i + 1}`,
-              start: inicioFertil.toISOString().split('T')[0],
-              end: fimFertil.toISOString().split('T')[0],
+              id: `periodo-fertil-proximo`,
+              title: `Próximo Período Fértil`,
+              start: proximoPeriodoFertil.inicio.toISOString().split('T')[0],
+              end: proximoPeriodoFertil.fim.toISOString().split('T')[0],
               backgroundColor: "rgba(255, 93, 143, 0.2)",
               borderColor: "#FF5D8F",
               textColor: "#FF5D8F",
               display: "background",
               extendedProps: {
                 tipo_evento: "ovulacao",
-                ciclo: i + 1
+                ciclo: cicloNumero
               }
             });
             
             // Adicionar o dia da ovulação como um evento específico
             calendarEvents.push({
-              id: `ovulacao-${i}`,
-              title: `Ovulação - Ciclo ${i + 1}`,
-              start: dataOvulacao.toISOString().split('T')[0],
+              id: `ovulacao-proxima`,
+              title: `Próxima Ovulação`,
+              start: proximaOvulacao.toISOString().split('T')[0],
               backgroundColor: "#FF5D8F",
               borderColor: "#FF5D8F",
               textColor: "#ffffff",
               extendedProps: {
                 tipo_evento: "ovulacao",
-                ciclo: i + 1
+                ciclo: cicloNumero
               }
             });
           }
@@ -379,13 +553,6 @@ export default function CalendarioGravidez() {
     // Data limite de 41 semanas atrás
     const dataLimite = new Date(dataAtual);
     dataLimite.setDate(dataLimite.getDate() - (41 * 7));
-    
-    if (dataEscolhida > dataAtual) {
-      return {
-        valido: false,
-        mensagem: "A data não pode ser posterior ao dia atual"
-      };
-    }
     
     if (dataEscolhida < dataLimite) {
       return {
@@ -532,6 +699,8 @@ export default function CalendarioGravidez() {
     if (!date) return "";
     return format(new Date(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   };
+
+
 
   return (
     <div className="bg-pink-50 min-h-screen pt-20">
@@ -904,7 +1073,6 @@ export default function CalendarioGravidez() {
                       dataLimite.setDate(dataLimite.getDate() - (41 * 7));
                       return dataLimite.toISOString().split('T')[0];
                     })()}
-                    max={new Date().toISOString().split('T')[0]}
                   />
                 </div>
                 <div>
@@ -922,7 +1090,6 @@ export default function CalendarioGravidez() {
                       dataLimite.setDate(dataLimite.getDate() - (41 * 7));
                       return dataLimite.toISOString().split('T')[0];
                     })()}
-                    max={new Date().toISOString().split('T')[0]}
                     className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   />
                 </div>
