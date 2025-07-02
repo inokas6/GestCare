@@ -409,7 +409,7 @@ export default function TopicosPage() {
                             onClick={() => handleDelete(topico.id)}
                             className="text-red-600 hover:text-red-900"
                           >
-                            Excluir
+                            Eliminar
                           </button>
                         </>
                       )}

@@ -443,7 +443,7 @@ export default function CategoriasPage() {
                             onClick={() => handleDelete(categoria.id)}
                             className="text-red-600 hover:text-red-900"
                           >
-                            Excluir
+                            Eliminar
                           </button>
                         </>
                       )}

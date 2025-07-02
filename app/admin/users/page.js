@@ -31,11 +31,11 @@ export default function UsuariosPage() {
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/users');
-      if (!response.ok) throw new Error('Erro ao buscar usuários');
+      if (!response.ok) throw new Error('Erro ao buscar utilizadores');
       const data = await response.json();
       setUsers(data);
     } catch (error) {
-      console.error('Erro:', error);
+      console.error('Erro ao buscar utilizadores:', error);
     } finally {
       setIsLoading(false);
     }
@@ -59,10 +59,10 @@ export default function UsuariosPage() {
           if (error) throw error;
 
           setUsers(users.filter(user => user.id !== userId));
-          setMessage({ text: 'Usuário eliminado com sucesso!', type: 'success' });
+          setMessage({ text: 'Utilizador eliminado com sucesso!', type: 'success' });
         } catch (error) {
-          console.error('Erro ao excluir usuário:', error);
-          setMessage({ text: 'Erro ao eliminar usuário: ' + error.message, type: 'error' });
+          console.error('Erro ao eliminar utilizador:', error);
+          setMessage({ text: 'Erro ao eliminar utilizador: ' + error.message, type: 'error' });
         }
       }
     });
@@ -90,10 +90,10 @@ export default function UsuariosPage() {
             user.id === editingUser.id ? editingUser : user
           ));
           setEditingUser(null);
-          setMessage({ text: 'Usuário atualizado com sucesso!', type: 'success' });
+          setMessage({ text: 'Utilizador atualizado com sucesso!', type: 'success' });
         } catch (error) {
-          console.error('Erro ao atualizar usuário:', error);
-          setMessage({ text: 'Erro ao atualizar usuário: ' + error.message, type: 'error' });
+          console.error('Erro ao atualizar utilizador:', error);
+          setMessage({ text: 'Erro ao atualizar utilizador: ' + error.message, type: 'error' });
         }
       }
     });
@@ -111,16 +111,16 @@ export default function UsuariosPage() {
         body: JSON.stringify(newUser),
       });
 
-      if (!response.ok) throw new Error('Erro ao criar usuário');
+      if (!response.ok) throw new Error('Erro ao criar utilizador');
 
       const user = await response.json();
       setUsers([user, ...users]);
       setNewUser({ nome: '', email: '' });
       setShowNewUserForm(false);
-      setMessage({ text: 'Usuário criado com sucesso!', type: 'success' });
+      setMessage({ text: 'Utilizador criado com sucesso!', type: 'success' });
     } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      setMessage({ text: 'Erro ao criar usuário: ' + error.message, type: 'error' });
+      console.error('Erro ao criar utilizador:', error);
+      setMessage({ text: 'Erro ao criar utilizador: ' + error.message, type: 'error' });
     }
   };
 
@@ -169,18 +169,18 @@ export default function UsuariosPage() {
       )}
 
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Gerenciamento de Usuários</h1>
+        <h1 className="text-2xl font-semibold text-black">Gestão de Utilizadores</h1>
         <button 
           onClick={() => setShowNewUserForm(true)}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
         >
-          Novo Usuário
+          Novo Utilizador
         </button>
       </div>
 
       {showNewUserForm && (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Novo Usuário</h2>
+          <h2 className="text-xl font-semibold mb-4 text-black">Novo Utilizador</h2>
           <form onSubmit={handleCreateUser} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Nome</label>
@@ -214,7 +214,7 @@ export default function UsuariosPage() {
                 type="submit"
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
-                Criar Usuário
+                Criar Utilizador
               </button>
             </div>
           </form>
@@ -225,7 +225,7 @@ export default function UsuariosPage() {
         <div className="p-4 border-b">
           <input
             type="text"
-            placeholder="Buscar usuários..."
+            placeholder="Procurar utilizadores..."
             className="w-full px-4 py-2 border rounded-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -311,7 +311,7 @@ export default function UsuariosPage() {
                             onClick={() => handleDelete(user.id)}
                             className="text-red-600 hover:text-red-900"
                           >
-                            Excluir
+                            Eliminar
                           </button>
                         </>
                       )}

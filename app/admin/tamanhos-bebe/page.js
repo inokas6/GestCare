@@ -317,7 +317,7 @@ export default function TamanhosBebePage() {
                             onClick={() => handleDelete(tamanho.id)}
                             className="text-red-600 hover:text-red-900"
                           >
-                            Excluir
+                            Eliminar
                           </button>
                         </>
                       )}

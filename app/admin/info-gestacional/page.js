@@ -401,7 +401,7 @@ export default function InfoGestacionalPage() {
                             onClick={() => handleDelete(info.id)}
                             className="text-red-600 hover:text-red-900"
                           >
-                            Excluir
+                            Eliminar
                           </button>
                         </>
                       )}
