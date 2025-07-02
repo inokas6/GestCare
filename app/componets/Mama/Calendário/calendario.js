@@ -20,7 +20,6 @@ export default function CalendarioGravidez() {
   const [showInfo, setShowInfo] = useState(false);
   const [showPregnancyForm, setShowPregnancyForm] = useState(false);
   const [showPlanningForm, setShowPlanningForm] = useState(false);
-  const [showMainConfigModal, setShowMainConfigModal] = useState(true);
   const [pregnancyData, setPregnancyData] = useState({
     dataInicio: null,
     semanaAtual: 0,
@@ -68,11 +67,6 @@ export default function CalendarioGravidez() {
     }
   }, [message]);
 
-  // Função para mostrar notificações
-  const showNotification = (text, type = 'success') => {
-    setMessage({ text, type });
-  };
-
   const fetchPregnancyData = async (userId) => {
     try {
       if (!userId) {
@@ -88,8 +82,7 @@ export default function CalendarioGravidez() {
         
       if (error) {
         if (error.code === 'PGRST116') {
-          // Nenhum dado de gravidez encontrado - isso é normal para novos utilizadores
-          console.log("Nenhum dado de gravidez encontrado para o usuário - aguardando configuração");
+          console.log("Nenhum dado de gravidez encontrado para o usuário");
           return;
         }
         throw error;
@@ -146,15 +139,12 @@ export default function CalendarioGravidez() {
       });
       await fetchInfoSemanal(semanasDesdeInicio);
     } catch (error) {
-      // Só mostrar erro se não for o caso de "nenhum dado encontrado" (PGRST116)
-      if (error.code !== 'PGRST116') {
-        console.error("Erro ao buscar dados da gravidez:", {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint
-        });
-      }
+      console.error("Erro ao buscar dados da gravidez:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
     }
   };
   
@@ -1199,7 +1189,7 @@ export default function CalendarioGravidez() {
       )}
       
       {/* Modal para configuração da data inicial da gravidez (mostrado se não houver dados) */}
-      {!isLoading && !pregnancyData.dataInicio && !showPregnancyForm && !showPlanningForm && showMainConfigModal && (
+      {!isLoading && !pregnancyData.dataInicio && !showPregnancyForm && !showPlanningForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div 
             className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
@@ -1207,7 +1197,7 @@ export default function CalendarioGravidez() {
           >
             <button
               onClick={() => {
-                setShowMainConfigModal(false);
+                setShowModal(false);
                 setShowPregnancyForm(false);
                 setShowPlanningForm(false);
               }}
@@ -1243,7 +1233,7 @@ export default function CalendarioGravidez() {
               
               <button
                 onClick={() => {
-                  setShowMainConfigModal(false);
+                  setShowModal(false);
                   setShowPregnancyForm(false);
                   setShowPlanningForm(false);
                 }}
@@ -1330,7 +1320,7 @@ export default function CalendarioGravidez() {
                 await fetchPregnancyData(user.id);
                 showNotification("Calendário configurado com sucesso!");
                 setShowPregnancyForm(false);
-                setShowMainConfigModal(false);
+                setShowModal(false);
                 setShowPlanningForm(false);
               } catch (error) {
                 console.error("Erro ao configurar dados da gravidez:", error);
@@ -1472,7 +1462,7 @@ export default function CalendarioGravidez() {
                 await fetchEvents(user.id);
                 showNotification("Calendário de planejamento configurado com sucesso!");
                 setShowPlanningForm(false);
-                setShowMainConfigModal(false);
+                setShowModal(false);
                 setShowPregnancyForm(false);
               } catch (error) {
                 console.error("Erro ao configurar planejamento:", error);

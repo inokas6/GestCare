@@ -23,6 +23,7 @@ const Home = () => {
     { date: '31/03', mood: 'happy' },
     { date: '01/04', mood: 'happy' },
   ]);
+
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -74,15 +75,16 @@ const Home = () => {
           .single();
           
         if (error) {
-          // Só mostrar erro se não for o caso de "nenhum dado encontrado" (PGRST116)
-          if (error.code !== 'PGRST116') {
-            console.error("Erro ao buscar dados da gravidez:", error);
+          // Se não há dados de gravidez configurados, não é um erro
+          if (error.code === 'PGRST116') {
+            console.log("Nenhum dado de gravidez configurado para o usuário");
+            return;
           }
+          console.error("Erro ao buscar dados da gravidez:", error);
           return;
         }
         
         if (!data) return;
-        
         const dataInicio = new Date(data.data_ultima_menstruacao || data.data_inicio);
         const hoje = new Date();
         
@@ -91,10 +93,7 @@ const Home = () => {
         setCurrentWeek(semanasDesdeInicio);
         
       } catch (error) {
-        // Só mostrar erro se não for o caso de "nenhum dado encontrado" (PGRST116)
-        if (error.code !== 'PGRST116') {
-          console.error("Erro ao buscar dados da gravidez:", error);
-        }
+        console.error("Erro ao buscar dados da gravidez:", error);
       }
     };
 

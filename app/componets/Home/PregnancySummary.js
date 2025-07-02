@@ -22,6 +22,7 @@ const PregnancySummary = ({ week }) => {
     inicioFertil: null,
     fimFertil: null
   });
+
   const supabase = createClientComponentClient();
   
   useEffect(() => {
@@ -189,6 +190,7 @@ const PregnancySummary = ({ week }) => {
           {error}
         </div>
       )}
+      
       <div className="flex flex-col md:flex-row items-center">
         <div className="w-full md:w-1/2 flex flex-col justify-center p-4">
           {pregnancyData.tipo === 'planejamento' ? (
