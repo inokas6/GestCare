@@ -1,7 +1,9 @@
 {
-  "name": "pedromaior",
+  "name": "GestCare",
   "version": "0.1.0",
   "private": true,
+  "description": "Aplicação de acompanhamento da gravidez - GestCare",
+  "author": "Inês Miranda",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

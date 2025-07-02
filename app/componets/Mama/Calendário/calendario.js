@@ -20,6 +20,7 @@ export default function CalendarioGravidez() {
   const [showInfo, setShowInfo] = useState(false);
   const [showPregnancyForm, setShowPregnancyForm] = useState(false);
   const [showPlanningForm, setShowPlanningForm] = useState(false);
+  const [showMainConfigModal, setShowMainConfigModal] = useState(true);
   const [pregnancyData, setPregnancyData] = useState({
     dataInicio: null,
     semanaAtual: 0,
@@ -67,6 +68,11 @@ export default function CalendarioGravidez() {
     }
   }, [message]);
 
+  // Função para mostrar notificações
+  const showNotification = (text, type = 'success') => {
+    setMessage({ text, type });
+  };
+
   const fetchPregnancyData = async (userId) => {
     try {
       if (!userId) {
@@ -82,7 +88,8 @@ export default function CalendarioGravidez() {
         
       if (error) {
         if (error.code === 'PGRST116') {
-          console.log("Nenhum dado de gravidez encontrado para o usuário");
+          // Nenhum dado de gravidez encontrado - isso é normal para novos utilizadores
+          console.log("Nenhum dado de gravidez encontrado para o usuário - aguardando configuração");
           return;
         }
         throw error;
@@ -139,12 +146,15 @@ export default function CalendarioGravidez() {
       });
       await fetchInfoSemanal(semanasDesdeInicio);
     } catch (error) {
-      console.error("Erro ao buscar dados da gravidez:", {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      });
+      // Só mostrar erro se não for o caso de "nenhum dado encontrado" (PGRST116)
+      if (error.code !== 'PGRST116') {
+        console.error("Erro ao buscar dados da gravidez:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
+      }
     }
   };
   
@@ -1189,14 +1199,25 @@ export default function CalendarioGravidez() {
       )}
       
       {/* Modal para configuração da data inicial da gravidez (mostrado se não houver dados) */}
-      {!isLoading && !pregnancyData.dataInicio && !showPregnancyForm && !showPlanningForm && (
+      {!isLoading && !pregnancyData.dataInicio && !showPregnancyForm && !showPlanningForm && showMainConfigModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              onClick={() => {
+                setShowMainConfigModal(false);
+                setShowPregnancyForm(false);
+                setShowPlanningForm(false);
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-pink-800">
+              <h3 className="text-xl font-bold text-pink-800 pr-8">
                 Configurar calendário
               </h3>
             </div>
@@ -1222,7 +1243,7 @@ export default function CalendarioGravidez() {
               
               <button
                 onClick={() => {
-                  setShowModal(false);
+                  setShowMainConfigModal(false);
                   setShowPregnancyForm(false);
                   setShowPlanningForm(false);
                 }}
@@ -1240,11 +1261,18 @@ export default function CalendarioGravidez() {
       {showPregnancyForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              onClick={() => setShowPregnancyForm(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-pink-800">
+              <h3 className="text-xl font-bold text-pink-800 pr-8">
                 Estou grávida!
               </h3>
             </div>
@@ -1263,6 +1291,23 @@ export default function CalendarioGravidez() {
                 
                 if (!data_ultima_menstruacao) {
                   throw new Error("A data da última menstruação é obrigatória");
+                }
+
+                // Validar que a data da última menstruação não é futura
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                const dataUltimaMenstruacao = new Date(data_ultima_menstruacao);
+                
+                if (dataUltimaMenstruacao > hoje) {
+                  throw new Error("A data da última menstruação não pode ser futura");
+                }
+
+                // Validar que a data provável do parto não é passada
+                if (data_provavel_parto) {
+                  const dataProvavelParto = new Date(data_provavel_parto);
+                  if (dataProvavelParto <= hoje) {
+                    throw new Error("A data provável do parto deve ser futura");
+                  }
                 }
 
                 const dadosGravidez = {
@@ -1285,7 +1330,7 @@ export default function CalendarioGravidez() {
                 await fetchPregnancyData(user.id);
                 showNotification("Calendário configurado com sucesso!");
                 setShowPregnancyForm(false);
-                setShowModal(false);
+                setShowMainConfigModal(false);
                 setShowPlanningForm(false);
               } catch (error) {
                 console.error("Erro ao configurar dados da gravidez:", error);
@@ -1302,6 +1347,7 @@ export default function CalendarioGravidez() {
                   id="data_ultima_menstruacao"
                   type="date"
                   name="data_ultima_menstruacao"
+                  max={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   required
                 />
@@ -1316,6 +1362,7 @@ export default function CalendarioGravidez() {
                   id="data_provavel_parto"
                   type="date"
                   name="data_provavel_parto"
+                  min={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                 />
                 <p className="text-xs text-gray-500 mt-1">Se o seu médico já a informou de uma data provável</p>
@@ -1351,11 +1398,18 @@ export default function CalendarioGravidez() {
       {showPlanningForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              onClick={() => setShowPlanningForm(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
             <div className="flex justify-between items-center mb-5">
-              <h3 className="text-xl font-bold text-pink-800">
+              <h3 className="text-xl font-bold text-pink-800 pr-8">
                 Quero engravidar!
               </h3>
             </div>
@@ -1418,7 +1472,7 @@ export default function CalendarioGravidez() {
                 await fetchEvents(user.id);
                 showNotification("Calendário de planejamento configurado com sucesso!");
                 setShowPlanningForm(false);
-                setShowModal(false);
+                setShowMainConfigModal(false);
                 setShowPregnancyForm(false);
               } catch (error) {
                 console.error("Erro ao configurar planejamento:", error);

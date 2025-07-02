@@ -197,8 +197,15 @@ export default function CalendarioPage() {
 
       {showConfirmDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-black">Confirmar ação</h3>
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md relative">
+            <button
+              onClick={() => setShowConfirmDialog(false)}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
+            <h3 className="text-lg font-semibold mb-4 text-black pr-8">Confirmar ação</h3>
             <p className="mb-6 text-black">{pendingAction?.message || 'Tem certeza que deseja realizar esta ação?'}</p>
             <div className="flex justify-end space-x-4">
               <button
@@ -235,8 +242,15 @@ export default function CalendarioPage() {
       </div>
 
       {showNewEventoForm && (
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Novo Evento</h2>
+        <div className="bg-white p-6 rounded-lg shadow-sm relative">
+          <button
+            onClick={() => setShowNewEventoForm(false)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
+          <h2 className="text-xl font-semibold mb-4 pr-8">Novo Evento</h2>
           <form onSubmit={handleCreateEvento} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Título</label>

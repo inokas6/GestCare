@@ -87,54 +87,16 @@ const MenuHamb = () => {
                                 </li>
                             </ul>
                         </details>
-                    </li>                   
-                    <li>
-                        <details>
-                            <summary>Bebé</summary>
-                            <ul>
-                                <li>
-                                    <Link 
-                                        href="/Menu/Bebe/PaginaBebe"
-                                        className={pathname === '/Menu/Bebe/PaginaBebe' ? 'active' : ''}
-                                    >
-                                        Página do Bebé
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link 
-                                        href="/Menu/Bebe/Nomes"
-                                        className={pathname === '/Menu/Bebe/Nomes' ? 'active' : ''}
-                                    >
-                                        Nomes
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link 
-                                        href="/Menu/Bebe/Ultrasom"
-                                        className={pathname === '/Menu/Bebe/Ultrasom' ? 'active' : ''}
-                                    >
-                                        Ultrassom
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link 
-                                        href="/Menu/Bebe/Tamanhos"
-                                        className={pathname === '/Menu/Bebe/Tamanhos' ? 'active' : ''}
-                                    >
-                                        Tamanhos
-                                    </Link>
-                                </li>
-                            </ul>
-                        </details>
-                    </li>
+                    </li>  
                     <li>
                         <Link 
-                            href="/Menu/Chatgpt"
-                            className={pathname === '/Menu/Calculadoras' ? 'active' : ''}
+                            href="/Menu/Bebe/Nomes"
+                            className={pathname === '/Menu/Bebe/Nomes' ? 'active' : ''}
                         >
-                            teste chat
+                            Nomes
                         </Link>
-                    </li>
+                    </li>                
+                   
                     <li>
                         <Link 
                             href="/Menu/Calculadoras"

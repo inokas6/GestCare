@@ -74,7 +74,10 @@ const Home = () => {
           .single();
           
         if (error) {
-          console.error("Erro ao buscar dados da gravidez:", error);
+          // Só mostrar erro se não for o caso de "nenhum dado encontrado" (PGRST116)
+          if (error.code !== 'PGRST116') {
+            console.error("Erro ao buscar dados da gravidez:", error);
+          }
           return;
         }
         
@@ -88,7 +91,10 @@ const Home = () => {
         setCurrentWeek(semanasDesdeInicio);
         
       } catch (error) {
-        console.error("Erro ao buscar dados da gravidez:", error);
+        // Só mostrar erro se não for o caso de "nenhum dado encontrado" (PGRST116)
+        if (error.code !== 'PGRST116') {
+          console.error("Erro ao buscar dados da gravidez:", error);
+        }
       }
     };
 
