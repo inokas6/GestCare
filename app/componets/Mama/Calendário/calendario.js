@@ -20,6 +20,7 @@ export default function CalendarioGravidez() {
   const [showInfo, setShowInfo] = useState(false);
   const [showPregnancyForm, setShowPregnancyForm] = useState(false);
   const [showPlanningForm, setShowPlanningForm] = useState(false);
+  const [showInitialSetupModal, setShowInitialSetupModal] = useState(false);
   const [pregnancyData, setPregnancyData] = useState({
     dataInicio: null,
     semanaAtual: 0,
@@ -43,6 +44,10 @@ export default function CalendarioGravidez() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
 
+  const showNotification = (text, type = 'success') => {
+    setMessage({ text, type });
+  };
+
   useEffect(() => {
     const fetchCurrentUserAndData = async () => {
       setIsLoading(true);
@@ -57,6 +62,13 @@ export default function CalendarioGravidez() {
     
     fetchCurrentUserAndData();
   }, []);
+
+  // Mostrar modal inicial se não houver dados de gravidez
+  useEffect(() => {
+    if (!isLoading && !pregnancyData.dataInicio) {
+      setShowInitialSetupModal(true);
+    }
+  }, [isLoading, pregnancyData.dataInicio]);
 
   useEffect(() => {
     if (message.text) {
@@ -826,20 +838,20 @@ export default function CalendarioGravidez() {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
           <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-5">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
+            <div className="flex justify-between items-center mb-5 pr-8">
               <h3 className="text-xl font-bold text-pink-800">
                 {selectedDate ? `Novo Evento: ${formatEventDate(selectedDate)}` : 'Novo Evento'}
               </h3>
-              <button 
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-100"
-                aria-label="Fechar"
-              >
-                ✖️
-              </button>
             </div>
             
             <form onSubmit={handleSubmit}>
@@ -869,7 +881,7 @@ export default function CalendarioGravidez() {
                   value={newEvent.descricao}
                   onChange={handleInputChange}
                   className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
-                  placeholder="Adicione detalhes sobre o eventocarregando"
+                  placeholder="Adicione detalhes sobre o evento"
                   rows={3}
                 />
               </div>
@@ -1011,21 +1023,21 @@ export default function CalendarioGravidez() {
       {showEventDetails && selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowEventDetails(false)}>
           <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-4">
+            <button
+              onClick={() => setShowEventDetails(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
+            <div className="flex justify-between items-center mb-4 pr-8">
               <div className="flex items-center">
                 <span className="text-2xl mr-2">{getEventIcon(selectedEvent.tipo_evento)}</span>
                 <h3 className="text-xl font-bold text-pink-800 truncate">{selectedEvent.title}</h3>
               </div>
-              <button 
-                onClick={() => setShowEventDetails(false)}
-                className="text-gray-400 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-100"
-                aria-label="Fechar"
-              >
-                ✖️
-              </button>
             </div>
             
             <div className="mb-6">
@@ -1109,20 +1121,20 @@ export default function CalendarioGravidez() {
       {showInfo && infoSemanal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowInfo(false)}>
           <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg animate-fade-in overflow-y-auto max-h-[90vh]"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg animate-fade-in overflow-y-auto max-h-[90vh] relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-5">
+            <button
+              onClick={() => setShowInfo(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors z-10"
+              aria-label="Fechar"
+            >
+              ×
+            </button>
+            <div className="flex justify-between items-center mb-5 pr-8">
               <h3 className="text-xl font-bold bg-gradient-to-r from-pink-700 to-pink-600 bg-clip-text text-transparent">
                 Semana {infoSemanal.semana} da Gravidez
               </h3>
-              <button 
-                onClick={() => setShowInfo(false)}
-                className="text-gray-400 hover:text-gray-700 transition-colors p-2 rounded-full hover:bg-gray-100"
-                aria-label="Fechar"
-              >
-                ✖️
-              </button>
             </div>
             
             <div className="space-y-5">
@@ -1170,7 +1182,7 @@ export default function CalendarioGravidez() {
                     setNewEvent(prev => ({
                       ...prev,
                       titulo: `Semana ${infoSemanal.semana} - Consulta de acompanhamento`,
-                      descricao: `Desenvolvimento do bebé: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}carregando`,
+                      descricao: `Desenvolvimento do bebé: ${infoSemanal.desenvolvimento_bebe.substring(0, 100)}...`,
                       inicio_data: format(new Date(), "yyyy-MM-dd"),
                       tipo_evento: "consulta",
                     }));
@@ -1189,19 +1201,27 @@ export default function CalendarioGravidez() {
       )}
       
       {/* Modal para configuração da data inicial da gravidez (mostrado se não houver dados) */}
-      {!isLoading && !pregnancyData.dataInicio && !showPregnancyForm && !showPlanningForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      {showInitialSetupModal && !showPregnancyForm && !showPlanningForm && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" 
+          onClick={() => {
+            setShowInitialSetupModal(false);
+            setShowPregnancyForm(false);
+            setShowPlanningForm(false);
+          }}
+        >
           <div 
             className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => {
-                setShowModal(false);
+                setShowInitialSetupModal(false);
                 setShowPregnancyForm(false);
                 setShowPlanningForm(false);
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors z-10 cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
               aria-label="Fechar"
             >
               ×
@@ -1232,12 +1252,9 @@ export default function CalendarioGravidez() {
               </button>
               
               <button
-                onClick={() => {
-                  setShowModal(false);
-                  setShowPregnancyForm(false);
-                  setShowPlanningForm(false);
-                }}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                onClick={() => setShowInitialSetupModal(false)}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-lg font-medium flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 cursor-pointer"
+                style={{ pointerEvents: 'auto' }}
               >
                 <span className="mr-2">⏰</span>
                 Definir Depois
@@ -1249,14 +1266,18 @@ export default function CalendarioGravidez() {
 
       {/* Modal para configuração da gravidez */}
       {showPregnancyForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPregnancyForm(false)}
+        >
           <div 
             className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowPregnancyForm(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors z-10 cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
               aria-label="Fechar"
             >
               ×
@@ -1270,6 +1291,10 @@ export default function CalendarioGravidez() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               setIsLoading(true);
+              // FECHAR O MODAL IMEDIATAMENTE
+              setShowPregnancyForm(false);
+              setShowInitialSetupModal(false);
+              setShowPlanningForm(false);
               
               const formData = new FormData(e.target);
               const data_ultima_menstruacao = formData.get('data_ultima_menstruacao');
@@ -1286,18 +1311,10 @@ export default function CalendarioGravidez() {
                 // Validar que a data da última menstruação não é futura
                 const hoje = new Date();
                 hoje.setHours(0, 0, 0, 0);
-                const dataUltimaMenstruacao = new Date(data_ultima_menstruacao);
+                const dataUltimaMenstruacaoValidacao = new Date(data_ultima_menstruacao);
                 
-                if (dataUltimaMenstruacao > hoje) {
+                if (dataUltimaMenstruacaoValidacao > hoje) {
                   throw new Error("A data da última menstruação não pode ser futura");
-                }
-
-                // Validar que a data provável do parto não é passada
-                if (data_provavel_parto) {
-                  const dataProvavelParto = new Date(data_provavel_parto);
-                  if (dataProvavelParto <= hoje) {
-                    throw new Error("A data provável do parto deve ser futura");
-                  }
                 }
 
                 const dadosGravidez = {
@@ -1319,9 +1336,6 @@ export default function CalendarioGravidez() {
                 
                 await fetchPregnancyData(user.id);
                 showNotification("Calendário configurado com sucesso!");
-                setShowPregnancyForm(false);
-                setShowModal(false);
-                setShowPlanningForm(false);
               } catch (error) {
                 console.error("Erro ao configurar dados da gravidez:", error);
                 showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
@@ -1386,14 +1400,18 @@ export default function CalendarioGravidez() {
 
       {/* Modal para planejamento da gravidez */}
       {showPlanningForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPlanningForm(false)}
+        >
           <div 
             className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowPlanningForm(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors z-10 cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
               aria-label="Fechar"
             >
               ×
@@ -1407,6 +1425,10 @@ export default function CalendarioGravidez() {
             <form onSubmit={async (e) => {
               e.preventDefault();
               setIsLoading(true);
+              // FECHAR O MODAL IMEDIATAMENTE
+              setShowPregnancyForm(false);
+              setShowInitialSetupModal(false);
+              setShowPlanningForm(false);
               
               const formData = new FormData(e.target);
               const data_ultima_menstruacao = formData.get('data_ultima_menstruacao');
@@ -1418,6 +1440,15 @@ export default function CalendarioGravidez() {
                 
                 if (!data_ultima_menstruacao) {
                   throw new Error("A data da última menstruação é obrigatória");
+                }
+
+                // Validar que a data da última menstruação não é futura
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                const dataUltimaMenstruacaoValidacao = new Date(data_ultima_menstruacao);
+                
+                if (dataUltimaMenstruacaoValidacao > hoje) {
+                  throw new Error("A data da última menstruação não pode ser futura");
                 }
 
                 const dadosPlanejamento = {
@@ -1461,9 +1492,6 @@ export default function CalendarioGravidez() {
                 
                 await fetchEvents(user.id);
                 showNotification("Calendário de planejamento configurado com sucesso!");
-                setShowPlanningForm(false);
-                setShowModal(false);
-                setShowPregnancyForm(false);
               } catch (error) {
                 console.error("Erro ao configurar planejamento:", error);
                 showNotification(error.message || "Erro ao configurar dados. Tente novamente.", "error");
@@ -1479,6 +1507,7 @@ export default function CalendarioGravidez() {
                   id="data_ultima_menstruacao"
                   type="date"
                   name="data_ultima_menstruacao"
+                  max={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                   required
                 />
