@@ -21,34 +21,44 @@ const Caracteristicas = () => {
 
   const caracteristicasGeneticas = {
     corCabelo: {
-      preto: { gene: 'BB', dominancia: 3 },
-      castanho: { gene: 'Br', dominancia: 2 },
-      loiro: { gene: 'rr', dominancia: 1 },
-      ruivo: { gene: 'Rr', dominancia: 1 }
+      preto: { gene: 'BB', dominancia: 'dominante' },
+      castanho: { gene: 'Bb', dominancia: 'dominante' },
+      loiro: { gene: 'bb', dominancia: 'recessivo' },
+      ruivo: { gene: 'RR', dominancia: 'recessivo' }
     },
     corOlhos: {
-      castanhoEscuro: { gene: 'CC', dominancia: 4 },
-      castanhoClaro: { gene: 'Cc', dominancia: 3 },
-      verde: { gene: 'Vv', dominancia: 2 },
-      azul: { gene: 'aa', dominancia: 1 }
+      castanhoEscuro: { gene: 'BB', dominancia: 'dominante' },
+      castanhoClaro: { gene: 'Bb', dominancia: 'dominante' },
+      verde: { gene: 'GG', dominancia: 'dominante' },
+      azul: { gene: 'bb', dominancia: 'recessivo' }
     },
     tipoCabelo: {
-      crespo: { gene: 'CC', dominancia: 3 },
-      ondulado: { gene: 'Oo', dominancia: 2 },
-      liso: { gene: 'll', dominancia: 1 }
+      crespo: { gene: 'CC', dominancia: 'dominante' },
+      ondulado: { gene: 'Cc', dominancia: 'dominante' },
+      liso: { gene: 'cc', dominancia: 'recessivo' }
     },
     lobuloOrelha: {
-      solto: { gene: 'SS', dominancia: 2 },
-      preso: { gene: 'ss', dominancia: 1 }
+      solto: { gene: 'DD', dominancia: 'dominante' },
+      preso: { gene: 'dd', dominancia: 'recessivo' }
     },
     corPele: {
-      escura: { gene: 'EE', dominancia: 3 },
-      morena: { gene: 'Em', dominancia: 2 },
-      clara: { gene: 'mm', dominancia: 1 }
+      escura: { gene: 'EE', dominancia: 'dominante' },
+      morena: { gene: 'Ee', dominancia: 'dominante' },
+      clara: { gene: 'ee', dominancia: 'recessivo' }
     }
   };
 
   const calcularProbabilidades = () => {
+    // Verificar se pelo menos uma característica foi selecionada
+    const caracteristicasSelecionadas = Object.keys(caracteristicasGeneticas).filter(caracteristica => 
+      caracteristicasPai[caracteristica] && caracteristicasMae[caracteristica]
+    );
+
+    if (caracteristicasSelecionadas.length === 0) {
+      alert('Por favor, selecione pelo menos uma característica para o pai e para a mãe.');
+      return;
+    }
+
     const resultado = {};
     
     // Calcular probabilidades para cada característica
@@ -58,26 +68,69 @@ const Caracteristicas = () => {
 
       if (!genePai || !geneMae) return;
 
-      const combinacoes = [];
-      for (let i = 0; i < genePai.length; i++) {
-        for (let j = 0; j < geneMae.length; j++) {
-          combinacoes.push(genePai[i] + geneMae[j]);
-        }
-      }
+      // Gerar gametas (cada pai contribui com um alelo)
+      const gametasPai = genePai.split('');
+      const gametasMae = geneMae.split('');
 
-      // Calcular probabilidades para cada fenótipo possível
-      const probabilidades = {};
-      Object.entries(caracteristicasGeneticas[caracteristica]).forEach(([fenotipo, info]) => {
-        const count = combinacoes.filter(gene => {
-          const dominancia = info.dominancia;
-          if (dominancia === 1) return gene.toLowerCase() === info.gene.toLowerCase();
-          return gene.includes(info.gene[0]);
-        }).length;
-
-        probabilidades[fenotipo] = (count / combinacoes.length) * 100;
+      // Criar quadrado de Punnett (todas as combinações possíveis)
+      const quadradoPunnett = [];
+      gametasPai.forEach(aleloPai => {
+        gametasMae.forEach(aleloMae => {
+          // Ordenar os alelos (maiúsculo primeiro para dominante)
+          const alelos = [aleloPai, aleloMae].sort((a, b) => {
+            if (a === a.toUpperCase() && b === b.toLowerCase()) return -1;
+            if (a === a.toLowerCase() && b === b.toUpperCase()) return 1;
+            return 0;
+          });
+          quadradoPunnett.push(alelos.join(''));
+        });
       });
 
-      resultado[caracteristica] = probabilidades;
+      // Calcular probabilidades para cada fenótipo usando as leis de Mendel
+      const probabilidades = {};
+      
+      // Para cada fenótipo possível
+      Object.entries(caracteristicasGeneticas[caracteristica]).forEach(([fenotipo, info]) => {
+        let count = 0;
+        
+        quadradoPunnett.forEach(genotipo => {
+          let corresponde = false;
+          
+          if (info.dominancia === 'dominante') {
+            // Para características dominantes, pelo menos um alelo dominante
+            const aleloDominante = info.gene[0].toUpperCase();
+            corresponde = genotipo.includes(aleloDominante);
+          } else {
+            // Para características recessivas, ambos os alelos devem ser recessivos
+            const alelosRecessivos = info.gene.toLowerCase();
+            corresponde = genotipo.toLowerCase() === alelosRecessivos;
+          }
+          
+          if (corresponde) count++;
+        });
+        
+        probabilidades[fenotipo] = (count / quadradoPunnett.length) * 100;
+      });
+      
+      // Filtrar apenas probabilidades maiores que 0 e normalizar para somar 100%
+      const probabilidadesFiltradas = {};
+      let totalProb = 0;
+      
+      Object.entries(probabilidades).forEach(([fenotipo, prob]) => {
+        if (prob > 0) {
+          probabilidadesFiltradas[fenotipo] = prob;
+          totalProb += prob;
+        }
+      });
+      
+      // Normalizar para que somem 100%
+      if (totalProb > 0) {
+        Object.keys(probabilidadesFiltradas).forEach(fenotipo => {
+          probabilidadesFiltradas[fenotipo] = (probabilidadesFiltradas[fenotipo] / totalProb) * 100;
+        });
+      }
+      
+      resultado[caracteristica] = probabilidadesFiltradas;
     });
 
     setResultado(resultado);
@@ -130,7 +183,7 @@ const Caracteristicas = () => {
               <select
                 className="select select-bordered border-pink-200 focus:border-pink-500 text-black"
                 value={caracteristicasPai[caracteristica]}
-                onChange={(e) => setCaracteristicasPai({carregandocaracteristicasPai, [caracteristica]: e.target.value})}
+                onChange={(e) => setCaracteristicasPai({...caracteristicasPai, [caracteristica]: e.target.value})}
               >
                 <option value="" className="text-black">Selecione</option>
                 {Object.keys(caracteristicasGeneticas[caracteristica]).map((valor) => (
@@ -154,7 +207,7 @@ const Caracteristicas = () => {
               <select
                 className="select select-bordered border-pink-200 focus:border-pink-500 text-black"
                 value={caracteristicasMae[caracteristica]}
-                onChange={(e) => setCaracteristicasMae({carregandocaracteristicasMae, [caracteristica]: e.target.value})}
+                onChange={(e) => setCaracteristicasMae({...caracteristicasMae, [caracteristica]: e.target.value})}
               >
                 <option value="" className="text-black">Selecione</option>
                 {Object.keys(caracteristicasGeneticas[caracteristica]).map((valor) => (

@@ -39,14 +39,14 @@ const TamanhoEstimado = () => {
     29: { tamanho: '38.6', peso: '1150', comparacao: 'Ananás' },
     30: { tamanho: '39.9', peso: '1300', comparacao: 'Melão' },
     31: { tamanho: '41.1', peso: '1500', comparacao: 'Coco' },
-    32: { tamanho: '42.4', peso: '1700', comparacao: 'Jaca pequena' },
+    32: { tamanho: '42.4', peso: '1700', comparacao: 'Abacaxi pequeno' },
     33: { tamanho: '43.7', peso: '1900', comparacao: 'Abóbora' },
     34: { tamanho: '45.0', peso: '2100', comparacao: 'Melancia pequena' },
     35: { tamanho: '46.2', peso: '2400', comparacao: 'Couve grande' },
     36: { tamanho: '47.4', peso: '2600', comparacao: 'Melancia média' },
-    37: { tamanho: '48.6', peso: '2800', comparacao: 'Jaca média' },
+    37: { tamanho: '48.6', peso: '2800', comparacao: 'Abacaxi médio' },
     38: { tamanho: '49.8', peso: '3100', comparacao: 'Melancia grande' },
-    39: { tamanho: '50.7', peso: '3300', comparacao: 'Jaca grande' },
+    39: { tamanho: '50.7', peso: '3300', comparacao: 'Abacaxi grande' },
     40: { tamanho: '51.2', peso: '3400', comparacao: 'Abóbora grande' },
   };
 
@@ -73,14 +73,14 @@ const TamanhoEstimado = () => {
       const fatorAjuste = medidaReal / medidaPadrao;
 
       crescimentoAjustado = {
-        carregandodadosSemana,
+        ...dadosSemana,
         tamanho: (medidaReal).toFixed(1),
         peso: Math.round(parseFloat(dadosSemana.peso) * fatorAjuste)
       };
     }
 
     setResultado({
-      carregandocrescimentoAjustado,
+      ...crescimentoAjustado,
       semana
     });
   };
