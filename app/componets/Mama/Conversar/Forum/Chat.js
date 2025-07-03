@@ -309,15 +309,19 @@ export default function Chat() {
                                     {messages.map((message) => (
                                         <div key={message.id} className="flex items-start space-x-3 group">
                                             <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 ring-2 ring-white">
-                                                <img 
-                                                    src={message.user?.foto_perfil || '/default-avatar.png'} 
-                                                    alt={message.user?.nome || 'Utilizador'}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = '/default-avatar.png';
-                                                    }}
-                                                />
+                                                {message.user?.foto_perfil ? (
+                                                    <img 
+                                                        src={message.user.foto_perfil} 
+                                                        alt={message.user.nome || 'Utilizador'}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-purple-100">
+                                                        <span className="text-purple-800 font-medium text-sm">
+                                                            {message.user?.nome?.charAt(0)?.toUpperCase() || '?'}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center space-x-2">
@@ -370,15 +374,19 @@ export default function Chat() {
                                 onlineUsers.map(user => (
                                     <div key={user.id} className="flex items-center gap-2 sm:gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
                                         <div className="w-8 h-8 sm:w-10 sm:h-10 overflow-hidden rounded-full bg-gray-200 ring-2 ring-white">
-                                            <img 
-                                                src={user.foto_perfil || '/default-avatar.png'} 
-                                                alt={user.nome || 'Utilizador'}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = '/default-avatar.png';
-                                                }}
-                                            />
+                                            {user.foto_perfil ? (
+                                                <img 
+                                                    src={user.foto_perfil} 
+                                                    alt={user.nome || 'Utilizador'}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-purple-100">
+                                                    <span className="text-purple-800 font-medium text-xs sm:text-sm">
+                                                        {user.nome?.charAt(0)?.toUpperCase() || '?'}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </div>
                                         <span className="text-sm sm:text-base text-gray-700 font-medium">{user.nome || 'Utilizador'}</span>
                                     </div>

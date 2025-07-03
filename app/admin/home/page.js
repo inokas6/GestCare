@@ -72,13 +72,13 @@ export default function AdminHome() {
           setIsAuthenticated(true);
           setIsChecking(false);
           
-          // Buscar total de usuários
+          // Procurar total de usuários
           const { count: usersCount, error: usersError } = await supabase
             .from('users')
             .select('*', { count: 'exact', head: true });
 
           if (usersError) {
-            console.error('Erro ao buscar total de usuários:', usersError);
+            console.error('Erro ao procurar total de usuários:', usersError);
           } else if (isMounted) {
             setStats(prevStats => ({
               ...prevStats,
@@ -86,13 +86,13 @@ export default function AdminHome() {
             }));
           }
 
-          // Buscar total de tópicos
+          // Procurar total de tópicos
           const { count: topicosCount, error: topicosError } = await supabase
             .from('topicos')
             .select('*', { count: 'exact', head: true });
 
           if (topicosError) {
-            console.error('Erro ao buscar total de tópicos:', topicosError);
+            console.error('Erro ao procurar total de tópicos:', topicosError);
           } else if (isMounted) {
             setStats(prevStats => ({
               ...prevStats,
@@ -100,13 +100,13 @@ export default function AdminHome() {
             }));
           }
 
-          // Buscar total de respostas
+          // Procurar total de respostas
           const { count: respostasCount, error: respostasError } = await supabase
             .from('respostas')
             .select('*', { count: 'exact', head: true });
 
           if (respostasError) {
-            console.error('Erro ao buscar total de respostas:', respostasError);
+            console.error('Erro ao procurar total de respostas:', respostasError);
           } else if (isMounted) {
             setStats(prevStats => ({
               ...prevStats,
@@ -114,14 +114,14 @@ export default function AdminHome() {
             }));
           }
 
-          // Buscar dados de tópicos por semana
+          // Procurar dados de tópicos por semana
           const { data: topicosData, error: topicosDataError } = await supabase
             .from('topicos')
             .select('created_at')
             .order('created_at', { ascending: true });
 
           if (topicosDataError) {
-            console.error('Erro ao buscar dados de tópicos:', topicosDataError);
+            console.error('Erro ao procurar dados de tópicos:', topicosDataError);
           } else if (isMounted && topicosData) {
             // Função para obter o número da semana do ano
             const getWeekNumber = (date) => {
@@ -168,7 +168,7 @@ export default function AdminHome() {
             }));
           }
 
-          // Buscar dados de tópicos por categoria
+          // Procurar dados de tópicos por categoria
           const { data: topicosCategoriasData, error: topicosCategoriasError } = await supabase
             .from('topicos')
             .select(`
@@ -180,7 +180,7 @@ export default function AdminHome() {
             `);
 
           if (topicosCategoriasError) {
-            console.error('Erro ao buscar dados de tópicos por categoria:', topicosCategoriasError);
+            console.error('Erro ao procurar dados de tópicos por categoria:', topicosCategoriasError);
           } else if (isMounted && topicosCategoriasData) {
             // Agrupar tópicos por categoria
             const topicosPorCategoria = topicosCategoriasData.reduce((acc, topico) => {
@@ -213,13 +213,13 @@ export default function AdminHome() {
             }));
           }
 
-          // Buscar dados de gravidez
+          // Procurar dados de gravidez
           const { data: gravidezData, error: gravidezError } = await supabase
             .from('gravidez_info')
             .select('tipo');
 
           if (gravidezError) {
-            console.error('Erro ao buscar dados de gravidez:', gravidezError);
+            console.error('Erro ao procurar dados de gravidez:', gravidezError);
           } else if (isMounted && gravidezData) {
             // Agrupar por tipo de gravidez
             const gravidezPorTipo = gravidezData.reduce((acc, info) => {
@@ -294,7 +294,7 @@ export default function AdminHome() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-pink-50 to-rose-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Carregando dashboard...</p>
+          <p className="text-lg text-gray-600">A carregar dashboard...</p>
         </div>
       </div>
     );

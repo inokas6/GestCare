@@ -37,13 +37,29 @@ export default function NewTopic({ onClose, setMessage }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
+        // Validar se os campos não estão vazios ou apenas com espaços
+        if (!titulo.trim()) {
+            setMessage({ text: 'O título não pode estar vazio', type: 'error' });
+            return;
+        }
+        
+        if (!conteudo.trim()) {
+            setMessage({ text: 'O conteúdo não pode estar vazio', type: 'error' });
+            return;
+        }
+        
+        if (!categoriaId) {
+            setMessage({ text: 'Por favor, selecione uma categoria', type: 'error' });
+            return;
+        }
+        
         setLoading(true);
         setError(null);
 
         try {
             // Verificar palavras proibidas no título e conteúdo
-            const verificarTitulo = verificarPalavrasProibidas(titulo);
-            const verificarConteudo = verificarPalavrasProibidas(conteudo);
+            const verificarTitulo = verificarPalavrasProibidas(titulo.trim());
+            const verificarConteudo = verificarPalavrasProibidas(conteudo.trim());
 
             if (verificarTitulo.contemPalavraProibida) {
                 setInappropriateWord(verificarTitulo.palavraEncontrada);
@@ -71,8 +87,8 @@ export default function NewTopic({ onClose, setMessage }) {
                         }
 
                         const { error } = await forum.createTopico(
-                            titulo,
-                            conteudo,
+                            titulo.trim(),
+                            conteudo.trim(),
                             categoriaId,
                             user.id
                         );

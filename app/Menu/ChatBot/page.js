@@ -1,6 +1,6 @@
 "use client";
 import Navbar from "../../componets/Home/navbar_home";
-import ChatGPT from "../../componets/Chatgpt/chat";
+import ChatGPT from "../../componets/ChatBot/chat";
 
 export default function Page() {
   return (

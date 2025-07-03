@@ -66,13 +66,13 @@ export default function CalendarioPage() {
         .order('inicio_data', { ascending: true });
 
       if (error) {
-        console.error('Erro ao buscar eventos:', error.message);
+        console.error('Erro ao procurar eventos:', error.message);
         throw error;
       }
 
       setEventos(data || []);
     } catch (error) {
-      console.error('Erro ao buscar eventos:', error.message);
+      console.error('Erro ao procurar eventos:', error.message);
       setEventos([]);
     } finally {
       setIsLoading(false);
@@ -321,7 +321,7 @@ export default function CalendarioPage() {
               </div>
               {newEvento.lembrete && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Antecedência (minutos)</label>
+                  <label className="block text-sm font-medium text-gray-700">Antecedência (dias)</label>
                   <input
                     type="number"
                     value={newEvento.lembrete_antecedencia}
@@ -355,7 +355,7 @@ export default function CalendarioPage() {
         <div className="p-4 border-b">
           <input
             type="text"
-            placeholder="Buscar eventos..."
+            placeholder="Procurar eventos..."
             className="w-full px-4 py-2 border rounded-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -363,7 +363,7 @@ export default function CalendarioPage() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <div className="p-4 text-center">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -503,7 +503,7 @@ export default function CalendarioPage() {
                               onChange={(e) => setEditingEvento({...editingEvento, lembrete_antecedencia: parseInt(e.target.value)})}
                               className="border rounded px-2 py-1 w-24"
                               min="0"
-                              placeholder="Minutos"
+                              placeholder="Dias"
                             />
                           )}
                         </div>
@@ -515,7 +515,7 @@ export default function CalendarioPage() {
                                 Sim
                               </span>
                               {evento.lembrete_antecedencia > 0 && (
-                                <span>({evento.lembrete_antecedencia} min)</span>
+                                <span>({evento.lembrete_antecedencia} dias)</span>
                               )}
                             </span>
                           ) : (

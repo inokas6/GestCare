@@ -95,6 +95,23 @@ const NoticiasAdmin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validar se os campos não estão vazios ou apenas com espaços
+    if (!titulo.trim()) {
+      setMessage({ text: 'O título não pode estar vazio', type: 'error' });
+      return;
+    }
+    
+    if (!data.trim()) {
+      setMessage({ text: 'A data não pode estar vazia', type: 'error' });
+      return;
+    }
+    
+    if (!conteudo.trim()) {
+      setMessage({ text: 'O conteúdo não pode estar vazio', type: 'error' });
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -104,9 +121,9 @@ const NoticiasAdmin = () => {
       }
 
       const noticiaData = {
-        titulo,
-        data,
-        conteudo,
+        titulo: titulo.trim(),
+        data: data.trim(),
+        conteudo: conteudo.trim(),
         imagem: imagemUrl,
       };
 
@@ -150,30 +167,66 @@ const NoticiasAdmin = () => {
       conteudo: noticia.conteudo,
       imagem: noticia.imagem
     });
+    setImagem(null); // Limpar qualquer imagem selecionada anteriormente
   };
 
   const handleSalvarEdicao = async () => {
+    // Validar se os campos não estão vazios ou apenas com espaços
+    if (!editandoNoticia.titulo.trim()) {
+      setMessage({ text: 'O título não pode estar vazio', type: 'error' });
+      return;
+    }
+    
+    if (!editandoNoticia.data.trim()) {
+      setMessage({ text: 'A data não pode estar vazia', type: 'error' });
+      return;
+    }
+    
+    if (!editandoNoticia.conteudo.trim()) {
+      setMessage({ text: 'O conteúdo não pode estar vazio', type: 'error' });
+      return;
+    }
+
     setPendingAction({
       type: 'save',
       message: 'Deseja salvar as alterações desta notícia?',
       callback: async () => {
         try {
           setLoading(true);
+          
+          let imagemUrl = editandoNoticia.imagem;
+          
+          // Se há uma nova imagem selecionada, fazer upload
+          if (imagem) {
+            imagemUrl = await uploadImagem(imagem);
+          }
+
           const { error } = await supabase
             .from('noticias')
             .update({
-              titulo: editandoNoticia.titulo,
-              data: editandoNoticia.data,
-              conteudo: editandoNoticia.conteudo
+              titulo: editandoNoticia.titulo.trim(),
+              data: editandoNoticia.data.trim(),
+              conteudo: editandoNoticia.conteudo.trim(),
+              imagem: imagemUrl
             })
             .eq('id', editandoNoticia.id);
 
           if (error) throw error;
 
+          // Atualizar a notícia na lista com a nova imagem
+          const noticiaAtualizada = {
+            ...editandoNoticia,
+            titulo: editandoNoticia.titulo.trim(),
+            data: editandoNoticia.data.trim(),
+            conteudo: editandoNoticia.conteudo.trim(),
+            imagem: imagemUrl
+          };
+
           setNoticias(noticias.map(noticia => 
-            noticia.id === editandoNoticia.id ? editandoNoticia : noticia
+            noticia.id === editandoNoticia.id ? noticiaAtualizada : noticia
           ));
           setEditandoNoticia(null);
+          setImagem(null); // Limpar a imagem selecionada
           setMessage({ text: 'Notícia atualizada com sucesso!', type: 'success' });
         } catch (error) {
           console.error('Erro ao atualizar notícia:', error);
@@ -390,14 +443,33 @@ const NoticiasAdmin = () => {
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {noticia.imagem ? (
-                      <img
-                        src={noticia.imagem}
-                        alt={noticia.titulo}
-                        className="h-10 w-10 object-cover rounded"
-                      />
+                    {editandoNoticia?.id === noticia.id ? (
+                      <div className="space-y-2">
+                        {noticia.imagem && (
+                          <img
+                            src={noticia.imagem}
+                            alt={noticia.titulo}
+                            className="h-10 w-10 object-cover rounded"
+                          />
+                        )}
+                        <input
+                          type="file"
+                          onChange={handleImagemChange}
+                          accept="image/*"
+                          className="text-xs"
+                        />
+                        <p className="text-xs text-gray-500">Deixe vazio para manter a imagem atual</p>
+                      </div>
                     ) : (
-                      <span className="text-black">Sem imagem</span>
+                      noticia.imagem ? (
+                        <img
+                          src={noticia.imagem}
+                          alt={noticia.titulo}
+                          className="h-10 w-10 object-cover rounded"
+                        />
+                      ) : (
+                        <span className="text-black">Sem imagem</span>
+                      )
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -411,7 +483,10 @@ const NoticiasAdmin = () => {
                           {loading ? 'Salvando...' : 'Salvar'}
                         </button>
                         <button
-                          onClick={() => setEditandoNoticia(null)}
+                          onClick={() => {
+                            setEditandoNoticia(null);
+                            setImagem(null);
+                          }}
                           className="text-gray-600 hover:text-gray-900"
                         >
                           Cancelar

@@ -229,7 +229,7 @@ export default function TamanhosBebePage() {
         <div className="p-4 border-b">
           <input
             type="text"
-            placeholder="Buscar por semana ou fruta..."
+            placeholder="Procurar por semana ou fruta..."
             className="w-full px-4 py-2 border rounded-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -237,7 +237,7 @@ export default function TamanhosBebePage() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <div className="p-4 text-center">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">

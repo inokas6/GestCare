@@ -66,7 +66,7 @@ export default function TopicosPage() {
       if (error) throw error;
       setCategorias(data);
     } catch (error) {
-      console.error('Erro ao buscar categorias:', error);
+      console.error('Erro ao procurar categorias:', error);
     }
   };
 
@@ -79,7 +79,7 @@ export default function TopicosPage() {
       if (error) throw error;
       setUsuarios(data);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error('Erro ao procurar usuários:', error);
     }
   };
 
@@ -297,7 +297,7 @@ export default function TopicosPage() {
         <div className="p-4 border-b">
           <input
             type="text"
-            placeholder="Buscar tópicos..."
+            placeholder="Procurar tópicos..."
             className="w-full px-4 py-2 border rounded-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -305,7 +305,7 @@ export default function TopicosPage() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <div className="p-4 text-center">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">

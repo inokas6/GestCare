@@ -79,9 +79,25 @@ export default function EditarTopico({ params }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
+        // Validar se os campos não estão vazios ou apenas com espaços
+        if (!titulo.trim()) {
+            setMessage({ text: 'O título não pode estar vazio', type: 'error' });
+            return;
+        }
+        
+        if (!conteudo.trim()) {
+            setMessage({ text: 'O conteúdo não pode estar vazio', type: 'error' });
+            return;
+        }
+        
+        if (!categoriaId) {
+            setMessage({ text: 'Por favor, selecione uma categoria', type: 'error' });
+            return;
+        }
+        
         // Verificar palavras proibidas no título e conteúdo
-        const verificarTitulo = verificarPalavrasProibidas(titulo);
-        const verificarConteudo = verificarPalavrasProibidas(conteudo);
+        const verificarTitulo = verificarPalavrasProibidas(titulo.trim());
+        const verificarConteudo = verificarPalavrasProibidas(conteudo.trim());
 
         if (verificarTitulo.contemPalavraProibida) {
             setInappropriateWord(verificarTitulo.palavraEncontrada);
@@ -106,8 +122,8 @@ export default function EditarTopico({ params }) {
                     const { error } = await supabase
                         .from('topicos')
                         .update({
-                            titulo,
-                            conteudo,
+                            titulo: titulo.trim(),
+                            conteudo: conteudo.trim(),
                             categoria_id: categoriaId,
                             updated_at: new Date().toISOString()
                         })

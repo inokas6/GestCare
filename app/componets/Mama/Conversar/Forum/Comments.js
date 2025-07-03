@@ -42,11 +42,16 @@ export default function Comments({ topicId }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!novaResposta.trim()) return;
+        
+        // Validar se o comentário não está vazio ou apenas com espaços
+        if (!novaResposta.trim()) {
+            setMessage({ text: 'O comentário não pode estar vazio', type: 'error' });
+            return;
+        }
 
         try {
             // Verificar palavras proibidas no comentário
-            const verificarComentario = verificarPalavrasProibidas(novaResposta);
+            const verificarComentario = verificarPalavrasProibidas(novaResposta.trim());
 
             if (verificarComentario.contemPalavraProibida) {
                 setInappropriateWord(verificarComentario.palavraEncontrada);
@@ -74,7 +79,7 @@ export default function Comments({ topicId }) {
             }
 
             const { error } = await forum.addResposta(
-                novaResposta,
+                novaResposta.trim(),
                 topicId,
                 user.id
             );

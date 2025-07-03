@@ -3,7 +3,7 @@ import Footerbaby from "./componets/PaginaInicial/footer";
 import Navbarbaby from "./componets/PaginaInicial/navbar";
 import Not from "./componets/PaginaInicial/bannernews";
 import TabelaNoticias from "./componets/PaginaInicial/tabelaNoticias";
-import Chatbot from "./componets/Chatgpt/chat";
+import Chatbot from "./componets/ChatBot/chat";
 
 const BabyCarePage = () => {
   return (

@@ -7,7 +7,6 @@ export default function UsuariosPage() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [editingUser, setEditingUser] = useState(null);
   const [showNewUserForm, setShowNewUserForm] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -31,74 +30,43 @@ export default function UsuariosPage() {
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/users');
-      if (!response.ok) throw new Error('Erro ao buscar utilizadores');
+      if (!response.ok) throw new Error('Erro ao procurar utilizadores');
       const data = await response.json();
       setUsers(data);
     } catch (error) {
-      console.error('Erro ao buscar utilizadores:', error);
+      console.error('Erro ao procurar utilizadores:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEdit = (user) => {
-    setEditingUser(user);
-  };
-
-  const handleDelete = async (userId) => {
+  const handleBanUser = async (userId) => {
     setPendingAction({
-      type: 'delete',
-      message: 'Tem certeza que deseja eliminar este usuário? Esta ação não poderá ser revertida!',
+      type: 'ban',
+      message: 'Tem certeza que deseja banir este utilizador? Esta ação não poderá ser revertida!',
       callback: async () => {
         try {
           const { error } = await supabase
             .from('users')
-            .delete()
+            .update({ banned: true })
             .eq('id', userId);
 
           if (error) throw error;
 
-          setUsers(users.filter(user => user.id !== userId));
-          setMessage({ text: 'Utilizador eliminado com sucesso!', type: 'success' });
-        } catch (error) {
-          console.error('Erro ao eliminar utilizador:', error);
-          setMessage({ text: 'Erro ao eliminar utilizador: ' + error.message, type: 'error' });
-        }
-      }
-    });
-    setShowConfirmDialog(true);
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setPendingAction({
-      type: 'save',
-      message: 'Deseja salvar as alterações deste usuário?',
-      callback: async () => {
-        try {
-          const { error } = await supabase
-            .from('users')
-            .update({
-              nome: editingUser.nome,
-              email: editingUser.email
-            })
-            .eq('id', editingUser.id);
-
-          if (error) throw error;
-
           setUsers(users.map(user => 
-            user.id === editingUser.id ? editingUser : user
+            user.id === userId ? { ...user, banned: true } : user
           ));
-          setEditingUser(null);
-          setMessage({ text: 'Utilizador atualizado com sucesso!', type: 'success' });
+          setMessage({ text: 'Utilizador banido com sucesso!', type: 'success' });
         } catch (error) {
-          console.error('Erro ao atualizar utilizador:', error);
-          setMessage({ text: 'Erro ao atualizar utilizador: ' + error.message, type: 'error' });
+          console.error('Erro ao banir utilizador:', error);
+          setMessage({ text: 'Erro ao banir utilizador: ' + error.message, type: 'error' });
         }
       }
     });
     setShowConfirmDialog(true);
   };
+
+
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
@@ -233,7 +201,7 @@ export default function UsuariosPage() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">Carregando...</div>
+          <div className="p-4 text-center">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -249,6 +217,9 @@ export default function UsuariosPage() {
                     Data de Cadastro
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -257,63 +228,31 @@ export default function UsuariosPage() {
                 {filteredUsers.map((user) => (
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {editingUser?.id === user.id ? (
-                        <input
-                          type="text"
-                          value={editingUser.nome}
-                          onChange={(e) => setEditingUser({...editingUser, nome: e.target.value})}
-                          className="border rounded px-2 py-1"
-                        />
-                      ) : (
-                        <div className="text-sm font-medium text-gray-900">{user.nome}</div>
-                      )}
+                      <div className="text-sm font-medium text-gray-900">{user.nome}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {editingUser?.id === user.id ? (
-                        <input
-                          type="email"
-                          value={editingUser.email}
-                          onChange={(e) => setEditingUser({...editingUser, email: e.target.value})}
-                          className="border rounded px-2 py-1"
-                        />
-                      ) : (
-                        <div className="text-sm text-gray-500">{user.email}</div>
-                      )}
+                      <div className="text-sm text-gray-500">{user.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(user.created_at).toLocaleDateString('pt-BR')}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.banned 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {user.banned ? 'Banido' : 'Ativo'}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {editingUser?.id === user.id ? (
-                        <>
-                          <button 
-                            onClick={handleSave}
-                            className="text-green-600 hover:text-green-900 mr-3"
-                          >
-                            Salvar
-                          </button>
-                          <button 
-                            onClick={() => setEditingUser(null)}
-                            className="text-gray-600 hover:text-gray-900"
-                          >
-                            Cancelar
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button 
-                            onClick={() => handleEdit(user)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
-                          >
-                            Editar
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(user.id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Eliminar
-                          </button>
-                        </>
+                      {!user.banned && (
+                        <button 
+                          onClick={() => handleBanUser(user.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Banir utilizador
+                        </button>
                       )}
                     </td>
                   </tr>

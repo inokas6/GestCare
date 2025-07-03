@@ -85,7 +85,7 @@ export default function AdminLogin() {
         throw new Error('Falha na autenticação');
       }
 
-      // Buscar informações do usuário
+      // Procurar informações do usuário
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
