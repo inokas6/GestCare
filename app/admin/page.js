@@ -10,10 +10,34 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [authorizedEmails, setAuthorizedEmails] = useState([]);
   const router = useRouter();
   const supabase = createClientComponentClient();
 
-  const authorizedEmails = ['ineslaramiranda6@gmail.com'];
+  useEffect(() => {
+    fetchAuthorizedEmails();
+  }, []);
+
+  const fetchAuthorizedEmails = async () => {
+    try {
+      const { data: authorizedEmailsData, error } = await supabase
+        .from('admin_authorized_emails')
+        .select('email')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Erro ao buscar emails autorizados:', error);
+        // Fallback para o email padrão se houver erro
+        setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
+      } else {
+        setAuthorizedEmails(authorizedEmailsData.map(item => item.email));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar emails autorizados:', error);
+      // Fallback para o email padrão se houver erro
+      setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -53,12 +77,15 @@ export default function AdminLogin() {
       }
     };
 
-    checkAuth();
+    // Só verificar autenticação depois de carregar os emails autorizados
+    if (authorizedEmails.length > 0) {
+      checkAuth();
+    }
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [authorizedEmails]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -178,16 +205,9 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-pink-600 to-rose-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-pink-600 to-rose-700 text-white py-2 px-4 rounded-lg hover:from-pink-700 hover:to-rose-800 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 disabled:opacity-50 transition-all duration-200"
             >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Entrando...
-                </div>
-              ) : (
-                'Entrar'
-              )}
+              {loading ? 'A fazer login...' : 'Entrar'}
             </button>
           </form>
         </div>

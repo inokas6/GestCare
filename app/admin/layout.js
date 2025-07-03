@@ -50,9 +50,6 @@ export default function AdminLayout({ children }) {
                   <Link href="/admin/configuracoes" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                     Configurações
                   </Link>
-                  <Link href="/admin/fotos-barriga" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                    Fotos Barriga
-                  </Link>
                 </div>
               </div>
               <div className="flex items-center">

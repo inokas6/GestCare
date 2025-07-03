@@ -13,6 +13,7 @@ export default function AdminHome() {
   const supabase = createClientComponentClient();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [authorizedEmails, setAuthorizedEmails] = useState([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalTopicos: 0,
@@ -26,12 +27,40 @@ export default function AdminHome() {
   });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
-  const authorizedEmails = ['ineslaramiranda6@gmail.com'];
+
+  useEffect(() => {
+    fetchAuthorizedEmails();
+  }, []);
+
+  const fetchAuthorizedEmails = async () => {
+    try {
+      const { data: authorizedEmailsData, error } = await supabase
+        .from('admin_authorized_emails')
+        .select('email')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Erro ao buscar emails autorizados:', error);
+        // Fallback para o email padrão se houver erro
+        setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
+      } else {
+        setAuthorizedEmails(authorizedEmailsData.map(item => item.email));
+      }
+    } catch (error) {
+      console.error('Erro ao buscar emails autorizados:', error);
+      // Fallback para o email padrão se houver erro
+      setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
+      // Só verificar autenticação depois de carregar os emails autorizados
+      if (authorizedEmails.length === 0) {
+        return;
+      }
       try {
         // Verificar localStorage primeiro
         const adminAuth = localStorage.getItem('adminAuth');
@@ -259,7 +288,7 @@ export default function AdminHome() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [authorizedEmails]);
 
   const TabButton = ({ id, label, isActive, onClick }) => (
     <button

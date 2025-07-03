@@ -13,7 +13,15 @@ export default function AdminLogin() {
   const router = useRouter();
   const supabase = createClientComponentClient();
 
-  const authorizedEmails = ['ineslaramiranda6@gmail.com'];
+  const [authorizedEmails, setAuthorizedEmails] = useState(['ineslaramiranda6@gmail.com']);
+
+  useEffect(() => {
+    // Carregar emails autorizados do localStorage
+    const saved = localStorage.getItem('adminAuthorizedEmails');
+    if (saved) {
+      setAuthorizedEmails(JSON.parse(saved));
+    }
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
