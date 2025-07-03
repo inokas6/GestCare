@@ -199,10 +199,10 @@ export default function CategoriasPage() {
 
       {showNewCategoriaForm && (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Nova Categoria</h2>
+          <h2 className="text-xl font-semibold mb-4 text-black">Nova Categoria</h2>
           <form onSubmit={handleCreateCategoria} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Nome</label>
+              <label className="block text-sm font-medium text-black">Nome</label>
               <input
                 type="text"
                 value={newCategoria.nome}
@@ -212,7 +212,7 @@ export default function CategoriasPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Descrição</label>
+              <label className="block text-sm font-medium text-black">Descrição</label>
               <textarea
                 value={newCategoria.descricao}
                 onChange={(e) => setNewCategoria({...newCategoria, descricao: e.target.value})}
@@ -222,7 +222,7 @@ export default function CategoriasPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Cor</label>
+                <label className="block text-sm font-medium text-black">Cor</label>
                 <input
                   type="color"
                   value={newCategoria.cor}
@@ -231,7 +231,7 @@ export default function CategoriasPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Ícone</label>
+                <label className="block text-sm font-medium text-black">Ícone</label>
                 <input
                   type="text"
                   value={newCategoria.icone}
@@ -243,7 +243,7 @@ export default function CategoriasPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Ordem</label>
+                <label className="block text-sm font-medium text-black">Ordem</label>
                 <input
                   type="number"
                   value={newCategoria.ordem}
@@ -260,7 +260,7 @@ export default function CategoriasPage() {
                     onChange={(e) => setNewCategoria({...newCategoria, ativa: e.target.checked})}
                     className="rounded border-gray-300 text-pink-700 focus:ring-pink-700"
                   />
-                  <span className="text-sm font-medium text-gray-700">Ativa</span>
+                  <span className="text-sm font-medium text-black">Ativa</span>
                 </label>
               </div>
             </div>
@@ -268,7 +268,7 @@ export default function CategoriasPage() {
               <button
                 type="button"
                 onClick={() => setShowNewCategoriaForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50"
               >
                 Cancelar
               </button>
@@ -288,14 +288,14 @@ export default function CategoriasPage() {
           <input
             type="text"
             placeholder="Procurar categorias..."
-            className="w-full px-4 py-2 border rounded-lg"
+            className="w-full px-4 py-2 border rounded-lg text-black placeholder-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">A carregar...</div>
+          <div className="p-4 text-center text-black">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">

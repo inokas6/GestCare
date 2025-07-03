@@ -171,7 +171,7 @@ export default function TamanhosBebePage() {
       )}
 
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Tamanhos do Bebê por Semana</h1>
+        <h1 className="text-2xl font-semibold text-black">Tamanhos do Bebê por Semana</h1>
         <button 
           onClick={() => setShowNewForm(true)}
           className="bg-gradient-to-r from-pink-600 to-rose-700 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200"
@@ -182,10 +182,10 @@ export default function TamanhosBebePage() {
 
       {showNewForm && (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Novo Tamanho</h2>
+          <h2 className="text-xl font-semibold mb-4 text-black">Novo Tamanho</h2>
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Semana</label>
+              <label className="block text-sm font-medium text-black">Semana</label>
               <input
                 type="number"
                 min="1"
@@ -197,7 +197,7 @@ export default function TamanhosBebePage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Fruta</label>
+              <label className="block text-sm font-medium text-black">Fruta</label>
               <input
                 type="text"
                 value={newTamanho.fruta}
@@ -210,7 +210,7 @@ export default function TamanhosBebePage() {
               <button
                 type="button"
                 onClick={() => setShowNewForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50"
               >
                 Cancelar
               </button>
@@ -237,22 +237,22 @@ export default function TamanhosBebePage() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">A carregar...</div>
+          <div className="p-4 text-center text-black">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Semana
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Fruta
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Data de Criação
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-black uppercase tracking-wider">
                     Ações
                   </th>
                 </tr>
@@ -271,7 +271,7 @@ export default function TamanhosBebePage() {
                           className="border rounded px-2 py-1"
                         />
                       ) : (
-                        <div className="text-sm font-medium text-gray-900">Semana {tamanho.semana}</div>
+                        <div className="text-sm font-medium text-black">Semana {tamanho.semana}</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -283,10 +283,10 @@ export default function TamanhosBebePage() {
                           className="border rounded px-2 py-1"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500">{tamanho.fruta}</div>
+                        <div className="text-sm text-black">{tamanho.fruta}</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {new Date(tamanho.created_at).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -300,7 +300,7 @@ export default function TamanhosBebePage() {
                           </button>
                           <button 
                             onClick={() => setEditingTamanho(null)}
-                            className="text-gray-600 hover:text-gray-900"
+                            className="text-black hover:text-gray-900"
                           >
                             Cancelar
                           </button>

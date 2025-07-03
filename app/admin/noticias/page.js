@@ -458,7 +458,7 @@ const NoticiasAdmin = () => {
                           accept="image/*"
                           className="text-xs"
                         />
-                        <p className="text-xs text-gray-500">Deixe vazio para manter a imagem atual</p>
+                        <p className="text-xs text-black">Deixe vazio para manter a imagem atual</p>
                       </div>
                     ) : (
                       noticia.imagem ? (

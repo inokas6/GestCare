@@ -150,7 +150,7 @@ export default function AdminLogin() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-pink-50 to-rose-50">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-pink-200 border-t-pink-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">...</p>
+          <p className="text-lg text-black">...</p>
         </div>
       </div>
     );
@@ -164,12 +164,12 @@ export default function AdminLogin() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-rose-700 bg-clip-text text-transparent">
               Admin
             </h1>
-            <p className="text-gray-600 mt-2">Faça login para aceder</p>
+            <p className="text-black mt-2">Faça login para aceder</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-black mb-1">
                 Email
               </label>
               <input
@@ -183,7 +183,7 @@ export default function AdminLogin() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-black mb-1">
                 Password
               </label>
               <input

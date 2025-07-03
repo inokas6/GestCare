@@ -363,7 +363,7 @@ export default function CalendarioPage() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">A carregar...</div>
+          <div className="p-4 text-center text-black">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -404,7 +404,7 @@ export default function CalendarioPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEventos.map((evento) => (
                   <tr key={evento.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {evento.id.substring(0, 8)}...
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -428,7 +428,7 @@ export default function CalendarioPage() {
                           rows="2"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500 line-clamp-2">{evento.descricao}</div>
+                        <div className="text-sm text-black line-clamp-2">{evento.descricao}</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -440,7 +440,7 @@ export default function CalendarioPage() {
                           className="border rounded px-2 py-1"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-black">
                           {new Date(evento.inicio_data).toLocaleString('pt-BR', {
                             dateStyle: 'short',
                             timeStyle: 'short'
@@ -457,7 +457,7 @@ export default function CalendarioPage() {
                           className="border rounded px-2 py-1"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-black">
                           {evento.fim_data ? new Date(evento.fim_data).toLocaleString('pt-BR', {
                             dateStyle: 'short',
                             timeStyle: 'short'
@@ -508,7 +508,7 @@ export default function CalendarioPage() {
                           )}
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-black">
                           {evento.lembrete ? (
                             <span className="inline-flex items-center space-x-1">
                               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -526,13 +526,13 @@ export default function CalendarioPage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {new Date(evento.created_at).toLocaleString('pt-BR', {
                         dateStyle: 'short',
                         timeStyle: 'short'
                       })}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                       {new Date(evento.updated_at).toLocaleString('pt-BR', {
                         dateStyle: 'short',
                         timeStyle: 'short'

@@ -282,7 +282,7 @@ export default function InfoGestacionalPage() {
         </div>
 
         {isLoading ? (
-          <div className="p-4 text-center">A carregar...</div>
+          <div className="p-4 text-center text-black">A carregar...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -334,7 +334,7 @@ export default function InfoGestacionalPage() {
                           rows="3"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500 line-clamp-2">{info.desenvolvimento_bebe}</div>
+                        <div className="text-sm text-black line-clamp-2">{info.desenvolvimento_bebe}</div>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -346,7 +346,7 @@ export default function InfoGestacionalPage() {
                           rows="3"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500 line-clamp-2">{info.sintomas_comuns}</div>
+                        <div className="text-sm text-black line-clamp-2">{info.sintomas_comuns}</div>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -358,7 +358,7 @@ export default function InfoGestacionalPage() {
                           rows="3"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500 line-clamp-2">{info.dicas_mae}</div>
+                        <div className="text-sm text-black line-clamp-2">{info.dicas_mae}</div>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -370,7 +370,7 @@ export default function InfoGestacionalPage() {
                           rows="3"
                         />
                       ) : (
-                        <div className="text-sm text-gray-500 line-clamp-2">{info.cuidados_especiais}</div>
+                        <div className="text-sm text-black line-clamp-2">{info.cuidados_especiais}</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

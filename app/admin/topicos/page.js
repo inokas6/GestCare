@@ -220,10 +220,10 @@ export default function TopicosPage() {
 
       {showNewTopicoForm && (
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Novo Tópico</h2>
+          <h2 className="text-xl font-semibold mb-4 text-black">Novo Tópico</h2>
           <form onSubmit={handleCreateTopico} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Título</label>
+              <label className="block text-sm font-medium text-black">Título</label>
               <input
                 type="text"
                 value={newTopico.titulo}
@@ -233,7 +233,7 @@ export default function TopicosPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Conteúdo</label>
+              <label className="block text-sm font-medium text-black">Conteúdo</label>
               <textarea
                 value={newTopico.conteudo}
                 onChange={(e) => setNewTopico({...newTopico, conteudo: e.target.value})}
@@ -243,7 +243,7 @@ export default function TopicosPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Categoria</label>
+              <label className="block text-sm font-medium text-black">Categoria</label>
               <select
                 value={newTopico.categoria_id}
                 onChange={(e) => setNewTopico({...newTopico, categoria_id: e.target.value})}
@@ -259,7 +259,7 @@ export default function TopicosPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Usuário</label>
+              <label className="block text-sm font-medium text-black">Usuário</label>
               <select
                 value={newTopico.user_id}
                 onChange={(e) => setNewTopico({...newTopico, user_id: e.target.value})}
@@ -278,7 +278,7 @@ export default function TopicosPage() {
               <button
                 type="button"
                 onClick={() => setShowNewTopicoForm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50"
               >
                 Cancelar
               </button>
@@ -298,7 +298,7 @@ export default function TopicosPage() {
           <input
             type="text"
             placeholder="Procurar tópicos..."
-            className="w-full px-4 py-2 border rounded-lg"
+            className="w-full px-4 py-2 border rounded-lg text-black placeholder-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
