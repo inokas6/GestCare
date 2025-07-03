@@ -13,7 +13,7 @@ export default function AdminHome() {
   const supabase = createClientComponentClient();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [authorizedEmails, setAuthorizedEmails] = useState([]);
+  const authorizedEmails = ['ineslaramiranda6@gmail.com'];
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalTopicos: 0,
@@ -29,38 +29,9 @@ export default function AdminHome() {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    fetchAuthorizedEmails();
-  }, []);
-
-  const fetchAuthorizedEmails = async () => {
-    try {
-      const { data: authorizedEmailsData, error } = await supabase
-        .from('admin_authorized_emails')
-        .select('email')
-        .eq('is_active', true);
-
-      if (error) {
-        console.error('Erro ao buscar emails autorizados:', error);
-        // Fallback para o email padrão se houver erro
-        setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
-      } else {
-        setAuthorizedEmails(authorizedEmailsData.map(item => item.email));
-      }
-    } catch (error) {
-      console.error('Erro ao buscar emails autorizados:', error);
-      // Fallback para o email padrão se houver erro
-      setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
-    }
-  };
-
-  useEffect(() => {
     let isMounted = true;
 
     const checkAuth = async () => {
-      // Só verificar autenticação depois de carregar os emails autorizados
-      if (authorizedEmails.length === 0) {
-        return;
-      }
       try {
         // Verificar localStorage primeiro
         const adminAuth = localStorage.getItem('adminAuth');
@@ -107,7 +78,7 @@ export default function AdminHome() {
             .select('*', { count: 'exact', head: true });
 
           if (usersError) {
-            console.error('Erro ao procurar total de usuários:', usersError);
+            // Silenciosamente continuar sem mostrar erro
           } else if (isMounted) {
             setStats(prevStats => ({
               ...prevStats,
@@ -121,7 +92,7 @@ export default function AdminHome() {
             .select('*', { count: 'exact', head: true });
 
           if (topicosError) {
-            console.error('Erro ao procurar total de tópicos:', topicosError);
+            // Silenciosamente continuar sem mostrar erro
           } else if (isMounted) {
             setStats(prevStats => ({
               ...prevStats,
@@ -135,7 +106,7 @@ export default function AdminHome() {
             .select('*', { count: 'exact', head: true });
 
           if (respostasError) {
-            console.error('Erro ao procurar total de respostas:', respostasError);
+            // Silenciosamente continuar sem mostrar erro
           } else if (isMounted) {
             setStats(prevStats => ({
               ...prevStats,
@@ -150,7 +121,7 @@ export default function AdminHome() {
             .order('created_at', { ascending: true });
 
           if (topicosDataError) {
-            console.error('Erro ao procurar dados de tópicos:', topicosDataError);
+            // Silenciosamente continuar sem mostrar erro
           } else if (isMounted && topicosData) {
             // Função para obter o número da semana do ano
             const getWeekNumber = (date) => {
@@ -209,7 +180,7 @@ export default function AdminHome() {
             `);
 
           if (topicosCategoriasError) {
-            console.error('Erro ao procurar dados de tópicos por categoria:', topicosCategoriasError);
+            // Silenciosamente continuar sem mostrar erro
           } else if (isMounted && topicosCategoriasData) {
             // Agrupar tópicos por categoria
             const topicosPorCategoria = topicosCategoriasData.reduce((acc, topico) => {
@@ -248,7 +219,7 @@ export default function AdminHome() {
             .select('tipo');
 
           if (gravidezError) {
-            console.error('Erro ao procurar dados de gravidez:', gravidezError);
+            // Silenciosamente continuar sem mostrar erro
           } else if (isMounted && gravidezData) {
             // Agrupar por tipo de gravidez
             const gravidezPorTipo = gravidezData.reduce((acc, info) => {
@@ -275,7 +246,7 @@ export default function AdminHome() {
           }
         }
       } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
+        // Silenciosamente limpar autenticação e continuar
         if (isMounted) {
           localStorage.removeItem('adminAuth');
           router.replace('/admin');
@@ -288,7 +259,7 @@ export default function AdminHome() {
     return () => {
       isMounted = false;
     };
-  }, [authorizedEmails]);
+  }, []);
 
   const TabButton = ({ id, label, isActive, onClick }) => (
     <button
@@ -380,9 +351,20 @@ export default function AdminHome() {
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TopicosPorSemana data={stats.topicosPorMes} />
-              <DistribuicaoUtilizadoras data={stats.gravidezStats} />
-              <TopicosPorCategoria data={stats.categorias} />
+              <TopicosPorSemana data={stats.topicosPorMes || []} />
+              <DistribuicaoUtilizadoras data={stats.gravidezStats || []} />
+              <TopicosPorCategoria data={stats.categorias || []} />
+            </div>
+            
+            {/* Debug info - remover depois */}
+            <div className="mt-8 p-4 bg-gray-100 rounded-lg">
+              <h4 className="font-semibold mb-2">Debug Info:</h4>
+              <p>Total Users: {stats.totalUsers}</p>
+              <p>Total Tópicos: {stats.totalTopicos}</p>
+              <p>Total Mensagens: {stats.totalMensagens}</p>
+              <p>Tópicos por Mês: {JSON.stringify(stats.topicosPorMes)}</p>
+              <p>Categorias: {JSON.stringify(stats.categorias)}</p>
+              <p>Gravidez Stats: {JSON.stringify(stats.gravidezStats)}</p>
             </div>
           </div>
         )}

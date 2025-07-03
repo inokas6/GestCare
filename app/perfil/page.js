@@ -581,7 +581,7 @@ const Perfil = () => {
                 name="nome"
                 value={formData.nome}
                 onChange={handleChange}
-                className="input input-bordered w-full"
+                className="input input-bordered w-full text-black"
                 disabled={!editMode}
               />
             </div>
@@ -596,7 +596,7 @@ const Perfil = () => {
                   name="email"
                   value={editMode ? (pendingEmail || formData.email) : formData.email}
                   onChange={handleChange}
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full text-black"
                   disabled={!editMode || emailChangePending}
                 />
                 {editMode && !emailChangePending && (
@@ -635,7 +635,7 @@ const Perfil = () => {
                 <input
                   type="text"
                   value={formatDate(formData.created_at)}
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full text-black"
                   disabled
                 />
               </div>
@@ -647,7 +647,7 @@ const Perfil = () => {
                 <input
                   type="text"
                   value={formatDate(formData.updated_at)}
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full text-black"
                   disabled
                 />
               </div>
@@ -713,7 +713,7 @@ const Perfil = () => {
                   </h3>
                 </div>
                 
-                <p className="text-gray-600 mb-6">Selecione uma opção:</p>
+                <p className="text-black mb-6">Selecione uma opção:</p>
                 
                 <div className="space-y-4 mb-6">
                   <button
@@ -883,7 +883,7 @@ const Perfil = () => {
                   }
                 }}>
                   <div className="mb-5">
-                    <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="data_ultima_menstruacao">
+                    <label className="block text-black text-sm font-semibold mb-2" htmlFor="data_ultima_menstruacao">
                       Data da última menstruação
                     </label>
                     <input
@@ -900,12 +900,12 @@ const Perfil = () => {
                         return dataLimite.toISOString().split('T')[0];
                       })()}
                     />
-                    <p className="text-xs text-gray-500 mt-1">A data deve estar entre 41 semanas atrás e hoje</p>
+                    <p className="text-xs text-black mt-1">A data deve estar entre 41 semanas atrás e hoje</p>
                   </div>
                   
                   {pregnancyData?.tipo === 'gravida' ? (
                     <div className="mb-6">
-                      <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="data_provavel_parto">
+                      <label className="block text-black text-sm font-semibold mb-2" htmlFor="data_provavel_parto">
                         Data provável do parto (opcional)
                       </label>
                       <input
@@ -916,11 +916,11 @@ const Perfil = () => {
                         className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                         min={new Date().toISOString().split('T')[0]}
                       />
-                      <p className="text-xs text-gray-500 mt-1">A data deve ser posterior a hoje</p>
+                      <p className="text-xs text-black mt-1">A data deve ser posterior a hoje</p>
                     </div>
                   ) : (
                     <div className="mb-6">
-                      <label className="block text-gray-700 text-sm font-semibold mb-2" htmlFor="ciclo_menstrual">
+                      <label className="block text-black text-sm font-semibold mb-2" htmlFor="ciclo_menstrual">
                         Duração do ciclo menstrual (em dias)
                       </label>
                       <input
@@ -932,7 +932,7 @@ const Perfil = () => {
                         defaultValue={pregnancyData?.ciclo_menstrual || "28"}
                         className="w-full px-4 py-2.5 border border-pink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-black"
                       />
-                      <p className="text-xs text-gray-500 mt-1">O ciclo padrão é de 28 dias. Ajuste conforme seu ciclo.</p>
+                      <p className="text-xs text-black mt-1">O ciclo padrão é de 28 dias. Ajuste conforme seu ciclo.</p>
                     </div>
                   )}
                   
@@ -940,7 +940,7 @@ const Perfil = () => {
                     <button
                       type="button"
                       onClick={() => setShowPlanningForm(false)}
-                      className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
+                      className="px-5 py-2.5 border border-gray-300 text-black rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300"
                     >
                       Cancelar
                     </button>

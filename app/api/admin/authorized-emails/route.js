@@ -13,7 +13,6 @@ export async function GET() {
       .order('created_at', { ascending: false });
 
     if (usersError) {
-      console.error('Erro ao buscar usuários:', usersError);
       return NextResponse.json({ error: 'Erro ao carregar usuários' }, { status: 500 });
     }
 
@@ -24,7 +23,6 @@ export async function GET() {
       .eq('is_active', true);
 
     if (authError) {
-      console.error('Erro ao buscar emails autorizados:', authError);
       return NextResponse.json({ error: 'Erro ao carregar emails autorizados' }, { status: 500 });
     }
 
@@ -41,7 +39,6 @@ export async function GET() {
       users: usersWithAuthStatus
     });
   } catch (error) {
-    console.error('Erro interno:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }

@@ -47,7 +47,7 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
-      // Buscar informações do usuário logado
+      // Buscar informações do user
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')

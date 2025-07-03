@@ -12,6 +12,7 @@ export default function Chat() {
     const [messageInput, setMessageInput] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [deletingMessage, setDeletingMessage] = useState(null);
     
     // Referência para rastrear se já carregamos mensagens
     const messagesLoaded = useRef(false);
@@ -101,6 +102,13 @@ export default function Chat() {
                 (payload) => {
                     console.log('Nova mensagem recebida via canal:', payload);
                     fetchMessages();
+                }
+            )
+            .on('postgres_changes', 
+                { event: 'DELETE', schema: 'public', table: 'respostas' },
+                (payload) => {
+                    console.log('Mensagem apagada via canal:', payload);
+                    setMessages(prevMessages => prevMessages.filter(msg => msg.id !== payload.old.id));
                 }
             )
             .subscribe((status) => {
@@ -252,6 +260,44 @@ export default function Chat() {
         }
     };
 
+    const handleDeleteMessage = async (messageId) => {
+        if (!session?.user) {
+            console.log('Sessão não disponível para apagar mensagem');
+            return;
+        }
+
+        try {
+            setDeletingMessage(messageId);
+            setError(null);
+
+            console.log('Tentando apagar mensagem:', messageId, 'para utilizador:', session.user.id);
+
+            const response = await fetch(`/api/chat/messages?id=${messageId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // Incluir cookies na requisição
+            });
+
+            const result = await response.json();
+            console.log('Resposta da API:', result);
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Erro ao apagar mensagem');
+            }
+
+            // Atualizar a lista de mensagens removendo a mensagem apagada
+            setMessages(prevMessages => prevMessages.filter(msg => msg.id !== messageId));
+            
+        } catch (error) {
+            console.error('Erro ao apagar mensagem:', error);
+            setError(`Erro ao apagar mensagem: ${error.message || 'Erro desconhecido'}`);
+        } finally {
+            setDeletingMessage(null);
+        }
+    };
+
     // Efeito para rolar para o final quando novas mensagens chegarem
     const messagesEndRef = useRef(null);
     
@@ -329,6 +375,25 @@ export default function Chat() {
                                                     <span className="text-xs text-gray-400">
                                                         {new Date(message.created_at).toLocaleString()}
                                                     </span>
+                                                    {/* Botão de apagar - só aparece para o autor da mensagem */}
+                                                    {session?.user?.id === message.user?.id && (
+                                                        <button
+                                                            onClick={() => handleDeleteMessage(message.id)}
+                                                            disabled={deletingMessage === message.id}
+                                                            className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            title="Apagar mensagem"
+                                                        >
+                                                            {deletingMessage === message.id ? (
+                                                                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                                </svg>
+                                                            ) : (
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                            )}
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 <p className="text-gray-700 mt-1 bg-white/50 backdrop-blur-sm p-3 rounded-lg shadow-sm">{message.conteudo}</p>
                                             </div>

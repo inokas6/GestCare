@@ -10,34 +10,9 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [authorizedEmails, setAuthorizedEmails] = useState([]);
+  const authorizedEmails = ['ineslaramiranda6@gmail.com'];
   const router = useRouter();
   const supabase = createClientComponentClient();
-
-  useEffect(() => {
-    fetchAuthorizedEmails();
-  }, []);
-
-  const fetchAuthorizedEmails = async () => {
-    try {
-      const { data: authorizedEmailsData, error } = await supabase
-        .from('admin_authorized_emails')
-        .select('email')
-        .eq('is_active', true);
-
-      if (error) {
-        console.error('Erro ao buscar emails autorizados:', error);
-        // Fallback para o email padrão se houver erro
-        setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
-      } else {
-        setAuthorizedEmails(authorizedEmailsData.map(item => item.email));
-      }
-    } catch (error) {
-      console.error('Erro ao buscar emails autorizados:', error);
-      // Fallback para o email padrão se houver erro
-      setAuthorizedEmails(['ineslaramiranda6@gmail.com']);
-    }
-  };
 
   useEffect(() => {
     let isMounted = true;
@@ -69,7 +44,7 @@ export default function AdminLogin() {
           setIsChecking(false);
         }
       } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
+        // Silenciosamente limpar autenticação e continuar
         if (isMounted) {
           localStorage.removeItem('adminAuth');
           setIsChecking(false);
@@ -77,15 +52,12 @@ export default function AdminLogin() {
       }
     };
 
-    // Só verificar autenticação depois de carregar os emails autorizados
-    if (authorizedEmails.length > 0) {
-      checkAuth();
-    }
+    checkAuth();
 
     return () => {
       isMounted = false;
     };
-  }, [authorizedEmails]);
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -138,7 +110,7 @@ export default function AdminLogin() {
       router.refresh(); // Força atualização da página
 
     } catch (err) {
-      console.error('Erro no login:', err);
+      // Mostrar apenas mensagens de erro amigáveis ao utilizador
       setError(err.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
