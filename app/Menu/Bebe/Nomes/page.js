@@ -11,11 +11,14 @@ export default function NomePage() {
 
   const exemplosNomes = ['Sofia', 'Miguel', 'Laura', 'Gabriel', 'Helena'];
 
+  const [nomeExibido, setNomeExibido] = useState('');
+
   const buscarSignificado = async (nomeParaBuscar = nome) => {
     if (!nomeParaBuscar.trim()) {
       setErro('Por favor, digite um nome');
       return;
     }
+
 
     setcarregando(true);
     setResultado('');
@@ -27,6 +30,8 @@ export default function NomePage() {
       const data = await res.json();
       
       console.log('Resposta da API:', data);
+      setNomeExibido(nomeParaBuscar);
+
 
       if (!res.ok) {
         throw new Error(data.error || 'Erro ao buscar nome');
@@ -64,7 +69,7 @@ export default function NomePage() {
                   className="w-full pl-12 pr-4 py-4 border-2 border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent text-lg transition-all duration-300 bg-pink-50/50 placeholder-pink-300 text-black"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  placeholder="Digite o nome do bebécarregando"
+                  placeholder="Digite o nome do bebé..."
                   onKeyPress={(e) => e.key === 'Enter' && buscarSignificado()}
                 />
               </div>
@@ -76,7 +81,7 @@ export default function NomePage() {
                 {carregando ? (
                   <>
                     <span className="mr-2 animate-spin text-xl">⏳</span>
-                    A procurarcarregando
+                    A procurar
                   </>
                 ) : (
                   <>
@@ -126,7 +131,7 @@ export default function NomePage() {
             <div className="p-0 overflow-hidden bg-white rounded-2xl border-2 border-pink-200 shadow-lg transform transition-all duration-300 hover:shadow-xl">
               <div className="bg-gradient-to-r from-pink-100 to-pink-50 px-6 py-4 border-b border-pink-200">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl md:text-3xl font-bold text-pink-600">{nome}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold text-pink-600">{nomeExibido}</h2>
                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
                     <span className="text-pink-500 text-xl">👶</span>
                   </div>

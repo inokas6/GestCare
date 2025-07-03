@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import TodasFotosBarriga from '@/app/componets/Mama/MinhaBarriga/todasfotosbarriga';
+import TodasFotosBarriga from '../../componets/Mama/MinhaBarriga/todasfotosbarriga';
 
 export default function FotosBarrigaPage() {
   const [message, setMessage] = useState({ text: '', type: '' });
