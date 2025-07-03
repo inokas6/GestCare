@@ -148,8 +148,17 @@ const MinhaBarriga = () => {
       callback: async () => {
         try {
           for (const file of files) {
+            // Verificar se é realmente uma imagem
             if (!file.type.startsWith('image/')) {
-              setMessage({ text: 'Por favor, selecione apenas arquivos de imagem.', type: 'error' });
+              setMessage({ text: 'Por favor, selecione apenas arquivos de imagem (JPG, PNG, GIF, etc.)', type: 'error' });
+              continue;
+            }
+
+            // Verificar extensões permitidas
+            const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(fileExtension)) {
+              setMessage({ text: 'Formato de imagem não suportado. Use JPG, PNG, GIF ou WebP', type: 'error' });
               continue;
             }
 

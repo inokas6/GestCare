@@ -47,8 +47,29 @@ const NoticiasAdmin = () => {
   };
 
   const handleImagemChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setImagem(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      // Verificar se é realmente uma imagem
+      if (!file.type.startsWith('image/')) {
+        setMessage({ text: 'Por favor, selecione apenas arquivos de imagem (JPG, PNG, GIF, etc.)', type: 'error' });
+        return;
+      }
+
+      // Verificar extensões permitidas
+      const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      if (!allowedExtensions.includes(fileExtension)) {
+        setMessage({ text: 'Formato de imagem não suportado. Use JPG, PNG, GIF ou WebP', type: 'error' });
+        return;
+      }
+
+      // Verificar tamanho do arquivo (máximo 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ text: 'A imagem deve ter menos de 5MB', type: 'error' });
+        return;
+      }
+
+      setImagem(file);
     }
   };
 

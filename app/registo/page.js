@@ -38,8 +38,23 @@ const SignUp = () => {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Verificar se é realmente uma imagem
+      if (!file.type.startsWith('image/')) {
+        setError('Por favor, selecione apenas arquivos de imagem (JPG, PNG, GIF, etc.)');
+        return;
+      }
+
+      // Verificar tamanho do arquivo (máximo 1MB)
       if (file.size > 1 * 1024 * 1024) {
         setError('A imagem deve ter menos de 1MB');
+        return;
+      }
+
+      // Verificar extensões permitidas
+      const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      if (!allowedExtensions.includes(fileExtension)) {
+        setError('Formato de imagem não suportado. Use JPG, PNG, GIF ou WebP');
         return;
       }
       
