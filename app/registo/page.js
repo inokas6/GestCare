@@ -88,6 +88,11 @@ const SignUp = () => {
         throw new Error('Por favor, preencha todos os campos obrigatórios');
       }
 
+      // Verificar se o nome não contém apenas espaços
+      if (formData.nome.trim() === '') {
+        throw new Error('O nome não pode conter apenas espaços');
+      }
+
       // Tentar criar usuário apenas com email e senha
       console.log("Tentando criar user básico...");
       const { data: authData, error: authError } = await supabase.auth.signUp({

@@ -288,16 +288,7 @@ export default function BabyDevelopmentPage() {
 </div>
 
                 
-                <button 
-                  className="current-week-btn text-white px-8 py-3 rounded-full font-semibold transition-transform hover:scale-105"
-                  onClick={() => selecionarSemana(semanaAtual)}
-                  style={{
-                    background: 'linear-gradient(45deg, #9d174d, #be185d)',
-                    boxShadow: '0 6px 20px rgba(219, 39, 119, 0.4)',
-                  }}
-                >
-                  Ver Semana Atual ({semanaAtual})
-                </button>
+
               </div>
               
               {/* Right column - Week selection and info */}

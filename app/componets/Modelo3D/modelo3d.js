@@ -19,7 +19,10 @@ function Modelo({ semana, onError }) {
   try {
     const gltf = useGLTF(modelPath);
     console.log('Modelo carregado com sucesso:', gltf);
-    return React.createElement('primitive', { object: gltf.scene });
+    return React.createElement('primitive', { 
+      object: gltf.scene,
+      rotation: [-Math.PI / 2 + Math.PI / 2 + Math.PI, Math.PI + 0.3, Math.PI / 2] // Rotação invertida + 90 graus + 180 graus no eixo X + 180 graus no eixo Y + 0.3 radianos para a direita + 90 graus no eixo Z
+    });
   } catch (error) {
     console.error('Erro detalhado ao carregar modelo:', error);
     console.error('Caminho do modelo:', modelPath);
@@ -137,11 +140,12 @@ function Modelo3D({ semana = null, onError }) {
     Canvas,
     { 
       style: { height: '500px' },
-      camera: { position: [0, 0, 5], fov: 50 },
+      camera: { position: [0, 2, 5], fov: 50 },
       key: key // Usa a key para forçar re-renderização
     },
-    React.createElement('ambientLight', { intensity: 0.6 }),
-    React.createElement('directionalLight', { position: [0, 5, 5] }),
+    React.createElement('ambientLight', { intensity: 0.7 }),
+    React.createElement('directionalLight', { position: [0, 8, 2], intensity: 1.2 }),
+    React.createElement('directionalLight', { position: [2, 6, 0], intensity: 0.6 }),
     React.createElement(Suspense, { 
       fallback: React.createElement('div', { className: 'flex items-center justify-center h-full' }, 
         React.createElement('div', { className: 'text-gray-600' }, 'A carregar o modelo...')
