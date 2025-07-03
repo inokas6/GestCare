@@ -432,25 +432,28 @@ const MinhaBarriga = () => {
         </div>
 
         <input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" multiple />
+        <input id="photo-upload-floating" type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" multiple />
         
-        {activeTab === "photos" && currentMonthPhotos.length > 0 && (
-          <div className="absolute bottom-4 right-4 flex space-x-2">
-            <button 
-              onClick={() => confirmDeletePhoto(currentMonth - 1, selectedPhotoIndex)} 
-              className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full cursor-pointer shadow-md transition-colors"
-            >
-              <TrashIcon />
-            </button>
+        {activeTab === "photos" && (
+          <div className="absolute bottom-4 right-4 flex space-x-2 z-10">
+            {currentMonthPhotos.length > 0 && (
+              <button 
+                onClick={() => confirmDeletePhoto(currentMonth - 1, selectedPhotoIndex)} 
+                className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full cursor-pointer shadow-md transition-colors"
+              >
+                <TrashIcon />
+              </button>
+            )}
             <label 
-              htmlFor="photo-upload" 
-              className="bg-pink-800 hover:bg-pink-900 text-white p-2 rounded-full cursor-pointer shadow-md transition-colors"
+              htmlFor="photo-upload-floating" 
+              className="bg-pink-800 hover:bg-pink-900 text-white p-2 rounded-full cursor-pointer shadow-md transition-colors pointer-events-auto"
             >
               <IconUpload />
             </label>
           </div>
         )}
 
-        <div className="absolute top-0 bottom-0 left-2 flex items-center">
+        <div className="absolute top-0 bottom-0 left-2 flex items-center z-5">
           <button 
             onClick={handlePrevious} 
             disabled={currentMonth === 1 || isTransitioning} 
@@ -459,7 +462,7 @@ const MinhaBarriga = () => {
             &lt;
           </button>
         </div>
-        <div className="absolute top-0 bottom-0 right-2 flex items-center">
+        <div className="absolute top-0 bottom-0 right-2 flex items-center z-5">
           <button 
             onClick={handleNext} 
             disabled={currentMonth === 9 || isTransitioning} 
